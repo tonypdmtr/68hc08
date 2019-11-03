@@ -1,0 +1,85 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Get the position of a character starting at HX
+; Input  : HX -> beginning position in search buffer (0,CR,LF terminated)
+;        : A = character to search for
+; Output : IF FOUND: A = offset from HX to found character (ready for AAX)
+;        :           Carry is Clear
+;        : IF NOT FOUND: A is unaffected and Carry is Set
+; Note(s): Target character can also be one of the terminators
+
+StringPos           macro     [[#]TargetChar]][,[#]ASCIZ_String]]
+                    #push
+                    #spauto   :sp
+          #ifparm ~1~
+                    psha      :temp
+                    lda       ~1~
+          #endif
+          #ifparm ~2~
+                    pshhx
+                    @@lea     ~@@~
+          #endif
+                    call      ~0~
+          #ifparm ~1~
+                    bcs       ?$$$
+                    sta       :temp,sp
+?$$$
+          #endif
+          #ifparm ~2~
+                    pulhx
+          #endif
+          #ifparm ~1~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringPos           proc
+                    psha      target@@
+                    pshhx
+                    #ais
+
+                    clra                          ;Initialize position counter
+                    psha      counter@@
+
+Loop@@              inc       counter@@,sp        ;count this character
+
+                    lda       ,x                  ;is buffer char ...
+                    cmpa      target@@,sp         ;... same as target?
+                    aix       #1                  ;(point to next buffer character)
+                    beq       Found@@             ;if so, go count the match
+
+                    sec                           ;assume 'not found'
+                    cbeqa     #0,Done@@           ;if at end of string, we didn't find target
+
+          ; comment out next two lines for ASCIZ strings only
+                    cbeqa     #CR,Done@@          ;A CR means end of string
+                    cbeqa     #LF,Done@@          ;A LF means end of string
+          ; comment out previous two lines for ASCIZ strings only
+
+                    bra       Loop@@              ;and try again
+
+Found@@             tsx
+                    lda       counter@@,spx
+                    deca                          ;make counter zero-based (for AAX)
+                    sta       target@@,spx        ;save result for user
+
+                    clc                           ;indicates 'found'
+Done@@              ais       #:ais               ;de-allocate temporaries
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

@@ -1,0 +1,57 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Skip past specified character if character is found
+; Input  : HX -> ASCIZ string
+;        : A = target character
+; Output : Carry Clear on success, Carry Set on Error
+;        : CCR[C] = 0:
+;        :   HX -> first character after found target
+;        :   A = length of skipped part
+; Note(s):
+
+StringSkipPastChar  macro     [#]String,[#]TargetChar
+                    mset      #' '
+                    mreq      1,2:[#]String,[#]TargetChar
+                    lda       ~2~
+                    ldhx      ~1~
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringSkipPastChar  proc
+                    psha      target@@
+                    pshhx     .str@@
+                    #ais
+
+                    psha      len@@
+                    clr       len@@,sp
+
+Loop@@              tst       ,x
+                    sec                           ;indicate 'error' (in case of exit)
+                    beq       Done@@
+
+                    cbeq      x+,Found@@
+                    inc       len@@,sp
+                    bra       Loop@@
+
+Found@@             sthx      .str@@,sp
+                    tsx
+                    lda       len@@,spx
+                    sta       target@@,spx
+                    clc                           ;indicate 'success'
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

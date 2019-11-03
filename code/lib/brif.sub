@@ -1,0 +1,169 @@
+;*******************************************************************************
+;* Module    : BRIF.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Example for BRSET equivalent using macro/subroutine combination
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/brif.html
+;* Note(s)   : Use: #Include brif.sub
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+
+                    #MapOff
+                    #ROM
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: BRSET for use with extended addresses
+; Input  : Words following BSR/JSR/CALL instruction:
+;        :          Offset 0 = Branch Address
+;        :          Offset 2 = BitPos (15..13) & Variable Address (12..0)
+; Output : None
+
+BRIFSET             macro     BitPos,Variable,BranchAddress
+                    mreq      1,2,3:BitPos,Variable,BranchAddress
+          #ifz ]~2~
+                    brset     ~@~                 ;;use normal instruction
+                    mexit
+          #endif
+          #if ~1~ > 7
+                    merror    BitPos not in range 0..7
+          #endif
+          #ifparm ~3~ = *
+                    mset      3,{*}
+          #endif
+                    call      ~0~                 ;call the emulation routine
+                    dw        ~2~&$1FFF|{~1~<13}  ;BitPos (15..13) & Variable (12..0)
+                    dw        ~3~                 ;Branch address
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+BRIFSET             proc
+pc@@                equ       ::+{:ab-2}
+                    push
+
+PBS@@               equ       0                   ;Offsets (from original return PC) into hardcoded parameter block
+pos@@               next      PBS@@,0             ;bit position
+var@@               next      PBS@@,2             ;variable address
+branch@@            next      PBS@@,2             ;branch-to address
+
+                    tpa
+                    psha      ccr@@
+                    #ais
+
+                    ldhx      pc@@,sp             ;HX = return PC
+
+                    lda       branch@@+1,x        ;get branch address parameter
+                    psha
+                    lda       branch@@,x
+                    psha      branch@@            ;stacked branch address
+
+                    lda       var@@+1,x           ;get variable address
+                    psha
+                    lda       var@@,x
+                    and       #$1F                ;mask off the bit position
+                    psha      var@@               ;stacked pure variable address
+
+                    lda       ccr@@,sp
+                    and       #CCR_C_^NOT         ;clear the return CCR[Carry]
+                    sta       ccr@@,sp
+
+                    lda       pos@@,x             ;get bit position
+                    and       #$E0                ;mask off the variable address
+
+                    aix       #PBS@@              ;non-branch returns after parms
+                    sthx      pc@@,sp             ;update default return PC
+
+                    nsa                           ;bit position into lower nibble
+                    lsra                          ;align to Bit0 (Bits 0..2)
+                    inca                          ;make bit position one-based
+                    tax                           ;X = one-based bit position
+
+                    clra                          ;start with clear mask
+                    sec                           ;Carry will create mask
+PosToMask@@         rola
+                    dbnzx     PosToMask@@         ;at the end of loop, A = mask
+
+;;;;;;;;;;;;;;;;;;; sei                           ;uncomment for atomic execution
+
+                    ldhx      var@@,sp            ;HX -> variable to test
+                    and       ,x                  ;do the actual bit test
+                    beq       Done@@              ;bit is clear, so exit
+
+                    ldhx      branch@@,sp         ;update return address with
+                    sthx      pc@@,sp             ;branch address parameter
+
+                    tsx
+                    lda       ccr@@,spx
+                    ora       #CCR_C_             ;set the return CCR[Carry]
+                    sta       ccr@@,spx
+
+Done@@              ais       #:ais               ;de-allocate temporaries
+
+                    pula
+                    tap
+
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+; For testing under a simulator
+
+                    #HideMacros
+                    #MapOn
+
+TEST                def       $55
+
+                    #XRAM
+
+var                 rmb       1
+
+                    #ROM
+
+Start               proc
+                    @rsp
+
+                    lda       #TEST
+                    sta       var
+
+          ;---------------------------------------------------------------------
+                    @brifset  0,var,T1
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T1                  @brifset  1,var,T2
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T2                  @brifset  2,var,T3
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T3                  @brifset  3,var,T4
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T4                  @brifset  4,var,T5
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T5                  @brifset  5,var,T6
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T6                  @brifset  6,var,T7
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+T7                  @brifset  7,var,Done
+                    nop                           ;used to see if branch is taken
+          ;---------------------------------------------------------------------
+
+Done                bra       *
+
+                    @vector   Vreset,Start

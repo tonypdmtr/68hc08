@@ -1,0 +1,49 @@
+;*******************************************************************************
+;* Module    : DNCASE.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Lowercase conversion routines
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/dncase.html
+;* Note(s)   : Use: #Include dncase.sub
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Exit     Dncase              ;skip Dncase if already defined
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Convert character in A to lowercase
+; Input  : A = CHARACTER
+; Output : A = character
+; Note(s):
+                    #spauto
+
+Dncase              proc
+                    pshx
+                    tpx                           ;(transfer CCR to X)
+
+                    cmpa      #'A'                ;less than 'A'?
+                    blo       Done@@              ;yes, skip
+
+                    cmpa      #'Z'                ;greater than 'Z'?
+                    bhi       Done@@              ;yes, skip
+
+                    add       #'a'-'A'            ;do the conversion
+
+Done@@              txp                           ;(transfer X to CCR)
+                    pulx
+                    rtc
+
+;-------------------------------------------------------------------------------
+ToLower             equ       Dncase              ;alias for routine
+;-------------------------------------------------------------------------------
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

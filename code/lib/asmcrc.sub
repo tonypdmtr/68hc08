@@ -1,0 +1,155 @@
+;*******************************************************************************
+;* Module    : ASMCRC.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : CRC Calculation
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/asmcrc.html
+;* History   : 10.12.09 v1.00 Original
+;*           : 11.07.14       Minor change in test code
+;*           : 11.11.11       Minor optimization in GetAsmCRC after MUL instruction
+;*           : 16.08.01       BugFix: Moved @cop in GetAsmCRC before LDA ,X to
+;*           :                avoid a potential problem of the CCR[Z] bit not
+;*           :                corresponding to the LDA instruction
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+;*******************************************************************************
+; Test the CRC calculation routine
+;*******************************************************************************
+
+CRC_SEED            def       12345               ;example starting value
+
+                    #ListOff
+          #ifmmu
+QE128
+          #endif
+                    #Uses     mcu.inc
+                    #ListOn
+
+                    #CRC      CRC_SEED
+
+                    #ROM
+?BEGIN_CRC
+
+;*******************************************************************************
+
+                    #spauto
+
+Start               proc
+                    @rsp
+
+                    ldhx      #CRC_SEED
+                    pshhx
+                    ldhx      #?END_CRC
+                    pshhx
+                    ldhx      #?BEGIN_CRC
+                    pshhx
+                    call      GetAsmCRC           ;on exit, stack = CRC
+                    ais       #4                  ;remove parms from stack
+                    pulhx                         ;HX = CRC
+?END_CRC            equ       *-1
+
+                    #temp     :crc
+
+Done                cphx      #:temp
+                    beq       *
+Error               bra       *
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc
+          #ifmmu
+                    #SEG5
+          #endif
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Calculate the same user CRC as that produced by ASM8
+; Input  : StackLo = StartAddress
+;        : StackMd = EndAddress
+;        : StackHi = Initial/Previous CRC
+; Output : Stacked CRC updated
+; Note(s): Call repeatedly for different address ranges, if skipping sections
+; Call   :          ldhx      #CRC_SEED
+;        :          pshhx
+;        :          ldhx      #EndAddress
+;        :          pshhx                         ;b
+;        :          ldhx      #StartAddress
+;        :          pshhx                         ;a
+;        :          call      GetAsmCRC
+;        :          ais       #4
+;        :          pulhx                         ;HX = CRC
+;        : --- OR (if using related macro) ---
+;        :          @GetAsmCRC #StartAddress,#EndAddress,#CRC_SEED
+
+GetAsmCRC           macro     [#]FromA,[#]ToB[,[#]CRC] ;CRC parm only for 1st call
+                    mreq      1,2:[#]FromA,[#]ToB[,[#]CRC]
+                    #push
+                    #spauto   :sp
+          #ifparm ~3~
+                    ldhx      ~3~
+                    pshhx
+          #endif
+                    #psp
+                    ldhx      ~2~
+                    pshhx
+                    ldhx      ~1~
+                    pshhx
+                    call      ~0~
+                    ais       #:psp
+          #ifparm ~3~
+                    pulhx                         ;HX = CRC
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab                 ;account for [RTS/RTC]
+
+GetAsmCRC           proc
+                    @parms    .a,.b,my_crc 2      ;define caller parameters
+                    push
+
+Loop@@              ldhx      .a@@,sp
+                    cphx      .b@@,sp
+                    bhi       Done@@
+
+                    @cop                          ;in case of many iterations
+
+                    lda       ,x
+                    beq       Skip@@              ;all zeros or ...
+                    cbeqa     #$FF,Skip@@         ;... all ones are ignored
+
+                    mul                           ;low address with data byte
+                    pshx
+                    tsx
+                    add       my_crc@@+1,spx
+                    sta       my_crc@@+1,spx
+                    pula
+                    adc       my_crc@@,spx
+                    sta       my_crc@@,spx
+
+                    ldhx      .a@@,sp
+                    lda       ,x
+                    thx
+                    mul                           ;high address with data byte
+                    tsx
+                    add       my_crc@@,spx
+                    sta       my_crc@@,spx
+
+Skip@@              tsx
+                    inc       .a@@+1,spx
+                    bne       Loop@@
+                    inc       .a@@,spx
+                    bra       Loop@@
+
+Done@@              pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

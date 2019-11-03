@@ -1,0 +1,124 @@
+;*******************************************************************************
+;* Module    : CHANGESTR.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Replace all occurrences of one string to another inside a string
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/changestr.html
+;* History   : 11.11.30 v1.00 Original
+;*           : 11.12.05 v1.01 BugFix: If S1 (target) string is null, skip action
+;*           : 12.01.30 v1.02 BugFix: If S2 contains S1, no more infinite loop
+;*           : 12.01.31 v1.03 BugFix: If S2 is null, simply delete S1
+;*           : 12.02.03 v1.04 Removed redundant check of S2 length
+;*           :                (which is now done in string/stringinsertstring)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+AAX                 rtc
+#endif ;------------------------------------------------------------------------
+
+                    #Uses     length.sub
+                    #Uses     findsubstr.sub
+                    #Uses     deletechar.sub
+                    #Uses     insertstring.sub
+                    #Uses     copy.sub
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: In string "s" replace all occurrences of "s1" with "s2"
+; Input  : Stack: three pointers (from TOS): -> s, -> s1, -> s2
+; Output : None
+; Note(s): All strings are in ASCIZ format
+
+ChangeStr           macro     [#]String,[#]TargetStr,[#]ReplacementStr
+                    mreq      1,2,3:[#]String,[#]TargetStr,[#]ReplacementStr
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    ldhx      ~3~
+                    pshhx
+                    @@_ldhx_, ~2~ 1,psp
+                    pshhx
+                    @@_ldhx_  ~1~
+                    pshhx
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+ChangeStr           proc
+                    @parms    .s,.s1,.s2
+                    push
+                    #ais
+
+                    ldhx      .s@@,sp
+                    pshhx     .s@@                ;.s@@ now holds local copy
+
+                    @local    len1,len2,.pos      ;len(target), len(replacement), current string pointer
+
+                    tsx
+                    @StringLength .s1@@,spx       ;get length of target
+                    sta       len1@@,spx
+                    beq       Done@@              ;if null target, exit (2011.12.05)
+
+                    @StringLength .s2@@,spx       ;get length of replacement
+                    sta       len2@@,spx
+
+Loop@@              @cop                          ;in case of many iterations
+                    @StringFindSubStr, .s1@@,sp len1@@,sp .s@@,sp update
+                    bcs       Done@@
+                    sthx      .pos@@,sp
+
+                    tsx
+                    lda       len1@@,spx
+Delete@@            @StringDeleteChar, .pos@@,spx
+                    dbnza     Delete@@
+
+                    @StringInsertString, .s2@@,sp .pos@@,sp
+          ;---
+          ;Update the s pointer to point past the replaced string to avoid
+          ;infinite loop in case s2 contains s1 (2012.01.30)
+
+                    lda       len2@@,spx
+                    add       .pos@@+1,spx
+                    sta       .s@@+1,spx
+                    clra
+                    adc       .pos@@,spx
+                    sta       .s@@,spx
+          ;---
+                    bra       Loop@@
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+cs                  fcs       'String S1 and string S2, and string S1'
+s1                  fcs       'S1'
+s2                  fcs       'S2'
+
+s                   @var      ::cs
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+                    @StringCopy #cs,#s
+                    @ChangeStr #s,#s1,#s2
+
+                    bra       *
+
+                    @vector   Vreset,Start

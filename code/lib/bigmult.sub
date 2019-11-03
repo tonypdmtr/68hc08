@@ -1,0 +1,227 @@
+;*******************************************************************************
+;* Module    : BIGMULT.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Purpose   : General-purpose re-entrant multi-byte multiplication (example code)
+;* Status    : Public Domain (released on 2009.06.26)
+;* Original  : http://www.aspisys.com/code/hc08/bigmult.html
+;* History   : 09.06.28: Optimized for size and speed
+;*           : 09.11.05: Optimized by using X index instead of SP where possible
+;*           : 09.11.18: Optimized by two cycles per loop (same size)
+;*           : 09.12.05: Optimized by one byte and one cycle per carryover loop
+;*           : 10.01.26: ?AnRTS also uses RTC instruction, renamed to Done@@
+;*           : 10.03.26: Added #SPAUTO and ::
+;*           : 10.04.06: Minor optimizations for size (same speed)
+;*           : 10.05.14: Fixed ?AAX subroutine to return with RTS, not RTC
+;*           : 10.08.19: Renamed routine to BigMultiply and added related macro
+;*           : 11.06.05: Minor optimization (SP => SPX), saved one byte
+;*           : 11.10.06: Minor optimization (two bytes), minor changes in test code
+;*           : 13.05.13: New COMMON.INC and minor optimizations (ClrVar)
+;*           : 19.08.23: Added HC08 compatibility
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+          #ifmmu
+QE128
+          #endif
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+          #ifmmu
+                    #SEG5
+          #endif
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Multiply two numbers of (almost) any byte size
+;        : (For simplicity, both operands are of the same size)
+; Input  : A = size for multiplier or multiplicand (range 1..127)
+;        :       +--------------+------------+---------+
+;        : HX -> | multiplicand | multiplier | product |
+;        :       +--------------+------------+---------+
+; Output : product filled with product of multiplication
+; Size   : 123 bytes (140 for the HC08)
+
+BigMultiply         macro     PointerToMultiplicandMultiplierProduct,ByteSize
+                    mreq      1,2:PointerToMultiplicandMultiplierProduct,ByteSize
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~2~                 ;;A = operand size
+                    ldhx      ~1~                 ;;HX -> parm tuple
+                    call      ~0~
+                    pull
+                    #pull
+                    endm
+
+;===============================================================================
+
+                    #spauto
+
+BigMultiply         proc
+                    cbeqa     #0,Done@@           ;zero size won't work
+
+                    cmpa      #127
+                    bhi       Done@@              ;over 127-byte number won't work
+
+                    psha      opsize@@
+                    pshhx     .a@@                ;multiplicand pointer
+
+                    #ais
+
+                    bsr       ?AAX                ;HX -> multiplier pointer
+                    pshhx     .b@@                ;multiplier pointer
+
+                    bsr       ?AAX                ;HX -> product
+                    pshhx     .ans@@              ;pointer to product (answer)
+                    psha      index_a@@           ;index to current multiplicand digit
+                    psha      index_b@@           ;index to current multiplier digit
+
+                    lsla                          ;product is twice the size
+ZeroAns@@           clr       ,x                  ;initialize product to zero
+                    aix       #1
+                    dbnza     ZeroAns@@
+
+Loop@@
+          #ifhcs
+                    ldhx      .a@@,sp
+          #else
+                    lda       .a@@,sp
+                    ldx       .a@@+1,sp
+                    tah
+          #endif
+                    lda       index_a@@,sp
+                    bsr       ?DecaAAX
+                    lda       ,x                  ;A = current multiplicand digit
+                    psha
+          #ifhcs
+                    ldhx      .b@@,sp
+          #else
+                    lda       .b@@,sp
+                    ldx       .b@@+1,sp
+                    tah
+          #endif
+                    lda       index_b@@,sp
+                    bsr       ?DecaAAX
+                    ldx       ,x                  ;X = current multiplier digit
+
+                    pula
+                    mul                           ;XA = sub-product
+                    pshx                          ;save sub-product temporarily
+                    psha                          ; (in little-endian order)
+
+                    tsx
+
+                    lda       index_a@@,spx
+                    deca                          ;DECA instead of AIX #-2 below
+                    add       index_b@@,spx
+          #ifhcs
+                    ldhx      .ans@@,sp
+          #else
+                    psha
+                    lda       .ans@@,sp
+                    ldx       .ans@@+1,sp
+                    tah
+                    pula
+          #endif
+                    bsr       ?DecaAAX            ;DECA instead of AIX #-2 below
+
+                    pula                          ;update product with sub-product
+                    add       1,x
+                    sta       1,x
+
+                    pula
+                    adc       ,x
+                    sta       ,x
+          ;-------------------------------------- ;cascade possible Carry all the way to beginning of product
+                    bcc       Cont@@              ;skip over Carry cascade
+
+                    lda       index_b@@,sp
+                    add       index_a@@,sp
+                    sub       #2                  ;zero-based index & less the one we're at
+                    beq       Cont@@              ;skip over Carry cascade
+
+                    sec                           ;always a Carry from here
+CarryOver@@         aix       #-1
+
+                    psha
+                    clra
+                    adc       ,x
+                    sta       ,x
+                    pula
+          #if SPEED_SIZE = 1
+                    bcc       Cont@@              ;done early with Carry [minor avg speed improvement for longer operands]
+          #endif
+                    dbnza     CarryOver@@
+          ;-------------------------------------- ;done with current multiplier digit
+Cont@@              @cop                          ;in case of many iterations
+                    tsx                           ;HX -> stack frame
+                    dbnz      index_b@@,spx,Loop@@
+
+                    lda       opsize@@,spx        ;restore multiplier digit counter
+                    sta       index_b@@,spx
+          ;-------------------------------------- ;done with current multiplicand digit
+                    dbnz      index_a@@,spx,Loop@@
+
+                    ais       #:ais               ;de-allocate local variables
+                    pull                          ;restore caller's registers
+Done@@              rtc
+
+;*******************************************************************************
+
+?DecaAAX            proc
+                    deca                          ;make it zero-based
+;                   bra       ?AAX
+
+;*******************************************************************************
+
+?AAX                proc
+                    @aax                          ;Add A to HX (uses several bytes,
+                    rts                           ;so I made it a local subroutine)
+
+                    #sp                           ;cancel all SP offsets
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+;*******************************************************************************
+;                     T E S T   C O D E
+;*******************************************************************************
+
+MULT_OPERAND_SIZE   def       4                   ;default operand size
+
+          #ifz MULT_OPERAND_SIZE
+                    #Error    MULT_OPERAND_SIZE must be greater than zero
+          #else if MULT_OPERAND_SIZE > 127
+                    #Error    Current coding supports up to 127 byte operands
+          #endif
+                    #RAM
+MyVars
+
+multiplicand        rmb       MULT_OPERAND_SIZE   ;
+multiplier          rmb       MULT_OPERAND_SIZE   ;keep together in this order
+product             rmb       MULT_OPERAND_SIZE*2 ;
+
+                    #size     MyVars
+
+;-------------------------------------------------------------------------------
+                    #MapOn
+                    #ROM
+
+Start               proc
+                    @rsp
+                    clra
+
+                    @ClrVar   MyVars
+
+                    @move.s   #$12345600 multiplicand
+                    @move.s   #$123400 multiplier
+
+                    @BigMultiply #multiplicand,#MULT_OPERAND_SIZE
+Test                bra       *                   ;product: $14B60AD780000
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc

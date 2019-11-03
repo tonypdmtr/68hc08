@@ -1,0 +1,48 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Return the length of an ASCIZ string
+; Input  : HX -> string
+; Output : A = Length (zero when string is longer than 255)
+;        : CCR matches RegA contents (a welcome side effect)
+; Note(s):
+
+StringLength        macro     [[#]StringVariable] ;if no parm, use current HX
+                    mset      #
+          #ifb ~1~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringLength        proc
+                    pshhx
+                    clra
+Loop@@              tst       ,x
+                    beq       Done@@              ;on ASCIZ terminator, done
+                    aix       #1                  ;bump up pointer
+                    dbnza     Loop@@
+Done@@              nega                          ;(now CCR matches A value)
+                    pulhx
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

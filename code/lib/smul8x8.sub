@@ -1,0 +1,83 @@
+;*******************************************************************************
+;* Module    : SMUL8X8.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : 8x8-bit signed multiplication
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/smul8x8.html
+;* Note(s)   : Use: #Include smul8x8.sub
+;* History   : 10.12.09 v1.00
+;*           : 11.04.13       Moved test code at EOF (for #EXIT optimization)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #HideMacros
+                    #MapOff
+                    #Cycles
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Signed 8x8 multiplication
+; Input  : A = signed factor a (multiplicand)
+;        : X = signed factor b (multiplier)
+; Output : XA = 16-bit signed result
+; Size   : 29 bytes
+; 9S08   : 46 or 48 cycles for positive result, and
+;  Speed : 52 or 53 cycles for negative result (including BSR/JSR)
+; Note(s):
+                    #spauto   :ab
+
+SMul8x8             proc
+                    psha      a@@
+                    pshx      b@@
+
+                    abs                           ;make "a" positive
+
+                    tstx
+                    bpl       Go@@
+                    negx                          ;make "b" positive
+
+Go@@                mul
+
+                    psha
+                    lda       b@@,sp
+                    eor       a@@,sp              ;result sign now in CCR[N]
+                    pula
+                    bpl       Done@@              ;if positive result, done
+
+                    negxa                         ;else, negate result
+
+Done@@              ais       #:ais
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  {:cycles} cycles at worst
+
+                    #MapOn
+
+Mult                macro     Multiplicand,Multiplier
+                    lda       ~1~
+                    ldx       ~2~
+                    call      SMul8x8
+                    endm
+
+Start               proc
+                    @rsp
+
+                    @Mult     #125,#121           ;test positive * positive
+                    @Mult     #125,#-121          ;test positive * negative
+                    @Mult     #-125,#121          ;test negative * positive
+                    @Mult     #-125,#-121         ;test negative * negative
+
+                    bra       *
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc

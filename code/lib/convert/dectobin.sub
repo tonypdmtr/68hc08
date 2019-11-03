@@ -1,0 +1,30 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Convert an ASCII decimal byte '0' to '9' to binary value
+; Input  : A = decimal ASCII
+; Output : A = binary equivalent, Carry Clear
+;        : Carry Set if digits not in 0-9 character set
+; Note(s):
+                    #spauto
+
+DecToBin            proc
+                    cmpa      #'0'                ;is it below '0'?
+                    blo       Fail@@              ;if yes, error
+
+                    cmpa      #'9'                ;is it above '9'?
+                    bhi       Fail@@              ;if yes, error
+
+                    sub       #'0'                ;convert number to binary (also does CLC)
+                    rtc
+
+Fail@@              sec
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

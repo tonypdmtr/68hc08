@@ -1,0 +1,46 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+fDecByte            equ       0
+#endif ;------------------------------------------------------------------------
+                    #Uses     asciibytetobin.sub
+
+;*******************************************************************************
+; Purpose: Convert ASCII digit pair to signed binary value in A
+; Input  : HX -> Buffer with ASCII data
+; Output : CCR[C] = 0 on success
+;        :          A = signed binary value
+;        : CCR[C] = 1 on Error
+; Note(s):
+                    #spauto   :ab
+
+AsciiByteToSigned   proc
+                    psha      ans@@
+                    pshhx
+                    #ais
+
+                    lda       ,x                  ;test for minus sign
+                    aix       #1                  ;skip assumed sign
+                    cbeqa     #'-',Minus@@        ;go handle negative case
+                    cbeqa     #'+',Plus@@         ;go handle positive case
+                    aix       #-1                 ;unskip missing sign
+
+Plus@@              call      AsciiByteToBin
+                    bcs       Done@@
+                    bra       Save@@
+
+Minus@@             call      AsciiByteToBin      ;process number part
+                    bcs       Done@@
+
+                    nega                          ;negate for minus sign
+                    clc                           ;indicate "no error"
+
+Save@@              sta       ans@@,sp
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

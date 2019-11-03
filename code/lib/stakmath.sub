@@ -1,0 +1,2792 @@
+;*******************************************************************************
+;* Module    : STAKMATH.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : 64/56/48/40/32/24/16-bit stack-based basic math routines (RPN style)
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/stakmath.html
+;* Note(s)   : Use: #Include stakmath.sub
+;*           :
+;*           : Several externally defined macros are used throughout this code.
+;*           : All these (and many more) macros are inside the most recent
+;*           : version of MACROS.INC which can be copied from the web page at
+;*           : http://www.aspisys.com/code/hc08/macros.html
+;*           : (and COMMON.INC at http://www.aspisys.com/code/hc08/common.html)
+;*           :
+;*           : The default word size is 32-bit.
+;*           :
+;*           : By (re)defining the symbol MATHSIZE (to 16) you get 16-bit code.
+;*           : By (re)defining the symbol MATHSIZE to 24 you get 24-bit code.
+;*           : By (re)defining the symbol MATHSIZE to 40 you get 40-bit code.
+;*           : By (re)defining the symbol MATHSIZE to 48 you get 48-bit code.
+;*           : By (re)defining the symbol MATHSIZE to 56 you get 56-bit code.
+;*           : By (re)defining the symbol MATHSIZE to 64 you get 64-bit code.
+;*           :
+;*           : You can include all (or some) versions in your program like so:
+;*           :
+;*           :                #ROM                ;(or else, some paged memory)
+;*           :                #Include  stakmath.sub
+;*           : MATHSIZE       set       16        ;redefine for 16-bit use
+;*           :                #Include  stakmath.sub
+;*           : MATHSIZE       set       24        ;redefine for 24-bit use
+;*           :                #Include  stakmath.sub
+;*           : MATHSIZE       set       40        ;redefine for 40-bit use
+;*           :                #Include  stakmath.sub
+;*           : MATHSIZE       set       48        ;redefine for 48-bit use
+;*           :                #Include  stakmath.sub
+;*           : MATHSIZE       set       56        ;redefine for 56-bit use
+;*           :                #Include  stakmath.sub
+;*           : MATHSIZE       set       64        ;redefine for 64-bit use
+;*           :
+;*           : or, if you use the related wrapper files, like so:
+;*           :
+;*           :                #ROM                ;(or else, some paged memory)
+;*           :                #Uses     stkmth16.sub
+;*           :                #Uses     stkmth24.sub
+;*           :                #Uses     stkmth32.sub
+;*           :                #Uses     stkmth40.sub
+;*           :                #Uses     stkmth48.sub
+;*           :                #Uses     stkmth56.sub
+;*           :                #Uses     stkmth64.sub
+;*           :
+;*           : Use CALL if assembled in #MMU mode (regardless of placement).
+;*           : By using CALL and #JUMP (or default -J+ command line option), the
+;*           : assembler will automatically adjust between CALL and JSR
+;*           : depending on the current #MMU mode.
+;*           :
+;*           : To use the *-bit version of each CALL, use these symbols:
+;*           :
+;*           : StackAdd*, StackSub*, StackMul*, StackDiv*, StackMod*
+;*           : StackSwap*, StackNegate*, StackLoad*, StackSave*,
+;*           : Stack*ToASCIZ
+;*           :
+;*           : replacing * with one of these: 16, 24, 32, 40, 48, 56, or 64.
+;*           :
+;*           : Various macros allow using these routines in a variety of ways,
+;*           : and without worrying about the details of call & parameter setup.
+;*           : These macros are: Add*, Sub*, Mul*, Div*, Mod*, DivS*, ModS*,
+;*           : Neg*, Load*, Save*, Str*, StrS*, and Swap* (where the * is 16,
+;*           : 24, 32, 40, 48, 56, or 64 depending on the version you want to use).
+;*           : The signed versions are enabled only when the module is assembled
+;*           : with the SIGNED conditional.
+;*           :
+;*           : If working with fixed-address variables, you can use the various
+;*           : macros (such as Add32, Mul64, etc.) to perform operations in the
+;*           : easiest possible way, such as:
+;*           :                @Mul32    A,B,Answer
+;*           : (which multiplies A with B and stores the product in Answer).
+;*           : But, you may also use the macros to work directly on stack, or to
+;*           : temporarily save partial results on stack instead of fixed vars.
+;*           :
+;*           :                  I N   G E N E R A L   T H E N
+;*           :
+;*           : @Operation A,B,Answer works with A and B storing result in Answer
+;*           : @Operation A,B        works with A and B leaving result on stack
+;*           : @Operation A          works with TOS and A, result left as TOS
+;*           : @Operation (no parms) works w/ TOS and [TOS+1], result as new TOS
+;*           :
+;*           : (Please note the shown order of the operation may be important.)
+;*           :
+;*           : Finally, the Load* (* = 16, 24, 32, 40, 48, 56, 64) operation can
+;*           : directly load either a variable or a constant (leading #) on the
+;*           : stack.
+;*           :
+;*           : Since v7.00, a HLL-like interface is possible by using the new
+;*           : Eval* macro (where * = 8, 16, 24, 32, 40, 48, 56, 64)
+;*           : This is by far the easiest way to use this library, as it closely
+;*           : resembles using expressions in a HLL compiler.  It also can
+;*           : automatically resize stack after loading from and before saving
+;*           : to any variable.
+;*           :
+;*           : Examine the test section of this file for examples of macro use.
+;*           :
+;*           : All routines are re-entrant and work on either the top-of-stack
+;*           : (TOS) number alone or the two top-most TOS numbers.  Similar to
+;*           : how Reverse Polish Notation (RPN) works.  First, you stack the
+;*           : operand(s) and then call the corresponding routine to perform the
+;*           : operation.
+;*           :
+;*           : The result of any operation is always the updated top of stack.
+;*           : For operations that require two operands and produce a single
+;*           : result, the result replaces the two operands (stack is reduced).
+;*           :
+;*           : Chain calculations are possible by pushing only the new operand
+;*           : between operations.  Alternatively, one can push all operands in
+;*           : advance but it's not recommended as stack space may be limited.
+;*           : When done evaluating an expression, just pull the final 32-bit
+;*           : result from the stack.
+;*           :
+;*           : The TOS is the first (or only) operand of any operation.
+;*           : This is important, for example, for subtraction and division.
+;*           :
+;*           : If the current order of the stack is not as you want it, use the
+;*           : Swap (StackSwap32) operation to change it.
+;*           :
+;*           : All operands and results are exactly 32-bit wide.  Overflows are
+;*           : simply truncated.  The lower 32-bit number is valid, though.
+;*           :
+;*           : (All references to 32-bit become 16-bit, when MATHSIZE = 16)
+;*           : (All references to 32-bit become 24-bit, when MATHSIZE = 24)
+;*           : (All references to 32-bit become 40-bit, when MATHSIZE = 40)
+;*           : (All references to 32-bit become 48-bit, when MATHSIZE = 48)
+;*           : (All references to 32-bit become 56-bit, when MATHSIZE = 56)
+;*           : (All references to 32-bit become 64-bit, when MATHSIZE = 64)
+;*           :
+;*           : 64/56/48/40-bit multiplication is done using the shift-add method,
+;*           : which is much shorter in size for such long operands, but it is
+;*           : also significantly slower in speed. I opted for size optimization
+;*           : because the 64/56/48/40-bit versions are not used quite as often.
+;*           : You may want to re-write it for speed optimization by using the
+;*           : MUL instruction like it is done for the default 32-bit case.
+;*           :
+;* History   : 09.05.22 v1.00 Original (Started on 2009.05.07)
+;*           : 09.06.04       Optimized by using HX instead of SP, where needed
+;*           : 09.11.04       Minor optimizations
+;*           : 09.11.05       Add & Subtract now adjust Carry accordingly
+;*           :                Division by zero error now checked first
+;*           : 09.11.06 v1.01 Added conditional MATHSIZE for use w/ 16-bit words
+;*           : 09.11.08 v1.02 Added "Load" operation to ease stack loading
+;*           : 09.11.11       Use of new LONG pseudo-opcode
+;*           : 09.12.05       Added cycles display using :cycles
+;*           : 10.01.06 v1.03 Added MMU auto-support (using :AB internal symbol)
+;*           :                Code is no longer placed in #ROM by default
+;*           :                The few JMPs in the code use [[ to trim possible page
+;*           : 10.01.08       [[ removed from JMPs (latest ASM8 auto-correction)
+;*           : 10.01.22 v1.04 Added Save operation for completeness
+;*           : 10.01.23 v1.05 Added #SP directive examples (latest ASM8)
+;*           : 10.01.29 v1.06 Added shorter/faster Swap version for 9S08 MCUs
+;*           : 10.02.01 v1.07 Added #SPAUTO directive
+;*           : 10.02.04       Added #X directive
+;*           : 10.02.06 v2.00 Added signed math wrapper calls only for DIV & MOD
+;*           :                (Addition, Subtraction, and Multiplication calls
+;*           :                work either for unsigned or signed operands.)
+;*           :                Signed routines enabled w/ SIGNED conditional.
+;*           :                Division by zero error now reduces stack (operand
+;*           :                A removed) so that the stack is left with same
+;*           :                size on either success or failure (in which case
+;*           :                the TOS result is invalid.)
+;*           : 10.02.08 v2.01 Fixed signed MOD for correct sign (sign of A)
+;*           : 10.02.14 v2.10 Added Stack32ToASCIZ and prerequisite StringInsertChar
+;*           : 10.02.28 v2.11 Minor optimization in StringInsertChar
+;*           : 10.03.23       Made use of :: internal variable (Build 2010/03/23)
+;*           : 10.03.30 v2.12 Allowed for HC08 compilation in newer code (?ToStr)
+;*           :                Optimized 9S08 Swap version for size and speed
+;*           :          v2.13 Optimized Negate for size and speed
+;*           : 10.05.08 v3.00 Added MATHSIZE = 64 option for 64-bit math
+;*           :                Swap operation optimized only for size
+;*           : 10.05.13 v3.01 Optimized for size and speed by using ,SPX
+;*           : 10.06.02 v4.00 Added macros for easier use
+;*           : 10.06.08 v4.10 Improved macros and added new ones (eg Const32)
+;*           : 10.06.23 v4.20 Added MATHSIZE = 48 option for 48-bit math
+;*           : 10.06.30 v4.30 Added AddDecimalPoint (to string number)
+;*           : 10.07.01 v4.40 Added IFSPAUTO conditional
+;*           : 10.07.03       Moved the functionality of Const macros into Load
+;*           : 10.07.07       Moved general string routines first
+;*           : 10.07.17 v4.50 Str* macros may use TOS (if Number parm is missing)
+;*           :                or current HX index (if result pointer is missing)
+;*           : 10.07.20       _DoLoad*/_DoSave* address now allows for indexed mode
+;*           : 10.07.21       Minor optimizations; macros now latest ASM8
+;*           : 10.07.23       Minor bug fix in macro _DoSave for no parm case
+;*           : 10.08.18       Optimized by using :MINDEX in latest ASM8
+;*           : 10.08.26       Minor optimizations at the source level
+;*           : 10.08.31 v4.60 Optimized Load* macros' immediate mode for zeros
+;*           : 10.10.19 v4.61 Adapted to latest ASM8 (nested macros in Load)
+;*           : 10.10.22 v4.62 Optimized _DoMath (Added @_DoOperation)
+;*           : 10.10.26 v4.63 Load48 & Load64 now also accept single #Constant
+;*           : 10.12.03 v4.64 Adapted to latest ASM8 => macros OK in @@ sub-mode
+;*           : 11.03.31 v4.65 Moved test code at EOF (to use #EXIT optimization)
+;*           : 11.04.10 v4.66 Condensed macro definitions (based on MATHSIZE)
+;*           : 11.04.11 v4.67 Optimized MUL16/MUL32 size & cycles with ,SPX mode
+;*           : 11.04.12 v4.70 Added MATHSIZE = 24 option for 24-bit math
+;*           : 11.04.13 v4.71 Reversed some of v4.66's changes
+;*           : 11.04.13 v4.80 Added MATHSIZE = 40 option for 40-bit math
+;*           : 11.05.02 v4.81 Save protects HX (it was lost during SP => SPX)
+;*           : 11.05.05 v4.82 Optimized StringLength by a byte (by using NEGA on exit)
+;*           : 11.05.25 v4.83 Removed unused Zero constant from test code
+;*           : 11.10.13 v4.84 Optimized MUL16/24/32 size w/ more ,SPX (same cycles)
+;*           : 11.11.15 v4.85 Improved StringLength macro
+;*           : 12.01.26       Changed test code a bit
+;*           : 12.02.06 v4.86 Optimized SP => SPX at ?RemoveAndReturn
+;*           : 12.03.05 v4.87 Added ResizeTOS to adjust TOS element's size
+;*           : 12.05.09 v4.88 Added CCR[C] parameter to ResizeTOS for unsigned operation
+;*                            (signed is default when SIGNED conditional is defined,
+;*                            unsigned operation is default, otherwise)
+;*           : 12.05.18 v4.89 Removed redundant subtraction in Division (at NotEqual@@)
+;*           : 12.10.07 v4.90 Load*/Save* now accept indexed mode without separator override
+;*           : 12.10.10 v5.00 Renamed to (more general) STAKMATH.SUB to use
+;*           :                wrapper files for each bit version, instead.
+;*           : 12.11.05       Added _STKMTH{MATHSIZE}_ for used-version control
+;*           : 12.11.09 v6.00 New _LoadStkMthVarAddr macro eases parm address
+;*           :                calculation.
+;*           : W A R N I N G: SP-based operands now refer to the actual number,
+;*           : W A R N I N G: and not its address (as was the case before).
+;*           : W A R N I N G: This is INCOMPATIBLE with previous behavior. Code
+;*           : W A R N I N G: written for version v5.00 or earlier that uses SP
+;*           : W A R N I N G: based operands should be modified to refer to the
+;*           : W A R N I N G: actual value and not to a pointer to the value.
+;*           : W A R N I N G: Dot-beginning names are still treated as pointers!
+;*           : 12.11.10       Use COMMON.INC/LEA instead of _LoadStkMthVarAddr
+;*           : 12.12.04 v6.10 Optimized division just a tad by combining steps
+;*           : 12.12.12 v6.20 Now use LEA macro inside _DoStr (for ResultString)
+;*           : 12.12.20 v6.21 Minor optimization (one byte) in 32-bit ?Multiply
+;*           :                (Further 3-byte optimization possible by
+;*           :                re-ordering MULs, but not done for code clarity)
+;*           : 13.01.09 v6.22 Added Copy* macros to combine Load*/Save* into one
+;*           : 13.03.20 v7.00 Added Eval* and supporting macros for HLL-like
+;*           :                computations, eg., ans=(a+3)*((1+var,sp)/2)
+;*           :                (with or without spaces between operands/operators)
+;*           : 13.03.27 v7.50 SIGNED now gives just signed (not unsigned) version
+;*           :                DivS*, ModS*, StrS* macros were removed, and also
+;*           :                ResizeTOS macro's unsigned flag has been removed
+;*           :                BugFix: AddDecimalPoint now prepends zeros after sign
+;*           : 13.03.27       Optimized ?Negate in SIGNED case to use ?NegX sub
+;*           : 13.03.27 v7.60 Adapted _EVAL_ macro to latest ASM8 (Much faster!)
+;*           : 13.04.04 v7.70 _DoLoad and _DoSave macros now auto-adjust the size
+;*           :                so you can use with operands of different sizes, even
+;*           :                if the respective bitsize version isn't loaded.
+;*           : 13.04.04 v7.71 _Eval_ macro leaves assignment result on TOS if
+;*           :                assignment variable not already defined.  Then,
+;*           :                it gives TOS the specified name, if SP-indexed.
+;*           : 13.04.05 v7.72 Added #size for v7.71 change
+;*           :                Named constants (labels with size zero) now use
+;*           :                immediate mode in Eval/Load
+;*           : 13.04.05 v7.73 Added NEG() negate, and ABS() absolute functions
+;*           :                in Eval macro, e.g., ans = abs(a - b)
+;*           : 13.04.09 v7.80 BugFix: Push/Pull macro calls for SP mode
+;*           :                Moved immediate mode to _DoLoad (unified method)
+;*           :                (Over 32-bit immediate value loads not possible
+;*           :                via macros)
+;*           : 13.04.10       Adapted to v9.35 (no functional changes)
+;*           : 13.04.11 v7.81 Optimized _DoLoad constant loading by using CLRH
+;*           :                (optimization is evident on certain cases only)
+;*           : 13.04.15 v7.82 Added _?SEI_ and _?CLI_ macros for multitasker
+;*           :                locking / unlocking of multi-byte variables while
+;*           :                loading / saving (_DoLoad/_DoSave).  Under OS8 it
+;*           :                is enabled automatically.  Otherwise, simply
+;*           :                define _MTOS_ anytime before including this file.
+;*           :                For keeping code dense, all Eval*/Load*/Save*
+;*           :                macros are assumed to be called only while
+;*           :                interrupts are enabled, so it will not restore to
+;*           :                previous state but always leave as enabled.
+;*           :                Define _NOCLI_ (before including this module) for
+;*           :                canceling the _?SEI_ and _?CLI_ macro effects.
+;*           : 13.04.18 v7.85 Added 'NeedMath' and 'Eval' general-purpose macros
+;*           :                for automatic selection of needed bit-size based
+;*           :                on only which modules are already included. First,
+;*           :                call the NeedMath macro to define the minimum math
+;*           :                bit-size you need for the next calculation(s),
+;*           :                then call the Eval macro as many times as needed
+;*           :                to perform the actual expression evaluation(s).
+;*           :                Similary, added new macros Load, Save, StkAdd,
+;*           :                StkSub, StkMul, StkDiv, StkMod, StkSwap, StkNeg,
+;*           :                StkAbs, StkStr, and CopyMath to work with the
+;*           :                NeedMath macro, just like the new Eval macro.
+;*           : 13.04.19 v8.00 Moved all Eval* macros into COMMON.INC and allowed
+;*           :                for all to be active at all times, regardless if
+;*           :                the related bit-version of STAKMATH is included.
+;*           :                The _Eval_ macro was improved to allow it to
+;*           :                automatically locate the next higher version that
+;*           :                is included, if the one requested is not.  So,
+;*           :                using Eval32 will use the 32/40/48/64-bit version
+;*           :                (whichever is closer to 32 and included) but nothing
+;*           :                below 32-bit.  This allows you to use the relevant
+;*           :                macro based on a specific expression's requirements
+;*           :                but include only one (or just a few) higher bit
+;*           :                version(s), not all those referenced in your code.
+;*           :                (The general Eval is still available, if needed.)
+;*           :                Also, moved all Str* to COMMON.INC
+;*           : 13.04.21 v8.10 Corrected v8.00 for pointer cases (.num) to use
+;*           :                actual requested size, not next higher.
+;*           :                Relevant #Message now in _DoOperation _ResizeTOS etc.
+;*           : 13.04.21 v8.11 NeedMath & related macros removed (now redundant)
+;*           :                General Eval macro will try to determine best bit-size
+;*           : 13.04.23 v8.12 Added EvalS to first check for SIGNED and then call Eval
+;*           :                CopyMath removed.  Use "Eval to_var = from_var" instead
+;*           :                _StkMthMax_ improved to use higher size on multiplication
+;*           : 13.04.25 v8.13 _Eval_ now allows for string constants (eg., @Eval ans = ans + '0')
+;*           :                Removed all ?macros because we now use COMMON xxx.s macros
+;*           : 13.04.26 v8.15 Corrected test code for Eval when MATHSIZE < 32
+;*           :                Commented out auto-higher bit-size (a bit annoying).
+;*           :                Use Eval* to say 'no less than', instead.
+;*           : 13.04.27 v8.16 BugFix: StrMath macro (2nd parameter was lost)
+;*           :                Added SQR() function to get the square
+;*           : 13.05.02       Added #size in ToInt* macros (in test code)
+;*           : 13.05.03 v8.17 Added size optimization for ADD and SUB operations
+;*           :                New SPEED_SIZE constant in COMMON.INC tells us
+;*           :                whether we need speed (SPEED_SIZE = 1) or
+;*           :                size (SPEED_SIZE = 2) optimization, the current
+;*           :                default being SPEED_SIZE = 2 for size optimization.
+;*           : 13.05.30       Updated StrMath macro (COMMON.INC and here)
+;*           : 13.06.04 v8.20 Added bit functions: AND (&), OR (|), XOR (^), and shifts (< and >)
+;*           : 13.06.05 v8.21 BugFix: ShiftRight now uses ASR if SIGNED
+;*           : 13.07.25 v8.22 Improved _Eval_ macro (and Push/Pull in COMMON.INC)
+;*           :                BugFix: Added { } to ResizeTOS macro's final case
+;*           :                (Disable bit functions with NO_BIT_OPS conditional)
+;*           : 13.10.06       Minor changes in test code
+;*           : 13.11.26       Added warning in _DoLoad: forwards treated as vars
+;*           : 13.11.29 v8.23 Optimized ?ShiftLeft and ?ShiftRight a bit
+;*           : 13.12.22 v8.30 Added 56-bit version
+;*           : 14.01.03       Made use of _CMP_.S macro (instead of custom macro)
+;*           : 14.02.07 v8.50 Added [ ... ] unsigned override (if SIGNED)
+;*           : 14.02.14 v8.51 Eval macro now uses #HideMacros
+;*           : 14.10.14 v8.52 BugFix: Off-by-one error in ResizeTOS when SIGNED
+;*           : 15.03.21 v8.53 Replaced string dependencies with corresponding #Uses
+;*           : 15.04.08 v8.54 Replaced AddDecimalPoint with corresponding #Uses
+;*           : 17.04.03 v8.55 Optimized 24-bit multiply [-2 bytes]
+;*           :                Optimized 32-bit multiply [-7 bytes]
+;*           : 18.10.23       Suppressed possible warning from JEQ in ?DivStart
+;*           : 19.03.04       Added warning in _DoStr macro when using StrNN
+;*           :                when NN is different from MATHSIZE and no explicit
+;*           :                variable is given
+;*******************************************************************************
+
+;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
+;
+;Subroutines    Action
+;-------------- ----------------------------
+;StackAdd*      - TOS := TOS + [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackSub*      - TOS := TOS - [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackMul*      - TOS := TOS * [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackDiv*      - TOS := TOS / [TOS+1]       (signed if SIGNED)   [TOS+1] removed
+;StackMod*      - TOS := TOS \ [TOS+1]       (signed if SIGNED)   [TOS+1] removed
+;StackAnd*      - TOS := TOS & [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackOr*       - TOS := TOS | [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackXor*      - TOS := TOS ^ [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackShl*      - TOS := TOS < [TOS+1]       (signed or unsigned) [TOS+1] removed
+;StackShr*      - TOS := TOS > [TOS+1]       (signed if SIGNED)   [TOS+1] removed
+;StackSwap*     - TOS swapped with [TOS+1]   (signed or unsigned)
+;StackAbs*      - TOS := ABS(TOS)            (signed)
+;StackNegate*   - TOS := -TOS                (signed)
+;StackLoad*     - Load const/variable to TOS (signed or unsigned) TOS created
+;StackSave*     - Save TOS into variable     (signed or unsigned) TOS removed
+;ResizeTOS      - Adjust TOS old size to new (signed or unsigned) TOS resized
+;Stack*ToASCIZ  - Convert TOS to ASCIZ str   (signed if SIGNED)
+;
+;Macros             Purpose             Parameters ([...] means optional part)
+;------------------ ------------------- ----------------------------------------
+;Load*              Stack const or var  #Number | Variable
+;Save*              Unstack a variable  Variable
+;Copy*              Load* & Save*       #Number | Variable,Variable
+;ResizeTOS          Resize TOS          #FromByteSize,#ToByteSize
+;
+;Add*               Addition            [Addend[,Adder[,Sum]]]
+;Sub*               Subtraction         [Minuend[,Subtrahend[,Difference]]]
+;Mul*               Multiplication      [Multiplicand[,Multiplier[,Product]]]
+;Div*               Unsigned division   [Dividend[,Divisor[,Quotient]]]
+;Mod*               Unsigned modulo     [Dividend[,Divisor[,Remainder]]]
+;Abs*               Absolute value      [SourceVariable][,DestinationVariable]
+;Neg*               Negation            [SourceVariable][,DestinationVariable]
+;Swap*              Swap TOS numbers
+;Str*               Number to ASCIZ     [Variable],[ResultString]
+;AddDecimalPoint    ... to ASCIZ number [[#]DecimalPlaces[,[#]ASCIZ_String]]
+
+#ifmain ;-----------------------------------------------------------------------
+          #ifdef ?
+            #Hint +===================================================
+            #Hint | Available conditionals (for use with -Dx option)
+            #Hint +===================================================
+            #Hint | MATHSIZE..: Define for 16/24/40/48/56/64-bit use
+            #Hint | SIGNED....: Enables signed Div Mod Str ResizeTOS
+            #Hint | NO_BIT_OPS: Disable bit operations (& | ^ < >)
+            #Hint | _MTOS_....: Enables auto SEI/CLI around Loads/Saves
+            #Hint | _NOCLI_...: Disables auto SEI/CLI even under _MTOS_
+            #Hint | A.........: Sample operand one (upto 32-bit)
+            #Hint | B.........: Sample operand two (upto 32-bit)
+            #Hint | SPEED_SIZE: 1=speed optimized, 2=size optimized
+            #Hint +===================================================
+            #Fatal Run ASM8 -Dx (where x is any of the above)
+          #endif
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+
+                    #ROM                          ;good for all MCUs
+          #ifmmu
+                    #SEG5                         ;example for paged MCUs (eg. $58000)
+          #endif
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+
+MATHSIZE            def       32                  ;default wordsize is 32-bit
+
+#ifz MATHSIZE
+MATHSIZE            set       16                  ;assumed wordsize when zero
+#endif
+
+?                   macro     BitSize
+#if MATHSIZE = ~1~
+?WORD               equ       ~1~/8
+_STKMTH{MATHSIZE}_                                ;;specific version included
+_STAKMATH_          def       *                   ;;any version included
+#endif
+                    endm
+
+                    @?        16                  ;16-bit quantity (on request)
+                    @?        24                  ;24-bit quantity (on request)
+                    @?        32                  ;32-bit quantity (default)
+                    @?        40                  ;40-bit quantity (on request)
+                    @?        48                  ;48-bit quantity (on request)
+                    @?        56                  ;56-bit quantity (on request)
+                    @?        64                  ;64-bit quantity (on request)
+
+          #ifndef ?WORD
+                    #Error    Unsupported MATHSIZE ({MATHSIZE}-bit)
+MATHSIZE            set       32                  ;32-bit quantity (default)
+                    @?        32
+          #endif
+                    #Message  MATHSIZE = {MATHSIZE}-bit version
+
+          #ifdef SIGNED
+                    #Message  Signed routines enabled
+          #endif
+
+;*******************************************************************************
+; Macros to make operations as simple as with a high-level language
+; In operations that require two operands and a result, if only one operand is
+; provided, then the operation is done completely on stack (no other variables
+; used).  For example, @Add32 A,B,SUM adds A to B and places result in SUM,
+; while @Add32 A adds the current stack top to A and leaves result on stack.
+; You can use @Load* and @Save* to load the initial value, and store the final
+; result, respectively.  (Replace * with 16, 24, 32, 40, 48, 56, or 64)
+;*******************************************************************************
+
+#if MATHSIZE = 16
+
+Load16              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save16              macro     Address
+                    @_DoSave  16\,~@~
+                    endm
+
+Copy16              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load16  ~1~
+                    @Save16   ~2~
+                    endm
+
+Swap16              macro
+                    @_DoSwap  16
+                    endm
+
+Add16               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,16\,~1~\,~2~\,~3~
+                    endm
+
+Sub16               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,16\,~1~\,~2~\,~3~
+                    endm
+
+Mul16               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,16\,~1~\,~2~\,~3~
+                    endm
+
+Div16               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,16\,~1~\,~2~\,~3~
+                    endm
+
+Mod16               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,16\,~1~\,~2~\,~3~
+                    endm
+
+Abs16               macro     Source[,Destination]
+                    @_DoAbs   16\,~1~\,~2~
+                    endm
+
+Neg16               macro     Source[,Destination]
+                    @_DoNeg   16\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#if MATHSIZE = 24
+
+Load24              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save24              macro     Address
+                    @_DoSave  24\,~@~
+                    endm
+
+Copy24              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load24  ~1~
+                    @Save24   ~2~
+                    endm
+
+Swap24              macro
+                    @_DoSwap  24
+                    endm
+
+Add24               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,24\,~1~\,~2~\,~3~
+                    endm
+
+Sub24               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,24\,~1~\,~2~\,~3~
+                    endm
+
+Mul24               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,24\,~1~\,~2~\,~3~
+                    endm
+
+Div24               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,24\,~1~\,~2~\,~3~
+                    endm
+
+Mod24               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,24\,~1~\,~2~\,~3~
+                    endm
+
+Abs24               macro     Source[,Destination]
+                    @_DoAbs   24\,~1~\,~2~
+                    endm
+
+Neg24               macro     Source[,Destination]
+                    @_DoNeg   24\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#if MATHSIZE = 32
+
+Load32              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save32              macro     Address
+                    @_DoSave  32\,~@~
+                    endm
+
+Copy32              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load32  ~1~
+                    @Save32   ~2~
+                    endm
+
+Swap32              macro
+                    @_DoSwap  32
+                    endm
+
+Add32               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,32\,~1~\,~2~\,~3~
+                    endm
+
+Sub32               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,32\,~1~\,~2~\,~3~
+                    endm
+
+Mul32               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,32\,~1~\,~2~\,~3~
+                    endm
+
+Div32               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,32\,~1~\,~2~\,~3~
+                    endm
+
+Mod32               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,32\,~1~\,~2~\,~3~
+                    endm
+
+Abs32               macro     Source[,Destination]
+                    @_DoAbs   32\,~1~\,~2~
+                    endm
+
+Neg32               macro     Source[,Destination]
+                    @_DoNeg   32\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#if MATHSIZE = 40
+
+Load40              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save40              macro     Address
+                    @_DoSave  40\,~@~
+                    endm
+
+Copy40              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load40  ~1~
+                    @Save40   ~2~
+                    endm
+
+Swap40              macro
+                    @_DoSwap  40
+                    endm
+
+Add40               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,40\,~1~\,~2~\,~3~
+                    endm
+
+Sub40               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,40\,~1~\,~2~\,~3~
+                    endm
+
+Mul40               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,40\,~1~\,~2~\,~3~
+                    endm
+
+Div40               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,40\,~1~\,~2~\,~3~
+                    endm
+
+Mod40               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,40\,~1~\,~2~\,~3~
+                    endm
+
+Abs40               macro     Source[,Destination]
+                    @_DoAbs   40\,~1~\,~2~
+                    endm
+
+Neg40               macro     Source[,Destination]
+                    @_DoNeg   40\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#if MATHSIZE = 48
+
+Load48              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save48              macro     Address
+                    @_DoSave  48\,~@~
+                    endm
+
+Copy48              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load48  ~1~
+                    @Save48   ~2~
+                    endm
+
+Swap48              macro
+                    @_DoSwap  48
+                    endm
+
+Add48               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,48\,~1~\,~2~\,~3~
+                    endm
+
+Sub48               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,48\,~1~\,~2~\,~3~
+                    endm
+
+Mul48               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,48\,~1~\,~2~\,~3~
+                    endm
+
+Div48               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,48\,~1~\,~2~\,~3~
+                    endm
+
+Mod48               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,48\,~1~\,~2~\,~3~
+                    endm
+
+Abs48               macro     Source[,Destination]
+                    @_DoAbs   48\,~1~\,~2~
+                    endm
+
+Neg48               macro     Source[,Destination]
+                    @_DoNeg   48\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#if MATHSIZE = 56
+
+Load56              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save56              macro     Address
+                    @_DoSave  56\,~@~
+                    endm
+
+Copy56              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load56  ~1~
+                    @Save56   ~2~
+                    endm
+
+Swap56              macro
+                    @_DoSwap  56
+                    endm
+
+Add56               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,56\,~1~\,~2~\,~3~
+                    endm
+
+Sub56               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,56\,~1~\,~2~\,~3~
+                    endm
+
+Mul56               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,56\,~1~\,~2~\,~3~
+                    endm
+
+Div56               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,56\,~1~\,~2~\,~3~
+                    endm
+
+Mod56               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,56\,~1~\,~2~\,~3~
+                    endm
+
+Abs56               macro     Source[,Destination]
+                    @_DoAbs   56\,~1~\,~2~
+                    endm
+
+Neg56               macro     Source[,Destination]
+                    @_DoNeg   56\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#if MATHSIZE = 64
+
+Load64              macro     #Number|Variable    ;load constant or variable
+                    @_DoLoad  ~0.{:0-1}~\,~@~
+                    endm
+
+Save64              macro     Address
+                    @_DoSave  64\,~@~
+                    endm
+
+Copy64              macro     #Constant|Variable,ToAddress
+                    mreq      1,2:#Constant|Variable,ToAddress
+                    @@Load64  ~1~
+                    @Save64   ~2~
+                    endm
+
+Swap64              macro
+                    @_DoSwap  64
+                    endm
+
+Add64               macro     Addend,Adder,Sum
+                    @_DoMath  ~0~\,64\,~1~\,~2~\,~3~
+                    endm
+
+Sub64               macro     Minuend,Subtrahend,Difference
+                    @_DoMath  ~0~\,64\,~1~\,~2~\,~3~
+                    endm
+
+Mul64               macro     Multiplicand,Multiplier,Product
+                    @_DoMath  ~0~\,64\,~1~\,~2~\,~3~
+                    endm
+
+Div64               macro     Dividend,Divisor,Quotient
+                    @_DoMath  ~0~\,64\,~1~\,~2~\,~3~
+                    endm
+
+Mod64               macro     Dividend,Divisor,Remainder
+                    @_DoMath  ~0~\,64\,~1~\,~2~\,~3~
+                    endm
+
+Abs64               macro     Source[,Destination]
+                    @_DoAbs   64\,~1~\,~2~
+                    endm
+
+Neg64               macro     Source[,Destination]
+                    @_DoNeg   64\,~1~\,~2~
+                    endm
+#endif
+
+;*******************************************************************************
+; Common macro(s) for all operations defined above (not to be called directly)
+;*******************************************************************************
+
+#ifnomdef _signed_
+_signed_            macro
+          #ifndef SIGNED
+                    #Warning  SIGNED \@~mfilename~\@ expected
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _StkMthMax_
+_StkMthMax_         macro     Expression
+                    mset      #
+                    mtrim     1
+                    #temp
+                    mdo
+                    mset      0,~'=()+-*\/&|^><'{:mloop}~
+                    mtrim     0
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~text.1.1~~text.{:text}~ = []
+                    mset      0,~text.2.{:text-2}~
+          #endif
+                    mset      0,~text,~           ;;remove possible index
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~text.1.1~ = #
+                    mset      0,~text.2~          ;;remove # from number
+          #endif
+          #ifnb ~text~
+            #ifnb ~text.1.1~ = .
+                    #Warning  Pointers (~text~) have unknown size
+            #endif
+            #ifnum ~text~                         ;estimate byte size for numeric constant
+              #ifnz ~text~>16
+                #if 3 > :temp
+                    #temp     3
+                #endif
+              #endif
+              #ifnz ~text~>24
+                #if 4 > :temp
+                    #temp     4
+                #endif
+              #endif
+            #endif
+            #ifb ~text.1.1~ = :
+              #ifnonum ~text~
+                #ifdef ~text~
+                  #if {::~text~} > :temp
+                    #temp     ::~text~
+                  #endif
+                #endif
+              #endif
+            #endif
+          #endif
+                    mloop     {:1/2}              ;;max term/factor estimate
+          #ifz :temp
+                    #Warning  Undetermined bit-size (using 32-bit)
+                    #temp     4
+          #endif
+;         #ifb \@~'*'~\@ = \@~1~\@                ;if any multiplication is present
+;           #if :temp < 4
+;                   #temp     :temp+1             ;give some more bits (normally double, but on average this is OK)
+;           #endif
+;         #endif
+          #if :temp > 8                           ;for exceptional cases, enforce
+                    #temp     8                   ;maximum available bit-size
+          #endif
+                    @_FindStkMth_ {:temp*8}
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef Eval
+Eval                macro     Expression
+                    #push
+                    #HideMacros
+                    mset      #
+                    mtrim     1
+                    @@_StkMthMax_ ~1~
+                    #temp      :mexit
+                    @@_FindStkMth_ {:temp}
+                    #temp     :mexit
+                    @@Eval{:temp} ~1~
+                    mset      0,{:spcheck},{:spfree-:ais},{:ais}
+                    #pull
+          #ifspauto
+                    #spauto   ~text,~
+                    #spadd    ~text','2~
+                    #ais
+                    #spadd    ~text','3~
+          #endif
+                    mexit     {:temp}
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef EvalS
+EvalS               macro     Expression
+                    mset      #
+                    @@_signed_
+                    @Eval     ~1~
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef StrMath
+StrMath             macro
+          #ifnb ~1~
+            #ifdef ~1,~
+              #ifnz ::~1,~
+                    @_DoStr   {::~1,~*8}\,~1~\,~2~
+                    mexit
+              #endif
+            #endif
+          #endif
+                    mset      #
+                    mtrim     1
+                    @@_StkMthMax_ ~1,~
+                    #temp     :mexit
+                    @_DoStr   {:temp}\,~1~\,~2~
+                    endm
+#endif
+;===============================================================================
+#ifnomdef _FindStkMth_
+_FindStkMth_        macro     BitVersion
+                    #temp
+                    mdo       ~1~/8               ;;find the next highest bit version included (but not less than requested)
+            #ifdef _STKMTH{:mloop*8}_
+              #ifz :temp
+                    #temp     :mloop*8            ;;found
+              #endif
+            #endif
+                    mloop     8                   ;;highest possible is 64 (8x8)
+            #ifz :temp
+                    mstop     Include STKMTH{~1~}.SUB (or higher)
+            #endif
+                    mexit     :temp
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _Eval_
+_Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
+          #if :macronest = 1
+                    mstop     Macro not to be called directly (eg. use @Eval32)
+          #endif
+          #ifb ~00~ = ~0~
+                    @@_needs_spauto_
+                    mdef      1,32
+                    mswap     0,1                 ;;bitsize now in ~ text ~
+                    mdel      1
+                    mset      #
+                    #Message  --------------------------------------------------
+                    #Message  Expr: ~1~
+                    #Message  --------------------------------------------------
+                    @@_FindStkMth_ ~text~
+                    mset      0,{:mexit},~text~   ;;(bitsize to use, actual bitsize)
+          #endif
+                    mset      #
+                    mreq      1:Expression (eg. [ans=](a+b)*(a-b)/2 -- spaces OK)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifb ~00~ = ~0~
+                    mtrim     1                   ;;remove all spaces
+                    mset      #'='                ;;split on assignment (if any)
+            #if :nn > 2
+                    mstop     Too many assignment operators
+            #endif
+            #if :nn > 1
+                    @@~0~     ~2~
+          ;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-
+                    mset      9                   ;;assume signed (when SIGNED)
+              #ifparm ~1.1.1~~1.{:1}~ = []
+                    mset      9,unsigned
+                    mset      1,~1.2.{:1-2}~
+              #endif
+          ;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-;-
+              #ifparm ~1.1.1~ = .                 ;;pointers ...
+                #if ~text,~/8 <> ~text','2~/8
+                    @@ResizeTOS #~text,~/8\,#~text','2~/8\,\,~9~
+                    @@lea     ~1~
+                    @@_?sei_  ~1~
+                    @@pullv   ~1~ ~text','2~/8    ;;are resized and then pulled
+                    @_?cli_   ~1~
+                    mexit
+                #endif
+              #endif
+              #ifdef ~1,~                         ;;if assignment var defined
+                    @Save~text,~ ~1~              ;;save to it
+                    mexit
+              #endif
+              #ifparm ~,1~ = ,spx                 ;;SPX is SP-equivalent in EVAL
+                    mset      1,~1,~,sp           ;;change to SP-index
+              #endif
+              #ifparm ~,1~ = ,sp                  ;;else, if SP-indexed
+~1,~                equ       ::,~text,~/8        ;;leave on stack with this name
+                    #Message  Saved to TOS (~1,~)
+                    mexit
+              #endif
+                    merror    Unknown variable \@~1~\@
+            #endif
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifstr ~1~
+            #if :1-2 > 4
+                    mstop     String constant (~1~) too long
+            #endif
+                    @Load~text,~ #~1~
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~1.1.1~ = -                     ;;process leading negative
+            #ifnum ~1~
+                    @Load~text,~ #~1~             ;;numerics use immediate mode
+                    mexit
+            #endif
+            #ifdef ~1.2~
+              #ifz ::~1.2~
+                    @Load~text,~ #~1~             ;;named constants use immediate mode
+                    mexit
+              #endif
+            #endif
+                    @~0~      #0~1~               ;;anything else, subtract from zero
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    mset      #'+-|^'             ;;split terms
+          #if :nn > 1
+                    mdo       2
+                    @@~0~     ~{:nn-:mloop+2}.2~  ;;process terms right to left
+                    mloop     :nn
+                    @@~0~     ~1~                 ;;the first term without operator
+                    mdo       2
+            #ifparm ~{:mloop}.1.1~ = +
+                    #Message  Add~text,~
+                    call      StackAdd~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = -
+                    #Message  Sub~text,~
+                    call      StackSub~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = |
+                    #Message  Or~text,~
+                    call      StackOr~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = ^
+                    #Message  Xor~text,~
+                    call      StackXor~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+                    mloop     :nn
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    mset      #'*\/&><'           ;;split factors
+          #if :nn > 1
+                    mdo       2
+                    @@~0~     ~{:nn-:mloop+2}.2~  ;;process factors right to left
+                    mloop     :nn
+                    @@~0~     ~1~                 ;;the first factor without operator
+                    mdo       2
+            #ifparm ~{:mloop}.1.1~ = *
+                    #Message  Mul~text,~
+                    call      StackMul~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = /
+                    #Message  Div~text,~
+                    call      StackDiv~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = \
+                    #Message  Mod~text,~
+                    call      StackMod~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = &
+                    #Message  And~text,~
+                    call      StackAnd~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = >
+                    #Message  Shr~text,~
+                    call      StackShr~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+            #ifparm ~{:mloop}.1.1~ = <
+                    #Message  Shl~text,~
+                    call      StackShl~text,~
+                    #spadd    -{~text,~/8}
+            #endif
+                    mloop     :nn
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~1.1.4~~1.{:1}~ = NEG()         ;;do NEG(ate) function
+                    @@~0~     ~1.5.{:1-5}~
+                    #Message  Neg~text,~
+                    call      StackNegate~text,~
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~1.1.4~~1.{:1}~ = ABS()         ;;do ABS(olute) function
+                    @@~0~     ~1.5.{:1-5}~
+                    #Message  Abs~text,~
+                    call      StackAbs~text,~
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~1.1.4~~1.{:1}~ = SQR()         ;;do SQR() function -- square
+                    @@~0~     ~1.5.{:1-5}~
+                    #Message  Sqr~text,~(TOS)
+                    tsx
+                    call      StackLoad~text,~
+                    call      StackMul~text,~
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifparm ~1.1.1~~1.{:1}~ = ()            ;;process parenthesized sub-expression
+                    @~0~      ~1.2.{:1-2}~
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    mset      9                   ;;assume signed (when SIGNED)
+          #ifparm ~1.1.1~~1.{:1}~ = []
+                    mset      9,unsigned
+                    mset      1,~1.2.{:1-2}~
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifnum ~#1~
+                    mset      1,#~#1~             ;;numerics use immediate mode
+          #endif
+          #ifparm ~1.1.2~ = -:
+                    mset      1,#~1~              ;;negative internal symbol use immediate
+          #endif
+          #ifparm ~1.1.1~ = :
+                    mset      1,#~1~              ;;positive internal symbol use immediate
+          #endif
+          #ifb ~,1~
+            #ifdef ~#1~
+              #ifz ::~#1~
+                    mset      1,#~#1~             ;;named constants use immediate
+              #endif
+            #endif
+          #endif
+          #ifparm ~,1~ = ,spx                     ;;SPX is SP-equivalent in EVAL
+                    mset      1,~1,~,sp           ;;change to SP-index
+          #endif
+          #ifparm ~1.1.1~ = .                     ;;pointers ...
+            #if ~text','2~/8 <> ~text,~/8
+                    @@_?sei_  ~1~
+                    @@pushv   ~1~ ~text','2~/8    ;;are pushed and then resized
+                    @@_?cli_  ~1~
+                    @ResizeTOS #~text','2~/8\,#~text,~/8\,\,~9~
+                    mexit
+            #endif
+          #endif
+          #ifnb ~9~
+                    mset      1,[~1~]
+          #endif
+                    @Load~text,~ ~1~              ;;anything else, load as is
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _?sei_
+_?sei_              macro
+          #ifdef _NOCLI_
+                    mexit
+          #endif
+          #ifndef _MTOS_
+                    mexit
+          #endif
+                    mset      #
+          #ifnb ~','2~ = sp
+                    mexit
+          #endif
+          #ifnb ~','2~ = spx
+                    mexit
+          #endif
+          #ifnb ~','2~ = psp
+                    mexit
+          #endif
+          #ifdef ~1,~
+            #if ::~1,~ < 2
+                    mexit
+            #endif
+          #endif
+                    sei
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _?cli_
+_?cli_              macro
+          #ifdef _NOCLI_
+                    mexit
+          #endif
+          #ifndef _MTOS_
+                    mexit
+          #endif
+                    mset      #
+          #ifnb ~','2~ = sp
+                    mexit
+          #endif
+          #ifnb ~','2~ = spx
+                    mexit
+          #endif
+          #ifnb ~','2~ = psp
+                    mexit
+          #endif
+          #ifdef ~1,~
+            #if ::~1,~ < 2
+                    mexit
+            #endif
+          #endif
+                    cli
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoLoad
+_DoLoad             macro     BitSize[,Variable]  ;if no Variable, wherever HX points
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    mreq      1:BitSize[,Variable]
+                    #temp     ~1~/8               ;;bytesize now in :temp
+                    mdel      1                   ;;get rid of bitsize parm
+                    mset      #                   ;;unite all parms into one
+                    mtrim     1
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    mset      9                   ;;assume signed (when SIGNED)
+          #ifparm ~1.1.1~~1.{:1}~ = []
+                    mset      9,unsigned
+                    mset      1,~1.2.{:1-2}~
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    @@_not_x_ ~1~                 ;;X-mode not allowed
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifnum ~1~
+                    mset      1,#~1~              ;;numerics use immediate mode
+          #endif
+          #ifb ~,1~
+            #ifdef ~#1~
+              #ifz ::~#1~
+                    mset      1,#~#1~             ;;named constants use immediate mode
+              #endif
+            #endif
+          #endif
+          #ifnb ~#~                               ;;process immediate mode
+                    #Message  Load{:temp*8} ~1~
+                    mset      1,~#1~
+                    mset      0                   ;;use as flag for CLRH usage
+                    mdo
+            #ifz ~#1~>{:mloop-1*8}&$FF
+              #ifz :text
+                    clrh
+                    mset      0,clrh              ;;flag CLRH was used
+              #endif
+                    pshh
+            #else
+                    ldx       #~#1~>{:mloop-1*8}&$FF
+                    pshx
+            #endif
+                    mloop     :temp
+                    mexit
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifnb ~1,~
+            #ifb ~1.1.1~ = .                      ;;except for pointers
+              #ifnz ::~1,~                        ;;and constants
+                #if ::~1,~ <> :temp               ;;different-size variables
+                    @@_?sei_  ~1~
+                    @@pushv   ~1~                 ;;are pushed and then resized
+                    @@_?cli_  ~1~
+                    @ResizeTOS #{::~1,~}\,#{:temp}\,\,~9~
+                    mexit
+                #endif
+              #endif
+            #endif
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+          #ifndef ~1,~
+                    #Warning  Loading forward \@~1,~\@ as var
+          #endif
+                    #Message  Load{:temp*8} ~1~
+                    @@lea     ~1~                 ;;default case
+                    @@_?sei_  ~1~
+                    call      StackLoad{:temp*8}  ;;load as is
+                    @@_?cli_  ~1~
+          #ifspauto
+                    #spadd    :temp
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoSave
+_DoSave             macro     BitSize[,Variable]  ;if no Variable, wherever HX points
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    mreq      1:BitSize[,Variable]
+                    mset      2,~@@~
+                    mtrim     2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    mset      9                   ;;assume signed (when SIGNED)
+          #ifparm ~2.1.1~~2.{:1}~ = []
+                    mset      9,unsigned
+                    mset      2,~2.2.{:2-2}~
+          #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+                    @@_not_x_ ~2~
+          #ifnb ~2,~
+            #ifb ~2.1.1~ = .                      ;;except for pointers
+              #ifnz ::~2,~                        ;;and constants
+                #if ::~2,~ <> ~1~/8               ;;different-size variables
+                    @@ResizeTOS #{~1~/8}\,#{::~2,~}\,\,~9~
+                    @@_?sei_  ~2~
+                    @@pullv   ~2~                 ;;are resized and then pulled
+                    @_?cli_   ~2~
+                    mexit
+                #endif
+              #endif
+            #endif
+          #endif
+                    #Message  Save~1~ ~2~
+                    @@lea     ~2~                 ;;default case
+                    @@_?sei_  ~2~
+                    call      StackSave~1~        ;;save as is
+                    @@_?cli_  ~2~
+          #ifspauto
+                    #spadd    -~1~/8
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoSwap
+_DoSwap             macro     BitSize
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    call      StackSwap~1~
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoOperation
+_DoOperation        macro     Operation[,BitSize]
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    mdef      2,~1.{:1-1}~
+                    #Message  ~1~
+                    call      Stack~1~
+          #ifspauto
+                    #spadd    -~2~/8
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoMath
+_DoMath             macro     Operation,BitSize[,Operand1[,Operand2[,Answer]]]
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+          #ifnoparm ~3~
+                    @_DoOperation ~1~
+                    mexit
+          #endif
+          #ifnoparm ~4~
+                    @@Load~2~ ~3~
+              #ifnoparm ~1~ = Add~2~
+              #ifnoparm ~1~ = Mul~2~
+          ;except for Add and Mul which are commutative, we must swap the stack
+                    call      StackSwap~2~        ;one parm is Operand2 (eg, Div32 XXX does TOS/XXX)
+              #endif
+              #endif
+                    @_DoOperation ~1~
+                    mexit
+          #endif
+                    @@Load~2~ ~4~
+                    @@Load~2~ ~3~
+                    @@_DoOperation ~1~
+          #ifparm ~5~
+                    @Save~2~  ~5~
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoAbs
+_DoAbs              macro     BitSize[,Source][,Destination]
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    #Message  Abs~1~ ~@@~
+                    @@_FindStkMth_ ~1~
+                    mset      1,{:mexit}
+          #ifparm ~2~
+                    @@Load~1~ ~2~
+          #endif
+                    call      StackAbs~1~
+          #ifparm ~2~~3~
+                    @Save~1~  ~3~
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoNeg
+_DoNeg              macro     BitSize[,Source][,Destination]
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    #Message  Neg~1~ ~@@~
+                    @@_FindStkMth_ ~1~
+                    mset      1,{:mexit}
+          #ifparm ~2~
+                    @@Load~1~ ~2~
+          #endif
+                    call      StackNegate~1~
+          #ifparm ~2~~3~
+                    @Save~1~  ~3~
+          #endif
+                    endm
+#endif
+;-------------------------------------------------------------------------------
+#ifnomdef _DoStr
+_DoStr              macro     BitSize,[Variable],[ResultString]
+          #if :macronest = 1
+                    #Warning  Macro NOT to be called directly
+          #endif
+                    @@_FindStkMth_ ~1~
+          #ifb ~2~
+            #if ~1~ <> :mexit
+                    #Warning  Size mismatch (Using Str~1~ for MATHSIZE={:mexit})
+            #endif
+          #endif
+                    mset      1,{:mexit}
+          #ifparm ~'~,3~'.{:3}~ = x
+                    pshhx
+          #endif
+          #ifparm ~2~
+                    @@Load~1~ ~2~
+               #ifparm ~'~,3~'.{:3}~ = x
+                    ldhx      ~1~/8+1,asp         ;reload user HX for next LDHX
+               #endif
+          #endif
+          #ifnb ~2~
+                    #Message  Convert \@~2~\@ ({::~2,~*8}-bit) to ASCIZ in \@~3~\@
+          #endif
+                    @@lea     ~3~
+                    call      Stack~1~ToASCIZ
+          #ifparm ~2~
+                    ais       #~1~/8
+          #endif
+          #ifparm ~'~,3~'.{:3}~ = x
+                    pulhx
+          #endif
+                    endm
+#endif
+
+;*******************************************************************************
+; External dependencies
+;*******************************************************************************
+
+                    #Uses     string/length.sub
+                    #Uses     string/insertchar.sub
+                    #Uses     string/adddecimalpoint.sub
+?_OBJECT_?
+;*******************************************************************************
+; One-based (SP-index) offsets to stacked operands (to be used with #SPAUTO :AB)
+;*******************************************************************************
+
+                    #temp     1
+?a                  next      :temp,?WORD         ;top-of-stack (TOS) number (N1)
+?b                  next      :temp,?WORD         ;number after TOS (N2)
+
+                    #Cycles                       ;reset the cycles counter
+
+;*******************************************************************************
+; Purpose: Add N1 to N2 and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s): Carry Set on overflow
+
+                    #spauto   :ab
+
+?Add                proc
+                    push
+                    tsx
+
+          #if MATHSIZE <= 16
+                    @add.s    ?a,spx ?b,spx ?b,spx
+          #else if SPEED_SIZE = 1
+                    @add.s    ?a,spx ?b,spx ?b,spx
+          #else
+                    lda       #?WORD
+                    clc
+                              #Cycles
+Loop@@              psha
+                    lda       ?a+{::?a-1},spx
+                    adc       ?b+{::?b-1},spx
+                    sta       ?b+{::?b-1},spx
+                    pula
+                    aix       #-1
+                    dbnza     Loop@@
+                              #Cycles :cycles*?WORD+:ocycles
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?AddCycles          equ       :cycles
+
+;*******************************************************************************
+; Purpose: Subtract N2 from N1 and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s): Carry Set on borrow
+
+                    #spauto   :ab
+
+?Subtract           proc
+                    push
+                    tsx
+          #if MATHSIZE <= 16
+                    @sub.s    ?a,spx ?b,spx ?b,spx
+          #else if SPEED_SIZE = 1
+                    @sub.s    ?a,spx ?b,spx ?b,spx
+          #else
+                    lda       #?WORD
+                    clc
+                              #Cycles
+Loop@@              psha
+                    lda       ?a+{::?a-1},spx
+                    sbc       ?b+{::?b-1},spx
+                    sta       ?b+{::?b-1},spx
+                    pula
+                    aix       #-1
+                    dbnza     Loop@@
+                              #Cycles :cycles*?WORD+:ocycles
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?SubCycles          equ       :cycles
+
+#ifdef NO_BIT_OPS
+                    #Message  Bit ops disabled (undefine NO_BIT_OPS to enable)
+#else
+                    #Message  Bit ops enabled (define NO_BIT_OPS to disable)
+;*******************************************************************************
+; Purpose: AND N1 with N2 and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s):
+                    #spauto   :ab
+
+?BitAnd             proc
+                    push
+                    tsx
+
+          #if MATHSIZE <= 16
+                    @and.s    ?a,spx ?b,spx ?b,spx
+          #else if SPEED_SIZE = 1
+                    @and.s    ?a,spx ?b,spx ?b,spx
+          #else
+                    lda       #?WORD
+                              #Cycles
+Loop@@              psha
+                    lda       ?a+{::?a-1},spx
+                    and       ?b+{::?b-1},spx
+                    sta       ?b+{::?b-1},spx
+                    pula
+                    aix       #-1
+                    dbnza     Loop@@
+                              #Cycles :cycles*?WORD+:ocycles
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?AndCycles          equ       :cycles
+
+;*******************************************************************************
+; Purpose: OR N1 with N2 and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s):
+                    #spauto   :ab
+
+?BitOr              proc
+                    push
+                    tsx
+
+          #if MATHSIZE <= 16
+                    @ora.s    ?a,spx ?b,spx ?b,spx
+          #else if SPEED_SIZE = 1
+                    @ora.s    ?a,spx ?b,spx ?b,spx
+          #else
+                    lda       #?WORD
+                              #Cycles
+Loop@@              psha
+                    lda       ?a+{::?a-1},spx
+                    ora       ?b+{::?b-1},spx
+                    sta       ?b+{::?b-1},spx
+                    pula
+                    aix       #-1
+                    dbnza     Loop@@
+                              #Cycles :cycles*?WORD+:ocycles
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?OrCycles           equ       :cycles
+
+;*******************************************************************************
+; Purpose: XOR N1 with N2 and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s):
+                    #spauto   :ab
+
+?BitXor             proc
+                    push
+                    tsx
+
+          #if MATHSIZE <= 16
+                    @eor.s    ?a,spx ?b,spx ?b,spx
+          #else if SPEED_SIZE = 1
+                    @eor.s    ?a,spx ?b,spx ?b,spx
+          #else
+                    lda       #?WORD
+                              #Cycles
+Loop@@              psha
+                    lda       ?a+{::?a-1},spx
+                    eor       ?b+{::?b-1},spx
+                    sta       ?b+{::?b-1},spx
+                    pula
+                    aix       #-1
+                    dbnza     Loop@@
+                              #Cycles :cycles*?WORD+:ocycles
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?EorCycles          equ       :cycles
+
+;*******************************************************************************
+; Purpose: Shift N1 left N2 times and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s): CCR[C] = last most significant bit shifted out
+;        : Only LSB of second operand (N2) is used, as shifting more than the
+;        : highest bit version always produces zero.  Any non-zero bytes in the
+;        : N2 operand will cause a zero result, regardless.
+
+                    #spauto   :ab
+
+?ShiftLeft          proc
+                    push
+                    #ais
+
+                    lda       ?b+{::?b-1},sp      ;A = shift counter
+                    psha      counter@@
+
+                    tsx
+
+                    clr       ?b+{::?b-1},spx     ;clear original shift counter
+b@@                 equ       ?b,::?b-1           ;(b@@ = ?b but excludes final already cleared byte - 2013.11.29 optimization)
+                    @zero?.s, b@@,spx             ;test whole word for zero (counter <= 8-bit)
+                    beq       Go@@                ;if so, proceed normally
+
+                    lda       counter@@,spx       ;if shift counter is less than
+                    cmpa      #MATHSIZE           ;MATHSIZE, proceed normally,
+                    blo       Go@@                ;else zero and exit
+
+                    @clr.s,   b@@,spx             ;else error, so zero result
+                    bra       Done@@              ;and get out
+
+Go@@                @mova.s   ?a,spx ?b,spx       ;copy operand to result
+                              #Cycles
+Loop@@              @lsl.s,   ?b,spx              ;shift left one bit position
+                    dbnz      counter@@,spx,Loop@@ ;repeat for all bits
+                              #Cycles :cycles*{MATHSIZE-1}+:ocycles
+Done@@
+          #if :ais = 1
+                    pula
+          #else
+                    ais       #:ais
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?ShlCycles          equ       :cycles
+
+;*******************************************************************************
+; Purpose: Shift N1 right N2 times and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s): CCR[C] = last least significant bit shifted out
+;        : Only LSB of second operand (N2) is used, as shifting more than the
+;        : highest bit version always produces zero.  Any non-zero bytes in the
+;        : N2 operand will cause a zero result, regardless.
+
+                    #spauto   :ab
+
+?ShiftRight         proc
+                    push
+                    #ais
+
+                    lda       ?b+{::?b-1},sp      ;A = shift counter
+                    psha      counter@@
+
+                    tsx
+
+                    clr       ?b+{::?b-1},spx     ;clear original shift counter
+b@@                 equ       ?b,::?b-1           ;(b@@ = ?b but excludes final already cleared byte - 2013.11.29 optimization)
+                    @zero?.s, b@@,spx             ;test whole word for zero (counter <= 8-bit)
+                    beq       Go@@                ;if so, proceed normally
+
+                    lda       counter@@,spx       ;if shift counter is less than
+                    cmpa      #MATHSIZE           ;MATHSIZE, proceed normally,
+                    blo       Go@@                ;else zero and exit
+
+                    @clr.s,   b@@,spx             ;else error, so zero result
+                    bra       Done@@              ;and get out
+
+Go@@                @mova.s   ?a,spx ?b,spx       ;copy operand to result
+                              #Cycles
+Loop@@
+          #ifdef SIGNED
+                    @asr.s,   ?b,spx              ;shift right one bit position
+          #else
+                    @lsr.s,   ?b,spx              ;shift right one bit position
+          #endif
+                    dbnz      counter@@,spx,Loop@@ ;repeat for all bits
+                              #Cycles :cycles*{MATHSIZE-1}+:ocycles
+Done@@
+          #if :ais = 1
+                    pula
+          #else
+                    ais       #:ais
+          #endif
+                    jmp       ?RemoveAndReturn
+
+?ShrCycles          equ       :cycles
+#endif
+
+;*******************************************************************************
+; Purpose: Multiply N1 with N2 and place result on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS] = Result
+; Note(s): Overflows lost, Carry state should be ignored
+
+                    #spauto   :ab
+
+?Multiply           proc
+                    push
+          #if MATHSIZE = 16
+          ;-------------------------------------- ;row 1
+                    tsx
+                    lda       ?a+1,spx
+                    ldx       ?b+1,spx
+                    mul
+                    pshxa     ans@@               ;temporary 16-bit result (2nd byte)
+
+                    tsx
+                    lda       ?a+1,spx
+                    ldx       ?b+0,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          ;-------------------------------------- ;row 2
+                    lda       ?a+0,spx
+                    ldx       ?b+1,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          #endif
+;===============================================================================
+          #if MATHSIZE = 24
+          ;-------------------------------------- ;row 1
+                    tsx
+                    lda       ?a+2,spx
+                    ldx       ?b+2,spx
+                    mul
+                    pshxa     ans@@               ;temporary 24-bit result (2nd & 3rd bytes)
+
+                    tsx
+                    lda       ?a+2,spx
+                    ldx       ?b+1,spx
+                    mul
+                    pshx      ans@@,3             ;temporary 24-bit result (1st byte)
+
+                    tsx
+                    add       ans@@+1,spx
+                    sta       ans@@+1,spx
+                    clra
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+
+                    lda       ?a+2,spx
+                    ldx       ?b+0,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          ;-------------------------------------- ;row 2
+                    lda       ?a+1,spx
+                    ldx       ?b+2,spx
+                    mul
+                    add       ans@@+1,sp
+                    sta       ans@@+1,sp
+                    txa
+                    tsx
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+
+                    lda       ?a+1,spx
+                    ldx       ?b+1,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          ;-------------------------------------- ;row 3
+                    lda       ?a+0,spx
+                    ldx       ?b+2,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          #endif
+;===============================================================================
+          #if MATHSIZE = 32
+          ;-------------------------------------- ;row 1
+                    tsx
+                    lda       ?a+3,spx
+                    ldx       ?b+3,spx
+                    mul
+                    pshxa     ans@@               ;temporary 32-bit result (3rd & 4th bytes)
+
+                    tsx
+                    lda       ?a+2,spx
+                    ldx       ?b+2,spx
+                    mul
+                    pshxa     ans@@,4             ;temporary 32-bit result (1st & 2nd bytes)
+
+                    tsx
+                    lda       ?a+3,spx
+                    ldx       ?b+2,spx
+                    mul
+                    add       ans@@+2,sp
+                    sta       ans@@+2,sp
+                    txa
+                    tsx
+                    adc       ans@@+1,spx
+                    sta       ans@@+1,spx
+
+                    lda       ?a+3,spx
+                    ldx       ?b+1,spx
+                    mul
+                    add       ans@@+1,sp
+                    sta       ans@@+1,sp
+                    txa
+                    tsx
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+
+                    lda       ?a+3,spx
+                    ldx       ?b+0,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          ;-------------------------------------- ;row 2
+                    lda       ?a+2,spx
+                    ldx       ?b+3,spx
+                    mul
+                    add       ans@@+2,sp
+                    sta       ans@@+2,sp
+                    txa
+                    tsx
+                    adc       ans@@+1,spx
+                    sta       ans@@+1,spx
+                    clra
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+
+                    lda       ?a+2,spx
+                    ldx       ?b+1,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          ;-------------------------------------- ;row 3
+                    lda       ?a+1,spx
+                    ldx       ?b+3,spx
+                    mul
+                    add       ans@@+1,sp
+                    sta       ans@@+1,sp
+                    txa
+                    tsx
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+
+                    lda       ?a+1,spx
+                    ldx       ?b+2,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          ;-------------------------------------- ;row 4
+                    lda       ?a+0,spx
+                    ldx       ?b+3,spx
+                    mul
+                    tsx
+                    add       ans@@,spx
+                    sta       ans@@,spx
+          #endif
+                              #temp :cycles
+;===============================================================================
+          ;--------------------------------------
+          ; 40, 48, 56, and 64-bit versions use shorter
+          ; shift/add method (more cycles, though)
+          ;--------------------------------------
+          #if MATHSIZE >= 40
+
+                    ldx       #?WORD              ;make room for result...
+                    clra                          ;... initialized to zero
+                              #temp :cycles+:temp
+Init@@              psha
+                    dbnzx     Init@@
+                              #temp :cycles*?WORD+:temp
+                    #spadd    ?WORD-1             ;stack has grown by a ?WORD
+ans@@               equ       ::,?WORD
+
+                    lda       #MATHSIZE           ;number of bits to process
+                    psha      bits@@
+
+                    tsx
+                              #temp :cycles+:temp
+Loop@@              @lsr.s    ?b,spx              ;multiplier lsb into CCR[C]
+                    bcc       Skip@@              ;Zeros skip addition
+
+                    @add.s    ?a,spx ans@@,spx ans@@,spx ;Ones add multiplicand to product
+
+Skip@@              @lsl.s    ?a,spx              ;Multiplicand*=2 for each bit
+                    dbnz      bits@@,spx,Loop@@
+                              #temp :cycles*MATHSIZE+:temp
+                    pula                          ;remove bit counter
+          #endif
+          ;--------------------------------------
+          ; copy result to B while removing from stack
+          ;--------------------------------------
+                    ldx       #?WORD
+                              #temp :cycles+:temp
+CopyResult@@        pula
+                    sta       ?b,sp
+                    dbnzx     CopyResult@@
+
+                    #spadd    1-?WORD
+                              #temp :cycles*?WORD+:temp
+                    jmp       ?RemoveAndReturn
+
+?MulCycles          equ       :temp+:cycles
+
+;*******************************************************************************
+; Purpose: Divide N1 by N2 and place quotient on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Divisor (N2)
+;        : [TOS] = Dividend (N1)
+; Output : [TOS] = Quotient
+;        : Carry Set on error (division by zero)
+; Note(s):
+                    #spauto   :ab
+
+?Divide             proc
+                    push
+
+                    lda       #?DIVOP_            ;flag for DIV operation
+          #ifdef SIGNED
+                    psha
+                    tsx
+                    lda       ?a,spx
+                    eor       ?b,spx
+                    pula
+                    bpl       Skip@@
+                    ora       #?SIGN_             ;flag for negative
+Skip@@
+          #endif
+                    psha                          ;save flags on stack
+                    bra       ?DivStart
+
+?DivCycles          equ       :cycles
+
+;*******************************************************************************
+; Purpose: Divide N1 by N2 and place remainder on top-of-stack. N1 & N2 removed
+; Input  : [TOS+?WORD] = Divisor (N2)
+;        : [TOS] = Dividend (N1)
+; Output : [TOS] = Remainder
+;        : Carry Set on error (division by zero)
+; Note(s):
+                    #spauto   :ab
+?pc                 equ       ::,:ab
+
+?Modulo             proc
+                    push
+
+                    clra                          ;flag for MOD operation
+          #ifdef SIGNED
+                    tst       ?a,sp
+                    bpl       Skip@@
+                    ora       #?SIGN_             ;flag for negative
+Skip@@
+          #endif
+                    psha                          ;save flags on stack
+                    bra       ?DivStart
+
+?ModCycles          equ       :cycles
+
+;*******************************************************************************
+
+                    #temp
+          #ifdef SIGNED
+?AbsX               proc
+                    tst       ,ax
+                    bpl       Done@@
+                              #temp :cycles
+var@@               equ       0,?WORD
+?NegX               @neg.s    var@@,ax
+Done@@              rts
+
+?AbsXCycles         equ       :cycles
+?NegxCycles         equ       ?AbsXCycles-:temp
+          #endif
+
+;*******************************************************************************
+
+?SF                 equ       0                   ;stack frame (for X-index use)
+
+?quotient           next      ?SF,?WORD
+?remainder          next      ?SF,?WORD
+?temp               next      ?SF,?WORD
+?bits               next      ?SF
+?flags              next      ?SF
+
+?DIVOP_             equ       %00000001           ;1 = DIV, 0 = MOD
+?SIGN_              equ       %10000000           ;result sign (1 = negative)
+
+                    #push
+
+?DivError           ais       #?SF                ;de-allocate temporaries
+                    sec                           ;indicate error condition
+                    jmp       ?RemoveAndReturn
+
+                    #pull
+;-------------------------------------------------------------------------------
+?DivStart           proc
+dividend@@          equ       ?a,::?a
+divisor@@           equ       ?b,::?b
+ans@@               equ       ?b,::?b             ;result overwrites divisor
+
+          #ifdef SIGNED
+                    @lea      dividend@@,sp
+                    bsr       ?AbsX
+                    @lea      divisor@@,sp
+                    bsr       ?AbsX
+                              #Cycles ?AbsXCycles*2+:cycles
+          #endif
+                    ais       #-?SF+1             ;quotient, remainder, and temp
+                    tsx                           ;(+1 for already pushed Flag)
+
+          ; remainder := 0
+          ; quotient := 0
+
+                    @clr.s    ?remainder,x
+                    @clr.s    ?quotient,x
+
+          ; first, test for division by zero error
+
+                    @zero?.s  divisor@@,spx
+                    beq       ?DivError
+
+          ; if Dividend = 0, we're done
+
+                    @zero?.s  dividend@@,spx
+                    !jeq      Done@@
+
+          ; if (divisor = dividend) then quotient := 1; return
+          ; if (divisor > dividend) then remainder := dividend; return
+
+                    @_cmp_.s  divisor@@,spx dividend@@,spx
+                    bne       NotEqual@@
+
+                    inc       ?quotient+{::?quotient-1},x  ;quotient := 1
+                    bra       ??DivExit           ;and get out
+
+NotEqual@@         ;@sub.s    divisor@@,spx dividend@@,spx  ;[2012.05.18 REDUNDANT]
+                    blo       Continue@@
+
+                    @mova.s   dividend@@,spx ?remainder,x
+??DivExit                                         ;and get out
+          #if MATHSIZE <= 16
+                    bra       Done@@
+          #else
+                    jmp       Done@@
+          #endif
+
+Continue@@          lda       #MATHSIZE
+                    sta       ?bits,x             ;bits := 64/56/48/40/32/24/16-bit
+
+          ; while (remainder < divisor) do
+
+While@@             @cop                          ;in case of many iterations
+
+                    @sub.s    ?remainder,x divisor@@,spx
+                    bcc       EndWhile@@
+
+          ; remainder := (remainder shl 1) or msb(dividend)
+          ;-------------------------------------- ;2012.12.04 optimization (moved up this code from before DEC to here)
+                    @mova.s   dividend@@,spx ?temp,x  ; temp := dividend
+                    @lsl.s    dividend@@,spx      ; dividend := dividend shl 1
+          ;--------------------------------------
+                    @rol.s    ?remainder,x
+                    dec       ?bits,x             ; bits := bits - 1
+
+          ; end while
+
+                    bra       While@@
+EndWhile@@
+                    @mova.s   ?temp,x dividend@@,spx  ; dividend := temp
+                    @lsr.s    ?remainder,x        ; remainder := remainder shr 1
+                    inc       ?bits,x             ; bits := bits + 1
+
+          ; for i := bitCounter-1 downto 0 do
+
+For@@               @cop                          ;in case of many iterations
+
+                    tst       ?bits,x
+          #if MATHSIZE <= 48
+                    beq       Done@@
+          #else
+                    jeq       Done@@
+          #endif
+                    dec       ?bits,x
+
+          ; remainder := (remainder shl 1) or msb(dividend)
+          ; dividend := dividend shl 1
+
+                    @lsl.s    dividend@@,spx      ;2012.12.04 optimization
+                    @rol.s    ?remainder,x
+
+          ; temp := remainder - divisor
+
+                    @sub.s    ?remainder,x divisor@@,spx ?temp,x
+
+          ; q := not msb(temp)
+
+                    lda       ?temp,x
+                    eor       #%10000000          ;invert msb
+                    and       #%10000000          ;isolate msb
+
+          ; quotient := (quotient shl 1) or q
+
+                    psha
+                    lsla
+                    pula
+
+                    @rol.s    ?quotient,x
+
+          ; if q <> 0 then
+
+                    cbeqa     #0,For@@
+
+          ; remainder := temp
+
+                    @mova.s   ?temp,x ?remainder,x
+
+          ; end if -- end for
+
+          #if MATHSIZE <= 48
+                    bra       For@@
+          #else
+                    jmp       For@@
+          #endif
+
+Done@@              lda       ?flags,x
+                    bit       #?DIVOP_
+                    beq       ExitMod@@
+
+?Cycles             equ       :cycles
+
+;ExitDiv@@
+                    @mova.s   ?quotient,x ans@@,spx
+                    bra       ExitBoth@@
+
+?DivCycles          set       ?DivCycles+?Cycles+:cycles
+
+ExitMod@@           @mova.s   ?remainder,x ans@@,spx
+
+?ModCycles          set       ?ModCycles+?Cycles+:cycles
+
+ExitBoth@@
+          #ifdef SIGNED
+                    tst       ?flags,x
+                    bpl       SkipSign@@
+                    @lea      ans@@,sp
+                    jsr       ?NegX
+SkipSign@@
+                              #Cycles ?NegxCycles+:cycles
+          #endif
+                    ais       #?SF                ;de-allocate temporaries
+                    clc                           ;no error(s)
+;                   bra       ?RemoveAndReturn
+
+?Cycles             set       :cycles
+?DivCycles          set       ?DivCycles+?Cycles
+?ModCycles          set       ?ModCycles+?Cycles
+
+;*******************************************************************************
+; Common exit removes lower 32-bit stack element and returns to caller
+;*******************************************************************************
+
+?RemoveAndReturn
+
+          #ifhcs
+                    ldhx      ?pc,sp              ;our return address moved up
+                    sthx      ?pc+?WORD,sp        ;above word to remove
+          #else
+                    tsx
+                    @mova.w,  ?pc,spx ?pc+?WORD,spx
+          #endif
+
+          #ifmmu
+                    tsx
+                    lda       ?pc+2,spx           ;process extra RTC byte
+                    sta       ?pc+2+?WORD,spx     ; (if in MMU mode)
+          #endif
+                    pull
+                    ais       #?WORD              ;remove top-of-stack ?WORD
+                    rtc
+
+?ReturnCycles       equ       :cycles
+
+;*******************************************************************************
+; Purpose: Swaps the stacked order of N1 and N2
+; Input  : [TOS+?WORD] = Number2
+;        : [TOS] = Number1
+; Output : [TOS+?WORD] = Number1 -- TOS & [TOS+?WORD] in reverse order
+;        : [TOS] = Number2
+; Note(s): Does not alter stack size
+
+                    #spauto   :ab
+
+?Swap               proc
+                    push
+
+                    lda       #?WORD
+                    psha      bytes@@
+
+                    tsx
+                              #temp :cycles
+Loop@@              @_swap_,  ?a,spx ?b,spx       ;swap A with B ...
+
+                    aix       #1                  ;point to next byte
+                    dbnz      bytes@@,sp,Loop@@   ;repeat for all bytes
+                              #temp :cycles*?WORD+:temp
+                    pula
+
+                    pull
+                    rtc
+
+?SwapCycles         set       :cycles+:temp
+
+;*******************************************************************************
+; Purpose: Get the absolute value of the top-of-stack number
+; Input  : [TOS] = Number
+; Output : [TOS] = Abs(Number)
+; Note(s): Does not alter stack size
+
+                    #spauto   :ab
+
+?Abs                proc
+                    tst       ?a,sp
+                    bpl       Done@@
+;                   bra       ?Negate
+
+Done@@              equ       :AnRTC
+
+?AbsCycles          equ       :cycles
+
+;*******************************************************************************
+; Purpose: Negate the top-of-stack number
+; Input  : [TOS] = Number
+; Output : [TOS] = -Number
+; Note(s): Does not alter stack size
+
+                    #spauto   :ab
+
+?Negate             proc
+                    pshhx
+          #ifdef SIGNED
+                    @lea      ?a,sp
+                    jsr       ?NegX
+                              #Cycles ?NegxCycles+:cycles
+          #else
+                    tsx
+                    @neg.s    ?a,spx
+          #endif
+                    pulhx
+                    rtc
+
+?NegateCycles       equ       :cycles
+?AbsCycles          set       ?NegateCycles+?AbsCycles
+
+;*******************************************************************************
+; Purpose: Create a new top-of-stack and load to it the number pointed to by HX
+; Input  : HX -> [Variable with] Number
+; Output : [TOS] = Number
+; Note(s): This operation makes it easier to load a number to the stack.
+;        : Hint: To make a copy of the TOS, do:
+;        :          tsx
+;        :          call      StackLoad32
+;        : (Stack is expanded)
+
+                    #spauto   :ab
+
+?Load               proc
+old_rts@@           equ       ::,:ab
+                    ais       #-?WORD             ;allocate new TOS memory
+                    #temp     ::
+new_rts@@           next      :temp,:ab
+tos_num@@           next      :temp,?WORD
+                    next      :temp,-:ab          ;-:AB as old_rts@@ will be gone
+                    #ais      :temp
+
+                    psha
+                    @mova.s   old_rts@@,sp new_rts@@,sp  ;move RTS/RTC after new memory
+                    @mova.s   ,x tos_num@@,sp
+                    pula
+                    rtc
+
+?LoadCycles         equ       :cycles
+
+;*******************************************************************************
+; Purpose: Unload the top-of-stack number into a variable pointed to by HX
+; Input  : [TOS] = Number
+;        : HX -> Some 32-bit variable
+; Output : Variable pointed to by HX receives TOS number
+; Note(s): This operation makes it easier to unload a number from the stack.
+;        : Use:
+;        :          ldhx      #MyVar
+;        :          call      StackSave32
+;        : (Stack is reduced)
+
+                    #spauto   :ab
+
+?Save               proc
+                    #temp     ::
+old_rts@@           next      :temp,:ab
+tos_num@@           next      :temp,?WORD
+                    next      :temp,-:ab          ;-:AB as old_rts@@ will be gone
+new_rts@@           next      :temp,:ab
+
+var@@               equ       0,?WORD
+
+                    push
+                    @mova.s   tos_num@@,sp var@@,x
+
+                    tsx
+                    @mova.s   old_rts@@,spx new_rts@@,spx  ;move RTS/RTC before old memory
+                    pull
+
+                    ais       #?WORD              ;de-allocate TOS memory
+                    rtc
+
+?SaveCycles         equ       :cycles
+
+;*******************************************************************************
+; Purpose: Adjust TOS old size to new
+; Input  : H = old (current) byte size
+;        : X = new byte size
+;        : CCR[C] = 0 -- always positive number
+;        : CCR[C] = 1 -- sign extend
+; Output : None
+; Note(s): RegA deliberately not used for parameter passing (for consistency)
+;        : Macro destroys RegHX (as we must not use PSHHX/PULHX around call)
+
+#ifndef ResizeTOS
+
+ResizeTOS           macro     #FromByteSize,#ToByteSize,,unsigned_if_present
+                    mreq      1,2:#FromByteSize,#ToByteSize
+          #ifb ~1.1.1~~2.1.1~ = ##
+                    mstop     Usage: ~0~ #FromByteSize,#ToByteSize
+          #endif
+                    #temp     {~#2~}-{~#1~}
+          #ifz :temp
+                    mexit                         ;;same sizes, nothing to do
+          #endif
+          #ifnb ~4~
+                    #Message  {~#1~*8}-bit => {~#2~*8}-bit
+          #else ifdef SIGNED
+                    #Message  Signed {~#1~*8}-bit => {~#2~*8}-bit
+          #else
+                    #Message  {~#1~*8}-bit => {~#2~*8}-bit
+          #endif
+          #if :temp > 0                           ;;increase stack (optimized)
+            #if :temp < 5                         ;;up to size 'long'
+                    clrx                          ;;assume unsigned
+              #ifb ~4~                            ;;if 'unsigned override' not present
+                #ifdef SIGNED                     ;;and signed version is used
+                    tst       1,asp               ;;test operand sign
+                    bpl       *+3                 ;;skip over following COMX
+                    !comx                         ;;sign-extend negative number
+                #endif
+              #endif
+                    pshx:{:temp}                  ;;(added the curly brackets to make the number visible in LST file)
+                    mexit
+            #endif
+          #endif
+          #if :temp < 0                           ;;decrease stack (optimized)
+            #if :temp > -5
+                    ais       #-:temp             ;;release stack bytes (negative :temp => positive)
+                    mexit
+            #endif
+          #endif
+                    ldhx      #~#1~<8|{~#2~}      ;;(longer sizes use normal method)
+          #ifdef SIGNED                           ;;if signed version is used
+            #ifb ~4~                              ;;and if 'unsigned override' not present
+                    sec                           ;;use sign extension
+            #else
+                    clc                           ;;no sign extension
+            #endif
+          #endif
+                    call      ~0~                 ;;call stack resizing routine
+                    #spadd    ~#2~-{~#1~}
+                    endm
+;-------------------------------------------------------------------------------
+                    #spauto   :ab
+
+ResizeTOS           proc
+                    push      old@@,1
+
+                    tpa
+                    psha      ccr@@
+
+                    #ais
+                    #psp
+
+                    txa                           ;A = new byte size
+                    sub       old@@,sp            ;A = bytes to add/remove
+                    beq       Done@@              ;nothing to do, get out
+                    bmi       Shrink@@            ;go take care of 'remove' case
+          ;---------------------------------------------------------------------
+          ; "positive" case, going from smaller to larger size
+          ;---------------------------------------------------------------------
+Expand@@            psha      room@@              ;create room for expansion
+                    tsx
+
+                    psha                          ;protect counter
+
+                    lda       #:sp-:psp
+ExpandLoop@@        psha
+                    lda       room@@+1,spx
+                    sta       room@@,spx
+                    pula
+                    aix       #1
+                    dbnza     ExpandLoop@@
+
+                    clr       ,x                  ;positive sign extension
+          #ifdef SIGNED                           ;signed version
+                    lda       ccr@@-1,sp          ;BugFix: 2014.10.14 (WAS: ccr@@,sp)
+                    tap
+                    bcc       ExpandNext@@
+
+                    tst       1,sp
+                    bpl       ExpandNext@@
+                    com       ,x                  ;negative sign extension
+          #endif
+ExpandNext@@        pula
+                    dbnza     Expand@@
+
+                    bra       Done@@
+          ;---------------------------------------------------------------------
+          ; "negative" case, going from larger to smaller size
+          ;---------------------------------------------------------------------
+                    #push
+                    #spadd    -1                  ;account for room@@ PSHA above
+                    #psp
+
+Shrink@@            nega                          ;make counter positive
+
+ShrinkAgain@@       psha
+                    tsx
+
+                    lda       #:sp-:psp
+ShrinkLoop@@        psha
+                    lda       1-1,spx
+                    sta       1,spx
+                    pula
+                    aix       #-1
+                    dbnza     ShrinkLoop@@
+
+                    pula
+                    pulx                          ;get rid of extra room (AIS #1)
+                    dbnza     ShrinkAgain@@
+
+                    #pull
+          ;---------------------------------------------------------------------
+Done@@              ais       #:ais
+                    pull
+                    rtc
+#endif
+
+;*******************************************************************************
+; Purpose: Convert 32-bit to ASCIZ string
+; Input  : Stack: 32-bit number
+;        : HX -> Output buffer with enough space to keep the ASCIZ string result
+; Output : None
+; Note(s): Use:
+;        :          ldhx      #Buffer
+;        :          call      Stack32ToASCIZ
+
+                    #spauto   :ab                 ;account for RTS/RTC
+
+?ToStr              proc
+                    push
+
+                    #psp                          ;mark beginning of temporaries
+
+                    pshhx     .buffer@@           ;working copy of pointer to buffer
+                    clr       ,x                  ;make it an ASCIZ string
+
+                    @lea      1,sp                ;HX -> TOS number of caller
+                    call      ?Load               ;load a working copy on stack
+
+                    #spadd    ?WORD               ;stack has grown by a ?WORD
+number@@            equ       ::,?WORD
+    #ifdef SIGNED
+                    tst       number@@,sp
+                    bpl       ToStrLoop@@
+                    call      ?Negate
+          #ifhcs
+                    ldhx      .buffer@@,sp
+          #else
+                    ldx       .buffer@@,sp
+                    txh
+                    ldx       .buffer@@+1,sp
+          #endif
+                    lda       #'-'                ;a 'minus' sign
+                    sta       ,x                  ; is saved first
+
+                    aix       #1                  ;HX -> past minus sign
+                    clr       ,x                  ;make it an ASCIZ string
+          #ifhcs
+                    sthx      .buffer@@,sp        ;update pointer past sign
+          #else
+                    stx       .buffer@@+1,sp
+                    thx
+                    stx       .buffer@@,sp
+          #endif
+;                   bra       ToStrLoop@@
+    #endif
+;===============================================================================
+
+ToStrLoop@@         ldhx      #10                 ;H = 0 (always), X = divisor
+                    @div.s    number@@,sp
+
+                    tha                           ;A = remainder
+                    add       #'0'                ;A = ASCII remainder
+          #ifhcs
+                    ldhx      .buffer@@,sp
+          #else
+                    ldx       .buffer@@,sp
+                    txh
+                    ldx       .buffer@@+1,sp
+          #endif
+                    @StringInsertChar
+
+                    tsx
+
+                    @zero?.s  number@@,spx
+                    bne       ToStrLoop@@
+
+                    ais       #:psp               ;free temporaries
+
+                    pull
+                    rtc
+
+                    #sp                           ;cancel all SP offsets
+
+;*******************************************************************************
+; Assign global names to the various library calls, depending on version used.
+; Different names for each version means you can include any at the same time.
+;*******************************************************************************
+
+?                   macro     BitSize             ;temp macro to export symbols
+                    mreq      1:Usage: @~0~ BitSize
+          #if MATHSIZE = ~1~
+StackAdd~1~         exp       ?Add
+StackSub~1~         exp       ?Subtract
+StackMul~1~         exp       ?Multiply
+StackDiv~1~         exp       ?Divide
+StackMod~1~         exp       ?Modulo
+StackSwap~1~        exp       ?Swap
+StackAbs~1~         exp       ?Abs
+StackNegate~1~      exp       ?Negate
+StackLoad~1~        exp       ?Load
+StackSave~1~        exp       ?Save
+Stack~1~ToASCIZ     exp       ?ToStr
+          #ifdef NO_BIT_OPS
+                    mexit                         ;;bit operations not available
+          #endif
+StackAnd~1~         exp       ?BitAnd
+StackOr~1~          exp       ?BitOr
+StackXor~1~         exp       ?BitXor
+StackShl~1~         exp       ?ShiftLeft
+StackShr~1~         exp       ?ShiftRight
+          #endif
+                    endm
+
+                    @?        64                  ;export 64-bit labels
+                    @?        56                  ;export 56-bit labels
+                    @?        48                  ;export 48-bit labels
+                    @?        40                  ;export 40-bit labels
+                    @?        32                  ;export 32-bit labels
+                    @?        24                  ;export 24-bit labels
+                    @?        16                  ;export 16-bit labels
+
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+
+                    #Message  Add : {?AddCycles+?ReturnCycles} cycles
+                    #Message  Sub : {?SubCycles+?ReturnCycles} cycles
+                    #Message  Mul : {?MulCycles+?ReturnCycles} cycles
+                    #Message  Div : {?DivCycles+?ReturnCycles}+ cycles
+                    #Message  Mod : {?ModCycles+?ReturnCycles}+ cycles
+          #ifndef NO_BIT_OPS
+                    #Message  And : {?AndCycles+?ReturnCycles} cycles
+                    #Message  Or. : {?OrCycles+?ReturnCycles} cycles
+                    #Message  Xor : {?EorCycles+?ReturnCycles} cycles
+                    #Message  Shl : {?ShlCycles+?ReturnCycles}- cycles
+                    #Message  Shr : {?ShrCycles+?ReturnCycles}- cycles
+          #endif
+                    #Message  Swap: {?SwapCycles} cycles
+                    #Message  Abs : {?AbsCycles}- cycles
+                    #Message  Neg : {?NegateCycles} cycles
+                    #Message  Load: {?LoadCycles} cycles
+                    #Message  Save: {?SaveCycles} cycles
+
+                    @EndStats
+
+;*******************************************************************************
+;                     T E S T   C O D E
+;*******************************************************************************
+                    #MapOn
+                    #RAM
+;-------------------------------------------------------------------------------
+MyVars
+
+ans                 rmb       ?WORD
+                    align     8
+string_ans          rmb       22                  ;for worst-case signed 64-bit
+
+                    #size     MyVars
+;-------------------------------------------------------------------------------
+                    #ROM
+;-------------------------------------------------------------------------------
+ToInt16             macro
+                    dw        ~1~
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+ToInt24             macro     Long                ;convert signed number to int48
+                    fcb       ~1~>16&$FF
+                    dw        ~1~&$FFFF
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+ToInt32             macro
+                    long      ~1~
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+ToInt40             macro     Long                ;convert signed number to int48
+          #if ~1~ >= 0
+                    fcb       0
+          #else
+                    fcb       -1
+          #endif
+                    long      ~1~
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+ToInt48             macro     Long                ;convert signed number to int48
+          #if ~1~ >= 0
+                    dw        0
+          #else
+                    dw        -1
+          #endif
+                    long      ~1~
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+ToInt56             macro     Long                ;convert signed number to int56
+          #if ~1~ >= 0
+                    fcb       0
+                    dw        0
+          #else
+                    fcb       -1
+                    dw        -1
+          #endif
+                    long      ~1~
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+ToInt64             macro     Long                ;convert signed number to int64
+          #if ~1~ >= 0
+                    long      0,~1~
+          #else
+                    long      -1,~1~
+          #endif
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+;-------------------------------------------------------------------------------
+
+A                   def       40000               ;default example operand one
+          #ifdef SIGNED
+B                   def       -3000               ;default example operand two
+          #endif
+B                   def       3000                ;default example operand two
+
+                    #Message  +==========================================
+                    #Message  | Using test numbers: A={A}, B={B}
+                    #Message  +==========================================
+
+N1                  @ToInt{MATHSIZE} A
+N2                  @ToInt{MATHSIZE} B
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+                    @ClrVar   MyVars
+          ;-------------------------------------- ;test each operation (using related macros)
+                    @Eval     ans = sqr(abs(N1 - N2) * abs(N1 + N2))
+
+                    @StrMath  ans,string_ans
+
+                    @AddDecimalPoint #2,string_ans
+
+                    @Eval16   #$00120034          ;to test CLRH optimization
+
+          #ifndef NO_BIT_OPS
+                    @Eval     ans = %1000 < 3     ;64 (*8)
+          #if MATHSIZE >= 24
+                    @Eval     ans = 12345678 > 2  ;3086419 (/4)
+          #endif
+                    @Eval     ans = %10 ^ %11     ;1 (%01)
+                    @Eval     ans = %101 | %11    ;7 (%111)
+                    @Eval     ans = %10 & %11     ;2 (%10)
+          #endif
+          #ifdef SIGNED
+                    lda       #-3
+          #else
+                    lda       #3
+          #endif
+                    psha
+
+                    ldhx      #1<8|8
+                    sec
+                    call      ResizeTOS
+
+                    ldhx      #8<8|1
+                    sec
+                    call      ResizeTOS
+          ;-------------------------------------- ;done testing
+Done                ais       #:ais
+                    bra       *
+
+                    @vector   Vreset,Start

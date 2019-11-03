@@ -1,0 +1,218 @@
+;*******************************************************************************
+;* Module    : I2C.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Generic I2C routines: I2C_Start, I2C_GetChar, I2C_PutChar, I2C_Stop
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Note(s)   : Normal sequence is: I2C_Start, I2C_PutChar ..., I2C_Stop
+;* History   : 14.08.01 v1.00 Original (taken from 2005.08.01 os8/i2c.mod)
+;*           : 14.08.12       Complete rewrite for greater protocol conformance [-3 bytes]
+;*           :                Added ?PutAck and ?GetAck; added slave busy
+;*           :                detection; added optional clock delay; corrected
+;*           :                acknowledge for master-receive case
+;*           :                Made ?PutAck and ?GetAck inline [-6 bytes]
+;*           : 18.05.08 v1.01 Changed BSR to JSR in ?ClkHigh and ?ClkLow macros
+;*           :                Added optional delay after clock low for symmetry
+;*           : 18.11.22 v1.02 Added I2C_Init for general API compatibility
+;*           : 18.11.23       Added I2C_RepeatedStart as an alias to I2C_Start
+;*           :                BugFix: Set CLK high in I2C_Start
+;*           :                BugFix: Remove wait for CLK high in ?ClkHigh
+;*           : 19.04.11       Changed JSR to BSR in ?ClkLow macro [-5 bytes]
+;*           :                I2C_GetChar leaves CCR[C] low for multiple calling convenience [+1 byte]
+;*******************************************************************************
+
+;-------------------------------------------------------------------------------
+; API
+;-------------------------------------------------------------------------------
+; I2C_Init          -- (stub for compatibility)
+; I2C_Start         -- Generate START condition
+; I2C_RepeatedStart -- Generate repeated START condition (same as I2C_Start in this library)
+; I2C_Stop          -- Generate STOP condition
+; I2C_GetChar       -- Read SCI char into RegA
+; I2C_PutChar       -- Write RegA character to the SCI
+;-------------------------------------------------------------------------------
+
+                    #Exit     _I2C_
+_I2C_               equ       102
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #MCF
+
+I2C_CLK             @pin      PORTA,3
+I2C_DATA            @pin      PORTA,5
+#endif ;------------------------------------------------------------------------
+
+                    @CheckPin I2C_CLK,I2C_DATA
+
+                    #Message  I2C: P{I2C_CLK}.{I2C_CLK.}=Clock, P{I2C_DATA}.{I2C_DATA.}=Data
+
+;*******************************************************************************
+; Macros
+;*******************************************************************************
+
+?ClkHigh            macro
+                    @Input    I2C_CLK             ;output a one via pullup (open drain)
+                    endm
+
+?ClkLow             macro                         ;Make sure CCR[C] is preserved
+                    !jsr      ~0~
+                    endm
+
+;*******************************************************************************
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Initialize I2C and send the START condition to the I2C device
+; Input  : None
+; Output : None
+; Note(s): START condition requires both the clock and data lines to be
+;        : initially high, and with the clock remaining high, the data line to
+;        : go low.
+                    #spauto
+
+I2C_Start           proc
+                    @Pullup   I2C_CLK,I2C_DATA
+                    @?ClkHigh                     ;while clock is high...
+                    @On       I2C_CLK,I2C_DATA    ;set clock-line to '1' (stop-condition)
+                    bclr      I2C_DATA            ;data line goes from high to low
+                    bclr      I2C_CLK             ;clock starts low for data transfers
+                    rtc
+
+;*******************************************************************************
+
+I2C_RepeatedStart   equ       I2C_Start
+
+;*******************************************************************************
+; Purpose: Send the STOP condition to the I2C device
+; Input  : None
+; Output : None
+; Note(s): STOP condition requires the clock line to be initially high and the
+;        : data line to be initially low, and with the clock remaining high,
+;        : the data line to go high.
+                    #spauto
+
+I2C_Stop            proc
+                    @Off      I2C_DATA            ;data line starts low output
+                    @?ClkHigh                     ;while clock is high...
+                    bset      I2C_DATA            ;... data line goes from low to high
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional extra delay
+          #endif
+                    @?ClkLow                      ;clock starts low for data transfers
+                    rtc
+
+;*******************************************************************************
+; Purpose: Get a data byte from the IIC device in RegA
+; Input  : CCR[C] = acknowledge (use 0 for all bytes except final byte to receive)
+; Output : A = byte received
+;        : CCR[C] = 0 -- for multiple I2C_GetChar calling convenience
+; Note(s):
+                    #spauto
+
+I2C_GetChar         proc
+                    lda       #1                  ;start with end-of-byte flag
+                    psha      ans@@               ;placeholder for answer
+
+                    tpa
+                    psha
+
+                    @Input    I2C_DATA            ;set IIC data port as input
+
+Loop@@              @?ClkHigh                     ;set clock-line to '1'
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional delay
+          #endif
+                    @ReadPin  I2C_DATA            ;adjust Carry according to Data bit
+                    @?ClkLow                      ;set clock-line to '0'
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional delay
+          #endif
+                    rol       ans@@,sp            ;shift-in just read data-bit
+                    bcc       Loop@@              ;repeat until flag comes out
+
+                    pula
+                    tap                           ;load caller's CCR[C]
+          ;-------------------------------------- ;set the ack/nak bit based on CCR[C]
+                    bclr      I2C_DATA            ;put a '0' on the data line (ACK)
+                    bcc       PutAck@@
+                    bset      I2C_DATA            ;put a '1' on the data line (NACK)
+
+PutAck@@            @Output   I2C_DATA            ;output for sending acknowledge bit
+                    @?ClkHigh                     ;set clock-line to '1'
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional extra delay
+          #endif
+                    @?ClkLow                      ;set clock-line to '0'
+                    @Input    I2C_DATA            ;leave data line as input
+          ;--------------------------------------
+                    pula                          ;A = received byte
+                    clc                           ;(for convenience when calling multiple times)
+                    rtc
+
+;*******************************************************************************
+; Purpose: Send a byte to the I2C device
+; Input  : A = data byte
+; Output : CCR[C] = 0 on acknowledge, 1 on not acknowledge
+; Note(s):
+                    #spauto
+
+I2C_PutChar         proc
+                    pshxa
+
+                    ldx       #8                  ;numbers of bits to send
+                    @Output   I2C_DATA            ;set I2C_DATA port as output
+
+Loop@@              rola                          ;get data-bit (MSB) into Carry
+                    bcs       OneBit@@            ;and put it to data-line
+
+                    bclr      I2C_DATA            ;a ZERO bit
+                    bra       Clock@@             ;CLOCK LOW PERIOD (15/18 cycles)
+
+OneBit@@            bset      I2C_DATA            ;a ONE bit
+                    brn       *                   ;(optional) for timing symmetry of 0 & 1 cases
+
+Clock@@             @?ClkHigh                     ;set clock-line to '1'
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional extra delay
+          #endif
+                    @?ClkLow                      ;set clock-line to '0'
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional extra delay
+          #endif
+                    dbnzx     Loop@@              ;one less bit to send
+
+                    pulxa                         ;restore user registers
+          ;-------------------------------------- ;get the acknowledge bit
+                    @Input    I2C_DATA            ;input for receipt of acknowledge
+                    @?ClkHigh                     ;set clock-line to '1'
+          #ifmdef I2C_ClockDelay
+                    @I2C_ClockDelay               ;optional extra delay
+          #endif
+                    @ReadPin  I2C_DATA            ;acknowledge? (bit = 0)
+                    @?ClkLow                      ;set clock-line to '0'
+          ;--------------------------------------
+                    rtc
+
+;*******************************************************************************
+
+I2C_Init            equ       :AnRTC              ;for compatibility with other i2c_polled.sub library
+
+;*******************************************************************************
+; Purpose: Set the clock line low
+; Input  : None
+; Output : None
+; Note(s): Make sure CCR[C] is preserved
+
+                    #spauto
+
+?ClkLow             proc
+                    @Off      I2C_CLK             ;output a zero
+                    rts
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

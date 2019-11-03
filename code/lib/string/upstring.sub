@@ -1,0 +1,44 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     upcase.sub
+
+;*******************************************************************************
+; Purpose: Convert ASCIZ string pointed to by HX to uppercase
+; Input  : HX -> string
+; Output : HX -> STRING
+
+StringUpcase        macro     [[#]String]
+                    mset      #
+          #ifb ~1~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringUpcase        proc
+                    push
+Loop@@              lda       ,x
+                    call      Upcase              ;convert to uppercase
+                    sta       ,x
+                    aix       #1
+                    bne       Loop@@              ;repeat until an ASCIZ terminator is processed
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

@@ -1,0 +1,170 @@
+;*******************************************************************************
+;* Module    : BRSETCLR.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : General-purpose B[R]SET/B[R]CLR equivalents
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/brsetclr.html
+;* Note(s)   : Use: #Include brsetclr.sub
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #HideMacros
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+
+;*******************************************************************************
+; Common offsets
+
+                    #temp     0
+?BITPOS             next      :temp,2
+?TARGET             next      :temp,2
+?PARM_SIZE          equ       :temp
+
+;*******************************************************************************
+; Purpose: BRSET for use with extended addresses
+; Input  : [_PC_,sp]+0 = BitPos (15..13) & Variable (12..0)
+;        : [_PC_,sp]+2 = Goto Address
+; Output : None
+
+BRIFSET             macro     BitPos,Address,Target
+                    mreq      1,2,3:BitPos,Address,Target
+          #ifz ]~2~
+                    brset     ~@~
+                    mexit
+          #endif
+          #if ~1~ > 7
+                    merror    BitPos not in range 0..7
+          #endif
+          #ifparm ~3~ = *
+                    mset      3,{*}
+          #endif
+                    !jsr      ~0~
+                    dw        ~2~&$1FFF|{~1~<13}  ;BitPos (15..13) & Variable (12..0)
+                    dw        ~3~                 ;Target
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   2
+
+BRIFSET             proc
+pc@@                equ       ::,2
+                    push
+                    tpa                           ;shorter PSHCC
+                    psha
+                    bsr       ?ConvertPosToMask   ;convert position to bit mask
+                    and       ,x                  ;mask sought bits
+                    tpa                           ;keep CCR from destruction
+                    ldhx      pc@@,sp
+                    tap                           ;restore decisive CCR
+                    bne       Branch@@
+                    aix       #?PARM_SIZE         ;skip hard-coded parameters
+                    bra       Done@@
+Branch@@            ldhx      ?TARGET,x
+Done@@              sthx      pc@@,sp
+                    pula                          ;shorter PULCC
+                    tap
+                    pull
+                    rts
+
+;*******************************************************************************
+
+                    #spauto   2
+
+?ConvertPosToMask   proc
+pc@@                equ       5,2
+                    ldhx      pc@@,sp
+                    ldhx      ?BITPOS,x
+                    tha
+                    and       #%11100000          ;keep only "opcode" bits
+                    lsra                          ;move to bits 6..4
+                    nsa                           ;move to bits 2..0
+                    psha      bitnum@@
+                    clra
+                    sec
+Loop@@              rola                          ;convert bit number to mask
+                    dbnz      bitnum@@,sp,Loop@@
+                    ais       #1                  ;release bitnum$$$
+                    psha
+                    tha
+                    and       #$1F                ;leave out the bit number bits
+                    tah
+                    pula
+                    rts
+
+;*******************************************************************************
+; Purpose: BRCLR for use with extended addresses
+; Input  : [_PC_,sp]+0 = BitPos (15..13) & Variable (12..0)
+;        : [_PC_,sp]+2 = Goto Address
+; Output : None
+
+BRIFCLR             macro     BitPos,Address,Target
+                    mreq      1,2,3:BitPos,Address,Target
+          #ifz ]~2~
+                    brclr     ~@~
+                    mexit
+          #endif
+          #if ~1~ > 7
+                    merror    BitPos not in range 0..7
+          #endif
+          #ifparm ~3~ = *
+                    mset      3,{*}
+          #endif
+                    !jsr      ~0~
+                    dw        ~2~&$1FFF|{~1~<13}  ;BitPos (15..13) & Variable (12..0)
+                    dw        ~3~                 ;Target
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   2
+
+BRIFCLR             proc
+pc@@                equ       ::,2
+                    push
+                    tpa                           ;shorter PSHCC
+                    psha
+                    bsr       ?ConvertPosToMask   ;convert position to bit mask
+                    coma                          ;used for opposite test
+                    and       ,x                  ;mask sought bits
+                    tpa                           ;keep CCR from destruction
+                    ldhx      pc@@,sp
+                    tap                           ;restore decisive CCR
+                    beq       Branch@@
+                    aix       #?PARM_SIZE         ;skip hard-coded parameters
+                    bra       Done@@
+Branch@@            ldhx      ?TARGET,x
+Done@@              sthx      pc@@,sp
+                    pula                          ;shorter PULCC
+                    tap
+                    pull
+                    rts
+
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    #MapOn
+
+Start               proc
+                    @rsp
+
+                    clra
+                    sta       $0801
+                    coma
+                    sta       $0800
+
+One@@               @brifset  3,$0800,Zero@@
+                    nop
+Zero@@              @brifclr  3,$0801,One@@
+;                   @bitset   1,$0800
+;                   @bitclr   1,$0800
+                    bra       *
+
+                    @vector   Vreset,Start

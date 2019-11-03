@@ -1,0 +1,55 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+AAX                 rtc
+#endif ;------------------------------------------------------------------------
+                    #Uses     length.sub
+                    #Uses     insertchar.sub
+
+;*******************************************************************************
+; Purpose: Pad an ASCIZ string with leading blanks upto specific string size
+; Input  : HX -> ASCIZ string
+;        : A = Max. string length
+; Output : None
+
+StringPadLeft       macro     [#]MaxLength[,[#]StringToInsert]
+          #ifb ~1~~2~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifb ~2~
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+          #else
+                    push
+                    lda       ~1~
+                    @@lea     ~@@~
+                    call      ~0~
+                    pull
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringPadLeft       proc
+                    psha      max@@
+                    @StringLength
+Loop@@              cmpa      max@@,sp
+                    bhs       Done@@
+                    @StringInsertChar #' '
+                    inca                          ;update string length
+                    bra       Loop@@
+Done@@              pula
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

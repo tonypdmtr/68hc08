@@ -1,0 +1,41 @@
+;*******************************************************************************
+;* Module    : LEAP.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Purpose   : Jump to any PPAGE location (in #MMU mode), works as JMP otherwise
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/leap.html
+;* History   : 10.12.09 v1.00 Original
+;*           : 13.11.27 v1.10 Allowed for use even in non-MMU mode
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     qe128.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Uses CALL to leap to any PPAGE (no return address remains on stack)
+; Input  : 24-bit address stored in three bytes following the CALL instruction
+; Output : None
+; Note(s): It is assumed that the #MMU mode is active
+; Use    :          call      LEAP
+;        :          far       SomeFarCode
+
+                    #spauto
+
+Leap                proc
+pc@@                equ       ::,:ab              ;24-bit return address stacked by CALL
+                    push
+                    ldhx      pc@@+{:ab-2},sp     ;HX -> hardcoded "far" address
+                    @mova.s   ,x pc@@,sp          ;copy address into return address
+                    pull
+                    RTC                           ;performs LEAP/JMP atomically
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  Size: {:pc-Leap} bytes, {:cycles} cycles

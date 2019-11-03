@@ -1,0 +1,190 @@
+;*******************************************************************************
+;* Module    : CONFIG.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Routines to save / restore configuration
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/config.html
+;* Note(s)   : Compatible Flash functions (fFlash_Erase and fFlash_Write) must
+;*           : also be included, eg OS8/FLASH_GB.MOD or FLASH.SUB
+;* History   : 07.12.07 v1.00 Original (Started on 2007.11.28)
+;*           : 09.07.23       Added BMS instruction to not use OS8 locks
+;*           : 10.10.01       Use FLASH.SUB if OS8/FLASH_GB.MOD is missing
+;*           : 13.09.24       Added counter around fFlash_Erase for erratic chips [+8 bytes]
+;*           : 15.05.15       Adapted to latest sema lock/unlock parameter passing scheme
+;*           : 15.05.30       Directly call the fLock/fUnlock macro instead of subroutines [-9 bytes]
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #Uses     flash.sub
+                    #ListOn
+
+EE_BLOCK            def       $4000               ;sample values for testing
+EE_BLOCKSIZE        def       $100
+EE_DEFBLOCK         def       $8000
+
+                    #ROM
+#endif ;------------------------------------------------------------------------
+
+?                   macro     BlockLabel[,BlockLabel]*
+                    mswap     1,:loop
+          #ifndef ~1~
+                    merror    Missing ~1~ (or forward reference)
+          #endif
+                    mtop      :n
+                    endm
+
+                    @?        EE_BLOCK,EE_BLOCKSIZE,EE_DEFBLOCK
+
+                    #Message  EE_BLOCK {EE_BLOCK(h)}, EE_BLOCKSIZE={EE_BLOCKSIZE}, EE_DEFBLOCK {EE_DEFBLOCK(h)}
+?_OBJECT_?
+;*******************************************************************************
+; Local macros
+;*******************************************************************************
+
+?Flash              macro     Erase|Write
+          #ifnoparm ~1~ = Erase
+          #ifnoparm ~1~ = Write
+                    merror    Usage: @~0~ Erase|Write
+          #endif
+          #endif
+          #ifdef Flash_~1~
+                    call      Flash_~1~
+          #else
+                    os        fFlash_~1~
+          #endif
+                    endm
+
+;-------------------------------------------------------------------------------
+
+?Lock               macro
+          #ifdef semaFLASH
+                    @fLock    semaFLASH
+          #endif
+                    endm
+
+;-------------------------------------------------------------------------------
+
+?Unlock             macro
+          #ifdef semaFLASH
+                    @fUnlock  semaFLASH
+          #endif
+                    endm
+
+;*******************************************************************************
+; Purpose: Save RAM variables to EEPROM with CRC making
+; Input  : None
+; Output : Carry Clear if Save was done, Carry Set if not done (same content)
+; Note(s):
+                    #spauto
+
+SaveConfig          proc
+                    push
+
+                    @?Lock
+
+                    ldhx      #EEPROM
+
+Check@@             cphx      #EEPROM+EE_BLOCKSIZE
+                    bhs       Fail@@              ;same content, no save required
+
+                    lda       EE_BLOCK-EEPROM,x
+                    cbeq      x+,Check@@
+
+                    lda       #3                  ;number of trials for erase
+                    ldhx      #EEPROM
+Erase@@             @?Flash   Erase               ;first erase the sector
+                    bcc       Go@@                ;if no error, continue
+                    dbnza     Erase@@             ;try again
+                    bra       Fail@@              ;too many tries, fail
+
+Go@@                clra
+                    psha      my_crc@@            ;used to keep CRC
+
+Loop@@              lda       EE_BLOCK-EEPROM,x
+                    @?Flash   Write               ;now, write the new values
+                    add       my_crc@@,sp         ;update CRC
+                    sta       my_crc@@,sp
+                    aix       #1
+                    cphx      #EEPROM+EE_BLOCKSIZE
+                    blo       Loop@@
+                    pula                          ;get CRC
+
+CRCCom@@            coma
+                    cbeqa     #[ERASED_STATE,CRCCom@@  ;do not allow CRC=$FF (erased state)
+
+                    @?Flash   Write               ;save CRC after the data block
+
+                    @?Unlock
+
+                    clc
+                    bra       ?Exit
+
+Fail@@              @?Unlock
+
+                    sec
+                    bra       ?Exit
+
+;*******************************************************************************
+; Purpose: Copy EEPROM to RAM with CRC checking
+; Input  : None
+; Output : None
+; Note(s):
+                    #spauto
+
+LoadConfig          proc
+                    push
+
+                    @?Lock
+
+                    clra
+                    psha      my_crc@@            ;used to keep CRC
+
+                    ldhx      #EEPROM
+Loop@@              lda       ,x                  ;copy from EEPROM
+                    sta       EE_BLOCK-EEPROM,x   ; to RAM
+                    add       my_crc@@,sp         ;update CRC
+                    sta       my_crc@@,sp
+                    aix       #1
+                    cphx      #EEPROM+EE_BLOCKSIZE
+                    blo       Loop@@
+                    pula                          ;get calculated CRC
+
+CRCCom@@            coma
+                    cbeqa     #[ERASED_STATE,CRCCom@@  ;do not allow CRC=$FF (erased state)
+
+                    cbeq      x+,Done@@           ;if same as saved CRC, no problem [already, HX -> EEPROM+EE_BLOCKSIZE]
+
+                    call      LoadDefaults        ;else load defaults
+
+Done@@              @?Unlock
+
+                    clc
+                    bra       ?Exit
+
+;*******************************************************************************
+; Purpose: Load default values
+; Input  : None
+; Output : None
+; Note(s):
+                    #spauto
+
+LoadDefaults        proc
+                    push
+                    clrhx
+Loop@@              lda       EE_DEFBLOCK,x       ;copy from default block
+                    sta       EE_BLOCK,x          ; to RAM block (EE copy)
+                    aix       #1
+                    cphx      #EE_BLOCKSIZE
+                    blo       Loop@@
+?Exit               pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Export   SaveConfig,LoadConfig,LoadDefaults
+                    #Exit
+;*******************************************************************************
+                    @EndStats

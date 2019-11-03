@@ -1,0 +1,55 @@
+;*******************************************************************************
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/length.html
+;* History   : 10.12.09 Original [?]
+;*           : 11.04.21 Optimized StringLength by a byte (by using NEGA on exit)
+;*           : 12.09.17 Optimized test code a bit
+;*           : 13.05.07 Moved test code string earlier to use ::TESTSTR
+;*           : 16.07.04 Made use of lib/string/length.sub
+;*           :          Added lib/string/lengthtochar.sub
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+                    #Uses     string/length.sub
+                    #Uses     string/lengthtochar.sub
+?_OBJECT_?
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    #MapOn
+                    #ROM
+
+TESTSTR             fcc       'This is a '
+                    fcc:10    'really-really '
+                    fcs       'long string to show NEGA trick works over 127'
+                    #size     TESTSTR,*-TESTSTR-1
+                    #Message  String length: {::TESTSTR}
+          #if ::TESTSTR > 255
+                    #Warning  String too long, expect wrong answer
+          #endif
+
+;-------------------------------------------------------------------------------
+
+Start               proc
+                    @rsp
+
+                    @StringLength #TESTSTR
+                    cbeqa     #::TESTSTR,_2@@     ;SUCCESS
+                    bra       *                   ;ERROR
+
+_2@@                @StringLengthToChar #TESTSTR #' '
+                    cbeqa     #4,*                ;SUCCESS
+                    bra       *                   ;ERROR
+
+;*******************************************************************************
+                    @vector   Vreset,Start
+;*******************************************************************************

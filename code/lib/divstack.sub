@@ -1,0 +1,78 @@
+;*******************************************************************************
+;* Module    : DIVSTACK.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Divide stacked word of parent routine by the value in X
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/divstack.html
+;* Note(s)   : Use: #Include divstack.sub
+;* History   : 10.02.02 v1.00 Original
+;*           : 11.04.13       Moved test code at EOF (for #EXIT optimization)
+;*           : 11.07.01       Minor change in test code, and added macro
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+          #ifmmu
+QE128
+          #endif
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #MapOff
+                    #Cycles
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Divide stacked word of parent routine by the value in X
+; Input  : Stack before JSR/BSR/CALL: 16-bit number to divide
+;        : X = 8-bit divisor
+; Output : Stack after JSR/BSR/CALL: Divided 16-bit number
+; Use    :          ldx       #Divisor
+;        :          call      DivideStackedWord
+
+DivideStackedWord   macro     8-bit divisor
+                    mreq      1:8-bit divisor
+                    ldx       ~@~
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab                 ;account for RTS/RTC
+
+DivideStackedWord   proc
+                    psha
+                    pshh
+
+                    clrh                          ;H is initially zero (always)
+                    @div.w,   1,sp
+
+                    pulh
+                    pula
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  Cycles: {:cycles}
+
+DIVIDEND_VALUE      def       60000               ;example dividend value
+DIVISOR_VALUE       def       100                 ;example divisor value
+
+                    #MapOn
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+                    ldhx      #DIVIDEND_VALUE
+                    pshhx                         ;put word to divide on stack
+                    @DivideStackedWord #DIVISOR_VALUE
+                    pulhx                         ;recover result from stack
+                    cphx      #DIVIDEND_VALUE/DIVISOR_VALUE
+                    bne       *                   ;something went wrong
+                    bra       *                   ;all is well
+
+                    @vector   Vreset,Start

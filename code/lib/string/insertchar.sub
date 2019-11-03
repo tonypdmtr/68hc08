@@ -1,0 +1,58 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Insert a character at the beginning of an ASCIZ (sub-)string
+; Input  : HX -> position in ASCIZ string where to insert new character
+;        : A = character to insert
+; Output : None
+
+StringInsertChar    macro     [[#]Char[,[#]StringVar]]
+          #ifb ~1~
+                    call      ~0~                 ;HX and A pre-loaded correctly
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifparm ~2~
+                    push
+                    lda       ~1~
+                    @@lea     ~@@~
+                    call      ~0~
+                    pull
+                    #pull
+                    mexit
+          #endif
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringInsertChar    proc
+                    push
+                    psha      char_to_ins@@       ;next character to insert
+Loop@@              lda       ,x                  ;A = old string character
+                    psha                          ;save it for now
+                    lda       char_to_ins@@,sp    ;A = new character
+                    sta       ,x                  ;save it at current position
+                    pula                          ;A = old string character
+                    beq       Done@@              ;if at terminator, we're done
+                    sta       char_to_ins@@,sp    ;save old for next iteration
+                    aix       #1                  ;HX -> next character position
+                    bra       Loop@@              ;repeat for all characters
+Done@@              pula                          ;remove temp variable(s)
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

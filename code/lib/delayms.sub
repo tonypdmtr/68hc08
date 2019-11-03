@@ -1,0 +1,171 @@
+;*******************************************************************************
+;* Module    : DELAYMS.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Hard delay A msec, regardless of CPU (HC08/9S08) or system clock
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/delayms.html
+;* Note(s)   : Use: #Include delayms.sub
+;*           :
+;*           : The default version allows to get any msec delay upto 255 msec
+;*           : using a fixed bus speed defined at assembly time.
+;*           :
+;*           : The number of msec is passed in RegA. (Zero returns immediately.)
+;*           :
+;*           : An alternate version is possible by using the conditional ANY_BUS
+;*           : When ANY_BUS is undefined, the fixed BUS_KHZ value is used.
+;*           : However, when the conditional ANY_BUS is defined, a second
+;*           : parameter is required in RegHX, which holds the number of cycles
+;*           : that represent a single millisecond.  This is useful for programs
+;*           : that dynamically change the bus clock speed for different parts
+;*           : of the program.  This one routine can accommodate all delays upto
+;*           : 255 msec with extreme accuracy for any bus speed upto 65535 KHz.
+;*           :
+;*           : Example calls:
+;*           :                lda       #MSEC     ;number of milliseconds
+;*           :                call      DelayMS
+;*           :
+;*           :                lda       #MSEC     ;number of milliseconds
+;*           :                ldhx      #BUS_KHZ  ;(assemble w/ cond. ANY_BUS)
+;*           :                call      DelayMS
+;*           :
+;* History   : 10.01.17 v1.00 Original
+;*           : 10.03.26       Added #SPAUTO and :: and re-arranged stack vars
+;*           : 10.03.28       Re-arranged stack vars and shortened overall size
+;*           : 10.03.30       Further optimized for size
+;*           : 10.03.31       Further optimized for size
+;*           : 10.05.09       Further optimized for size and speed
+;*           : 10.07.23       Better use of macros
+;*           : 10.07.30       Minor optimization
+;*           : 10.08.19       Added related macro
+;*           : 10.10.19       Adapted to latest ASM8
+;*           : 11.11.12       Minor optimization
+;*           : 13.01.24       Removed #iftos (no code size gain in this case)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+HZ                  def       8000000
+BDIV                def       1
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Delay upto 255 msec
+; Input  : A = number of milliseconds (zero returns immediately)
+;        : HX = number of cycles that represent a msec for current bus speed
+; Output : None
+; Note(s): HX parameter is only required if assembled with conditional ANY_BUS
+
+DelayMS             macro     [#]msec[,[#]BUS_KHZ]
+                    mreq      1:[#]msec - number of milliseconds to delay
+          #ifdef ANY_BUS
+                    mreq      2:[#]BUS_KHZ - current bus speed in KHz
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifparm ~2~
+                    push
+                    lda       ~1~
+                    ldhx      ~2~
+                    call      ~0~
+                    pull
+          #else
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #Cycles                       ;reset the cycle counter
+                    #spauto
+
+DelayMS             proc
+                    cbeqa     #0,Done@@           ;nothing to do, get out
+
+                    psha      msec@@
+                    pshhx     msec_cycles@@
+                    #ais
+
+          ;multiply 1ms cycles by number of requested msec [A*BUS_KHZ]
+
+          #ifdef ANY_BUS
+                    #Message  DelayMS requires as parm in HX the bus KHz
+
+                    ldx       msec_cycles@@+1,sp
+          #else
+                    ldx       #[BUS_KHZ
+          #endif
+                    mul
+                    pshxa     burn_cycles@@       ;24-bit cycle total (LSW for now)
+
+                    tsx
+                    lda       msec@@,spx
+          #ifdef ANY_BUS
+                    ldx       msec_cycles@@,spx
+          #else
+                    ldx       #]BUS_KHZ
+          #endif
+                    mul
+                    add       burn_cycles@@,sp
+                    sta       burn_cycles@@,sp
+                    txa
+                    adc       #0
+                    psha      burn_cycles@@,3     ;24-bit cycle total (full size)
+
+          ;subtract the overhead cycles
+
+                    tsx
+                    @sub.s    burn_cycles@@,spx #EXTRACYCLES@@ burn_cycles@@,spx
+
+          ;divide total burn cycles by loop cycles
+
+                    ldx       #LOOPCYCLES@@
+                    clrh
+                    @div.s    burn_cycles@@,sp
+
+                    tsx
+
+EXTRACYCLES@@       equ       :cycles
+
+Loop@@              @sub.s    burn_cycles@@,spx #1 burn_cycles@@,spx
+                    @cop                          ;in case of many iterations
+                    @zero?.s  burn_cycles@@,spx
+                    bne       Loop@@              ;repeat for all cycles
+
+LOOPCYCLES@@        equ       :cycles
+
+                    ais       #:ais               ;de-allocate local variables
+                    pull
+Done@@              rtc
+
+EXTRACYCLES@@       set       EXTRACYCLES@@+:cycles
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    @cop      #save#
+
+Start               proc
+                    @rsp
+                    clra
+                    clrhx
+
+          #ifdef ANY_BUS
+                    @DelayMS  #10,#8000           ;sample bus = 8MHz (=8000 KHz)
+          #else
+                    @DelayMS  #10                 ;sample delay = 10 msec
+          #endif
+                    bra       *
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc

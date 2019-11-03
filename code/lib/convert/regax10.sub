@@ -1,0 +1,26 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Multiply RegA by ten giving 9-bit result
+; Input  : A = any value (but practically no higher than 51 or it overflows)
+; Output : A = previous value multiplied by ten
+;        : CCR[C] = 9th bit of result
+; Note(s): Overflows over the 9th bit are lost
+
+                    #spauto
+
+RegAx10             proc
+                    pshx
+                    ldx       #10
+                    mul
+                    lsrx                          ;CCR[C] = 9th bit of result
+                    pulx
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

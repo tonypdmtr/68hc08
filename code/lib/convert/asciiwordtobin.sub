@@ -1,0 +1,46 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #Uses     lib/stkmth16.sub
+fDecByte            equ       0
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Convert ASCII digit foursome to binary value in HX
+; Input  : HX -> Buffer with ASCII data
+; Output : Carry Clear on success, Carry Set on Error
+;        : HX = Binary value
+; Note(s):
+                    #spauto   :ab
+
+AsciiWordToBin      proc
+                    psha
+                    clra
+                    psha:2    ans@@,2             ;zero result
+                    #ais
+
+                    lda       #4
+                    psha      counter@@
+
+Loop@@              lda       ,x                  ;A = digit
+                    os        fDecByte            ;convert to binary
+                    bcs       Done@@              ;on error, exit
+
+                    psha      digit@@
+                    pshhx
+                    @Eval     ans@@,sp = [digit@@,sp] + [ans@@,sp] * 10
+                    pull
+
+                    aix       #1
+                    dbnz      counter@@,sp,Loop@@
+
+                    clc                           ;no errors
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

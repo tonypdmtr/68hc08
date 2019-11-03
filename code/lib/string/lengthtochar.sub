@@ -1,0 +1,101 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Get the length of an ASCIZ string but only up to the specified char
+; Input  : HX -> ASCIZ string
+;        : A = character on which to stop counting
+; Output : Carry Clear on success, Carry Set on Error (target not found)
+;        : A = length of matched string
+;        : CCR[Z] matches RegA contents (a welcome side effect)
+; Note(s): If an ASCIZ terminator is found before the target character,
+;        : or if the target is not found at all, then the returned length is
+;        : to the terminator.
+
+StringLengthToChar  macro     [#]String [#]TargetChar
+                    mset      #' '
+                    mreq      1,2:[#]String [#]TargetChar
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    lda       ~2~
+                    ldhx      ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringLengthToChar  proc
+                    psha      count@@
+                    pshhx
+                    clr       count@@,sp          ;(can't use CLRA, PSHA)
+Loop@@              inc       count@@,sp
+                    tst       ,x                  ;is it end of ASCIZ string?
+                    clc                           ;indicate 'success'
+                    cbeq      x+,Done@@           ;char found, done
+                    bne       Loop@@              ;repeat until end of ASCIZ string
+                    sec                           ;indicate 'failure'
+Done@@              pull
+                    deca                          ;one too many & set CCR[Z] flag according to RegA contents
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+Msg1                fcs       'Space here'
+Msg2                fcs       'Space '
+Msg3                fcb       0
+
+ok                  macro     value
+                    cbeqa     #~#1~,Go$$$
+                    bra       *
+Go$$$
+                    endm
+
+                    #MapOn
+
+Start               proc
+                    ldhx      #Msg1
+                    clra
+                    call      StringLengthToChar
+                    @ok       10
+
+                    ldhx      #Msg1
+                    lda       #' '
+                    call      StringLengthToChar
+                    @ok       5
+
+                    ldhx      #Msg2
+                    lda       #' '
+                    call      StringLengthToChar
+                    @ok       5
+
+                    ldhx      #Msg2
+                    lda       #'?'
+                    call      StringLengthToChar
+                    @ok       6
+
+                    ldhx      #Msg3
+                    lda       #'?'
+                    call      StringLengthToChar
+                    @ok       0
+
+                    ldhx      #Msg3
+                    clra
+                    call      StringLengthToChar
+                    @ok       0
+
+                    bra       *
+
+                    @vector   Vreset,Start

@@ -1,0 +1,44 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+fDecByte            equ       0
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Convert ASCII digit pair to binary value in A
+; Input  : HX -> Buffer with ASCII data
+; Output : CCR[C] = 0 on success
+;        ;          A = Binary value
+;        : CCR[C] = 1 on error
+; Note(s):
+                    #spauto   :ab
+
+AsciiByteToBin      proc
+                    psha      ans@@
+                    pshhx
+                    #ais
+
+                    psha      tmp@@
+
+                    lda       ,x                  ;A = tens
+                    os        fDecByte            ;convert to binary
+                    bcs       Done@@              ;on error, exit
+                    @ByteX10                      ;multiply by 10
+                    sta       tmp@@,sp            ;save for later
+
+                    lda       1,x                 ;A = units
+                    os        fDecByte            ;convert to binary
+                    bcs       Done@@              ;on error, exit
+                    tsx
+                    add       tmp@@,spx           ;add tens
+                    sta       ans@@,spx           ;save result for caller
+
+                    clc                           ;no errors
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

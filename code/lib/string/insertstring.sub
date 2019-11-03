@@ -1,0 +1,60 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+AAX                 rtc
+#endif ;------------------------------------------------------------------------
+                    #Uses     length.sub
+                    #Uses     insertchar.sub
+
+;*******************************************************************************
+; Purpose: Insert an ASCIZ sub-string into another string
+; Input  : HX -> String position to insert at
+;        : TOS -> ASCIZ sub-string
+; Output : None
+; Note(s): If sub-string is null, no action
+
+StringInsertString  macro     [#]StringToInsert,[#]IntoString
+                    mreq      1,2:[#]StringToInsert,[#]IntoString
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~1~
+                    pshhx
+                    @@_ldhx_, ~2~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringInsertString  proc
+                    push      .str@@,2
+          #ifhcs
+                    ldhx      1,sp
+          #else
+                    tsx
+                    lda       1,spx
+                    psha
+                    ldx       2,spx
+                    pulh
+          #endif
+                    @StringLength
+                    beq       Done@@              ;Null string causes exit
+                    @aax                          ;HX -> end of substring
+
+Loop@@              aix       #-1                 ;HX -> previous substring char
+                    @StringInsertChar, ,x .str@@,sp
+                    dbnza     Loop@@              ;repeat for all substring chars
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

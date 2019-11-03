@@ -1,0 +1,211 @@
+;*******************************************************************************
+;* Module    : COPY.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Copy routine(s)
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/copy.html
+;* Note(s)   : Can be placed in any memory (normal or paged).  Always use CALL.
+;* History   : 03.08.14 v1.00 Original
+;*           : 10.02.12       Adapted to latest ASM8
+;*           : 10.06.21       Added macro BlockCopy to simplify subroutine use
+;*           : 10.08.19       Improved macro to allow for ,X indexed parms
+;*           : 11.07.27       Improved macro for ,AX and ,SPX indexed parms
+;*           : 12.11.27       Removed CLC from exit (no errors possible)
+;*           :                Optimized HC08 case by 6 bytes (via SP => SPX)
+;*           : 13.09.05       Improved BlockCopy macro to also accept byte size
+;*           : 13.09.07       BlockCopy macro now defaults to 2nd parm's size
+;*           : 13.10.12       Renamed macro BlockCopy to Copy
+;*           :                Copy macro now defaults to space parm delimiter
+;*           : 13.10.13       Added CopyTo to copy A bytes from HX into a variable
+;*           : 13.12.02       Improved Copy macro for X-indexed counter case
+;*           :                Copy no longer destroys parameter block copy
+;*           :                (it can now be a ROM constant)          [+16 bytes]
+;*           : 16.06.12       Added clearing of destination during CopyTo [+14 bytes]
+;*           :                Clear the full destination memory [+3 bytes]
+;*           : 16.07.31       Optimized CopyTo proc [-6 bytes]
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #Cycles
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+          #ifnhcs
+                    #Error    Coded for 9S08 only
+          #endif
+?_OBJECT_?
+;*******************************************************************************
+; Macro to perform Copy in a single command
+
+Copy                macro     From To [[#]Count]
+                    mset      #' '
+                    mreq      1,2:From To [[#]Count]
+                    mdef      3,#::~'~#2~,'.1.','~ ;;default size is 2nd parm's
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    #temp
+          #ifb ~3.1.1~ = #
+            #if ::~3,~ = 1
+                    #temp     1
+                    ldx       ~3~
+                    clrh
+            #endif
+          #endif
+          #ifz :temp
+            #ifb ~3.1.1~ = #
+                    @@_size_  ~3~\,1,2
+            #endif
+                    ldhx      ~3~
+          #endif
+                    pshhx
+                    @@_ldhx_, ~2~ 1,psp
+                    pshhx
+                    @@_ldhx_  ~1~
+                    pshhx
+                    tsx
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;*******************************************************************************
+; Purpose: Copy a block from one memory location to another
+; Input  : HX -> parameter block [3 words]
+;        :       Offset 0: Source pointer                  word
+;        :       Offset 2: Destination pointer             word
+;        :       Offset 4: Number of bytes (sizeof block)  word
+; Output : Parameter block contents are not destroyed (can be ROM constants)
+; Use    :          #ROM
+;        :          #Include  copy.sub
+; Call   :          ldhx      #NumberOfBytes      ;parameters are pushed
+;        :          pshhx                         ;on the stack in such
+;        :          ldhx      #Destination        ;order so as to end up
+;        :          pshx                          ;correctly offset from
+;        :          ldhx      #Source             ;the stack pointer as
+;        :          pshhx                         ;shown in the above
+;        :          tsx                           ;HX -> parms
+;        :          call      Copy                ;make the call
+;        :          ais       #6                  ;de-allocate parameter bytes
+; Size   : 41 bytes [9S08], 77 bytes [HC08]
+; Cycles : 74       [9S08], 116      [HC08]
+
+                    #spauto   :ab                 ;account for RTS/RTC
+                              #Cycles
+Copy                proc
+                    push
+                    #ais
+
+                    @pushv    ,x 2 '.src@@'       ;make local copy of src pointer
+                    @pushv    2,x 2 '.dst@@'      ;make local copy of dst pointer
+
+                    ldhx      4,x
+                    pshhx     counter@@           ;make local copy of counter
+                    beq       Done@@              ;zero length means exit now
+
+Loop@@              @GetNextA .src@@,sp           ;read source byte
+                    @PutNextA .dst@@,sp           ;write destination byte
+
+                    ldhx      counter@@,sp
+                    aix       #-1                 ;decrement counter
+                    sthx      counter@@,sp
+                    bne       Loop@@              ;repeat until counter = zero
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+; Save into variable - Copy RegA bytes from RegHX -> location to given variable
+
+CopyTo              macro     Variable
+                    mset      #
+                    mreq      1:Variable (in which to save)
+                    @@_not_#_ ~1~
+                    #push
+                    #spauto   :sp
+                    ais       #-3                 ;;make room for parms
+                    #psp
+                    push
+                    lda       #::~1,~             ;;get destination byte length
+                    sta       3,psp               ;;save length of destination
+                    @@lea     ~1~                 ;;HX -> destination variable
+                    sthx      1,psp               ;;save it on stack
+                    pull
+                    call      ~0~
+                    ais       #:ais
+                    #pull
+                    endm
+
+;*******************************************************************************
+; Purpose: Save in variable - Copy RegA bytes from RegHX -> location to the
+;        : specified variable
+; Input  : HX -> "from" location
+;        : A = number of bytes
+;        : TOS+2 = size of "to" location
+;        : TOS -> "to" location
+; Output : None
+; Note(s):
+                    #spauto   :ab
+
+CopyTo              proc
+                    push
+                    #ais
+
+                    @parms    .dst,dstlen         ;-> "to" and length of "to"
+
+                    @MinA     dstlen@@,sp         ;not more than destination size
+                    cbeqa     #0,Done@@           ;nothing to save (also, won't save to constants)
+          ;-------------------------------------- ;clear the full destination memory
+                    #psp
+                    psha      srclen@@
+                    pshhx     .src@@
+
+                    lda       dstlen@@,sp         ;(RegA counter rather than decrement len@@,sp directly)
+                    ldhx      .dst@@,sp
+ClrLoop@@           clr       ,x
+                    aix       #1
+                    dbnza     ClrLoop@@
+          ;--------------------------------------
+                    @Copy     .src@@,sp .dst@@,sp srclen@@,sp
+                    ais       #:psp
+
+Done@@              pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  Execution: {:cycles}+ cycles
+
+                    #MapOn
+
+Source              fcs       'Testing... Hello World!'
+
+DATASIZE            def       15
+
+destination         @var      DATASIZE
+
+                    #spauto
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+                    ldhx      #Source
+                    lda       #::Source
+                    @CopyTo   destination
+
+                    @Copy     Source destination #::Source
+;                   @Copy     1,x 2,ax 3,spx      ;test X-based indexed modes
+
+                    bra       *
+
+                    @vector   Vreset,Start

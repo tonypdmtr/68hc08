@@ -1,0 +1,103 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     length.sub
+
+;*******************************************************************************
+; Purpose: Reverse the order of characters in an ASCIZ string
+; Input  : HX -> buffer with ASCIZ string
+; Output : None
+
+StringReverseString macro     [[#]ASCIZ_String]
+                    mset      #
+          #ifb ~1~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringReverseString proc
+                    push
+                    #ais
+
+                    @StringLength                 ;A = length of string
+                    cmpa      #2                  ;less-than-two length strings
+                    blo       Done@@              ;... are not processed
+
+                    psha      length@@            ;placeholder for length
+                    pshhx     .left@@             ;left-to-right pointer
+
+                    deca
+                    @aax                          ;offset to end-of string
+                    pshhx     .right@@            ;right-to-left pointer
+
+                    lsr       length@@,sp         ;divide length by two
+Loop@@
+          #ifhcs
+                    ldhx      .left@@,sp          ;HX -> left
+                    lda       ,x
+
+                    psha
+                    ldhx      .right@@,sp         ;HX -> right
+                    lda       ,x
+                    @PutNextA .left@@,sp
+                    pula
+
+                    ldhx      .right@@,sp         ;HX -> right
+                    sta       ,x
+                    aix       #-1                 ;back-up right pointer
+                    sthx      .right@@,sp
+          #else
+                    tsx
+                    lda       .left@@,spx
+                    psha
+                    ldx       .left@@+1,spx
+                    pulh                          ;HX -> left
+
+                    lda       ,x
+                    psha
+
+                    tsx
+                    lda       .right@@,spx
+                    psha
+                    ldx       .right@@+1,spx
+                    pulh                          ;HX -> right
+
+                    lda       ,x
+                    @PutNextA .left@@,sp
+
+                    tsx
+                    lda       .right@@,spx
+                    psha
+                    ldx       .right@@+1,spx
+                    pulh                          ;HX -> right
+
+                    pula
+                    sta       ,x
+                    aix       #-1                 ;back-up right pointer
+
+                    stx       .right@@+1,sp
+                    thx
+                    stx       .right@@,sp
+          #endif
+                    dbnz      length@@,sp,Loop@@
+                    ais       #:ais               ;de-allocate temporaries
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

@@ -1,0 +1,70 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     length.sub
+                    #Uses     insertchar.sub
+
+;*******************************************************************************
+; Purpose: Add decimal point to ASCIZ 'number'
+; Input  : HX -> ASCIZ string 'number'
+;        : A = number of decimal places
+; Output : ASCIZ string updated
+
+AddDecimalPoint     macro     [[#]DecimalPlaces[,[#]ASCIZ_String]]
+          #ifnoparm ~1~
+                    call      ~0~                 ;HX and A pre-loaded correctly
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifparm ~2~
+                    push
+                    lda       ~1~
+                    @@lea     ~2~
+                    call      ~0~
+                    pull
+                    #pull
+                    mexit
+          #endif
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+AddDecimalPoint     proc
+                    cbeqa     #0,Return@@         ;zero position is a no-op
+                    psha      places@@
+                    pshhx
+          #ifdef SIGNED
+                    lda       ,x
+                    cmpa      #'-'                ;is it a minus sign?
+                    bne       DoneSign@@          ;no, continue as usual
+                    aix       #1                  ;yes, skip the sign
+DoneSign@@
+          #endif
+                    @StringLength                 ;get length of ASCIZ number
+
+LeadingZeros@@      cmpa      places@@,sp         ;while length <= decimal digits,
+                    bhi       AddDot@@
+                    @StringInsertChar #'0'        ;... add leading zero
+                    inca                          ;update string length
+                    bra       LeadingZeros@@
+
+AddDot@@            sub       places@@,sp         ;calculate dot insertion index
+                    @aax                          ;HX -> dot insertion spot
+                    @StringInsertChar #'.'        ;insert dot
+
+Done@@              pull
+Return@@            rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

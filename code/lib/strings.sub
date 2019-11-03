@@ -1,0 +1,1364 @@
+;*******************************************************************************
+;* Module    : STRINGS.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : String and character manipulation related routines
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/strings.html
+;* History   : 10.07.04 v1.00 Original (subset of a larger library)
+;*           : 10.07.17 v1.01 Minor optimization in StringDeleteWord
+;*           : 10.10.04 v1.02 Made use of PROC
+;*           : 10.10.07 v1.03 StringCompareBuff zero length case fixed
+;*           : 10.10.11 v1.04 Added StringPadLeft and StringPadRight
+;*           : 10.10.19 v1.05 Adapted to latest ASM8
+;*           : 10.11.06 v1.06 Optimized StringPos macro
+;*           :          v1.07 Improved single operand macros for indexed mode
+;*           : 10.11.26 v1.08 Corrected StringPos macro for no parm 1 case
+;*           : 11.01.30 v1.09 Minor optimization in ?Compare.Exit
+;*           : 11.04.10 v1.10 Improved X-index detection cases
+;*           : 11.04.21 v1.11 Optimized StringLength by a byte (by using NEGA on exit)
+;*           : 11.06.09 v1.12 Added StringDeleteChars
+;*           : 11.06.30 v1.13 BugFix: StringPos routine and related macro
+;*           : 11.07.14 v1.14 BugFix: StringReverseString 1-char string case
+;*           : 11.10.03 v1.15 BugFix: StringTrim did not return updated length
+;*           : 11.11.15 v1.16 Improved all single parameter macros to use ~@~
+;*           : 12.01.31 v1.17 Null substring in StringInsertString causes exit
+;*           : 12.03.12 v1.18 Improved X indexed case in macros
+;*           : 12.09.12 v1.19 Optimized SP => SPX (?Compare.Exit)
+;*           : 13.02.11       New MACROS.INC
+;*           : 13.02.25       Retouched (object code changes only in test code)
+;*           : 13.02.25       Retouched (object code changes only in test code)
+;*           : 13.05.05       Made use label size, re-arranged test code
+;*           :                StringFindSubStr macro's 2nd parm made optional
+;*           : 13.09.05       Added StringFindPart subroutine
+;*           : 13.10.05 v1.20 Minor optimization in StringFindPart
+;*           :                AAX instruction turned into a subroutine
+;*           :                Minor optimization in StringCompare
+;*           : 13.11.22 v1.21 Added case-insensitive StringCompBuff [+33 bytes]
+;*           :                Removed StringUpcasePascal (never used in practice) [-21 bytes]
+;*           :                Merged StringCompare and StringCompareCase into one [-48 bytes]
+;*           : 13.12.16 v1.22 Optimized ?PadLoop exit
+;*           : 14.03.22 v1.23 Now #uses external Upcase/Dncase (lib/string/case.sub)
+;*           : 15.03.21 v1.24 Made use of global AAX and removed DnCase
+;*           : 15.12.11 v1.25 Minor optimizations [-6 bytes]
+;*           : 17.03.23       Improved clarity of StringReplaceChars
+;*           : 17.07.04       Refactored and optimized ?StringCompare [-8 bytes]
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+          #ifndef MAP
+                    #MapOff
+          #endif
+AAX                 rtc
+#endif ;------------------------------------------------------------------------
+
+;-------------------------------------------------------------------------------
+;Synopsis:
+;
+;StringCompare       -- Compare ASCIZ strings pointed to by HX and TOS (case insensitive)
+;StringCompBuff      -- Compare buffers pointed to by HX and TOS (case insensitive)
+;StringCompareBuff   -- Compare buffers pointed to by HX and TOS (case sensitive)
+;StringCompareCase   -- Compare ASCIZ strings pointed to by HX and TOS (case sensitive)
+;StringCopy          -- Copy an ASCIZ string
+;StringDeleteChar    -- Delete first character in ASCIZ (sub-)string
+;StringDeleteChars   -- Delete a number of characters in an ASCIZ (sub-)string
+;StringDeleteWord    -- Delete chars until and including target char
+;StringFindSubStr    -- Find substring in ASCIZ string
+;StringInsertChar    -- Insert char within ASCIZ string
+;StringInsertString  -- Insert ASCIZ into another string
+;StringLength        -- Get ASCIZ string length
+;StringPos           -- Get character position
+;StringReverseString -- Reverse the order of characters in an ASCIZ string
+;StringTrim          -- Trim string of leading, trailing, and multiple spaces
+;StringUpcase        -- Convert ASCIZ string to uppercase
+;StringPadLeft       -- Pad an ASCIZ string with leading blanks
+;StringPadRight      -- Pad an ASCIZ string with trailing blanks
+;StringFindPart      -- Find the delimiter-bound n-th part of an ASCIZ string
+;Upcase | ToUpper    -- Convert character to uppercase (external)
+;Dncase | ToLower    -- Convert character to lowercase (external)
+;-------------------------------------------------------------------------------
+
+                    #Uses     string/upcase.sub
+?_OBJECT_?
+
+;*******************************************************************************
+; Purpose: Copy an ASCIZ string
+; Input  : HX -> Source ASCIZ string
+;        : TOS -> Destination
+; Output : None
+; Note(s):
+
+StringCopy          macro     [#]SourceASCIZ_String,[#]Destination
+                    mreq      1,2:[#]SourceASCIZ_String,[#]Destination
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCopy          proc
+.dst@@              equ       1
+                    push
+                    #ais
+                    pshhx     .src@@              ;a working copy of src pointer
+
+                    ldhx      .dst@@,sp
+                    pshhx     .dst@@              ;a working copy of dst pointer
+
+Loop@@              ldhx      .src@@,sp
+                    lda       ,x                  ;get source byte
+                    aix       #1                  ;bump up source pointer
+                    sthx      .src@@,sp
+
+                    ldhx      .dst@@,sp
+                    sta       ,x                  ;put destination byte
+                    beq       Done@@              ;after copying null, exit
+                    aix       #1                  ;bump up destination pointer
+                    sthx      .dst@@,sp
+
+                    bra       Loop@@              ;repeat for all chars
+
+Done@@              ais       #:ais               ;de-allocate temporaries
+                    pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Return the length of an ASCIZ string
+; Input  : HX -> string
+; Output : A = Length
+;        : CCR matches RegA contents (a welcome side effect)
+; Note(s): Returned length is zero when string is longer than 255
+
+StringLength        macro     [[#]StringVariable] ;if no parm, use current HX
+          #ifb ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~@~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringLength        proc
+                    pshhx
+                    clra
+Loop@@              tst       ,x
+                    beq       Done@@              ;on ASCIZ terminator, done
+                    aix       #1                  ;bump up pointer
+                    dbnza     Loop@@
+Done@@              nega                          ;(now CCR matches A value)
+                    pulhx
+                    rtc
+
+;*******************************************************************************
+; Purpose: Insert a character at the beginning of an ASCIZ (sub-)string
+; Input  : HX -> position in ASCIZ string where to insert new character
+;        : A = character to insert
+; Output : None
+
+StringInsertChar    macro     [[#]Char[,[#]StringVar]]
+          #ifb ~1~
+                    call      ~0~                 ;HX and A pre-loaded correctly
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifparm ~2~
+                    push
+                    lda       ~1~
+                    @@lea     ~@@~
+                    call      ~0~
+                    pull
+                    #pull
+                    mexit
+          #endif
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringInsertChar    proc
+                    push
+                    psha      char_to_ins@@       ;next character to insert
+
+Loop@@              lda       ,x                  ;A = old string character
+                    psha                          ;save it for now
+                    lda       char_to_ins@@,sp    ;A = new character
+                    sta       ,x                  ;save it at current position
+                    pula                          ;A = old string character
+                    beq       Done@@              ;if at terminator, we're done
+                    sta       char_to_ins@@,sp    ;save old for next iteration
+
+                    aix       #1                  ;HX -> next character position
+                    bra       Loop@@              ;repeat for all characters
+
+Done@@              pula                          ;remove temp variable(s)
+?Success            pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Convert ASCIZ string pointed to by HX to uppercase
+; Input  : HX -> string
+; Output : HX -> STRING
+
+StringUpcase        macro     [[#]String]
+          #ifb ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~@~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringUpcase        proc
+                    push
+
+Loop@@              lda       ,x
+                    beq       Done@@
+
+                    call      Upcase              ;convert to uppercase
+                    sta       ,x
+
+                    aix       #1
+                    bra       Loop@@
+
+Done@@              equ       ?Success
+
+;*******************************************************************************
+; Purpose: Delete first character in ASCIZ (sub-)string
+; Input  : HX -> ASCIZ (sub-)string
+; Output : None
+
+StringDeleteChar    macro     [[#]String]
+          #ifb ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~@~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringDeleteChar    proc
+                    push
+
+                    tst       ,x
+Loop@@              beq       Done@@
+                    lda       1,x                 ;next character
+                    sta       ,x                  ;moves down one spot
+                    aix       #1                  ;bump up pointer
+                    bra       Loop@@              ;repeat for all chars
+
+Done@@              equ       ?Success
+
+;*******************************************************************************
+; Purpose: Trim string from leading, trailing, and duplicate in-between spaces
+; Input  : HX -> ASCIZ string
+; Output : A = Length of updated string
+
+StringTrim          macro     [[#]String]
+          #ifb ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~@~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringTrim          proc
+                    clra                          ;character position
+                    psha      pos@@
+                    pshhx
+
+                    bra       Loop@@
+
+Delete@@            lda       pos@@,sp
+                    cbeqa     #1,DeleteNow@@      ;if at 1st position, delete
+
+                    tst       1,x                 ;if at last position, delete
+                    beq       DeleteNow@@
+
+                    lda       -1,x                ;load previous character
+                    cmpa      #' '                ;if previous not a space
+                    bne       Cont@@              ; skip deleting
+
+DeleteNow@@         @StringDeleteChar             ;HX -> 1st string position
+                    dbnz      pos@@,sp,Previous@@
+
+Loop@@              lda       ,x
+                    beq       Done@@              ;end of string, exit
+
+                    inc       pos@@,sp            ;increment character position
+                    cbeqa     #' ',Delete@@
+
+Cont@@              aix       #1                  ;skip non-blank
+                    bra       Loop@@
+
+Previous@@          aix       #-1
+                    dec       pos@@,sp            ;decrement character position
+                    bra       Loop@@
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Compare buffers pointed to by HX and TOS (case sensitive)
+; Input  : A = maximum number of bytes to compare
+;        : HX -> start of first memory
+;        : TOS -> start of second memory
+; Output : N Z V C set or cleared in accordance with the CMP instruction
+;        : Allows BEQ, BNE, BLO, BHS, etc. to be used on result just as if
+;        : a regular CMPA instruction had been used.
+; Note(s): All registers except N Z V C flags are preserved
+;        : Violates Carry-Set on error rule.  Carry set is used for result (BLO, etc.)
+;        : Stacked pointer not destroyed
+
+StringCompareBuff   macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
+                    mset      #' '
+                    mreq      1,2,3:[#]Buffer1 [#]Buffer2 [#]ByteSize
+                    #push
+                    #spauto   :sp
+                    push
+                    #psp
+                    lda       ~3~
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+StringCompBuff      macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
+                    mset      #' '
+                    mreq      1,2,3:[#]Buffer1 [#]Buffer2 [#]ByteSize
+                    #push
+                    #spauto   :sp
+                    push
+                    #psp
+                    lda       ~3~
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCompBuff      proc
+                    sec                           ;case-insensitive
+                    bra       ?StringCompareBuff
+
+;===============================================================================
+
+                    #spauto   :ab
+
+StringCompareBuff   proc
+                    clc                           ;case-sensitive (original)
+;                   bra       ?StringCompareBuff
+
+;===============================================================================
+
+?StringCompareBuff  proc
+.str2@@             equ       1
+                    push      .str1@@,2
+                    pshcc     ccr@@
+
+                    #ais
+                    ldhx      .str2@@,sp
+                    pshhx     .str2@@
+
+                    ldhx      .str1@@,sp
+
+                    tsta                          ;do NOT change to CBEQA (CCR)
+                    beq       Done@@              ;zero length always OK
+
+Loop@@              push                          ;save length & pointer to 1st memory
+
+                    lda       ccr@@,sp
+                    tap
+                    bcs       NoCase@@
+          ;-------------------------------------- ;case-sensitive case (original)
+                    lda       ,x                  ;get character at HX
+          #ifhcs
+                    ldhx      .str2@@,sp
+          #else
+                    ldx       .str2@@,sp
+                    txh
+                    ldx       .str2@@+1,sp
+          #endif
+                    cmpa      ,x                  ;is the same as the one at .str2@@,sp?
+                    bra       Cont@@
+          ;-------------------------------------- ;case-insensitive case
+NoCase@@            psha      target@@            ;placeholder for target char later
+
+                    lda       ,x                  ;get character at HX
+                    call      Upcase
+                    psha      source@@
+          #ifhcs
+                    ldhx      .str2@@,sp
+          #else
+                    ldx       .str2@@,sp
+                    txh
+                    ldx       .str2@@+1,sp
+          #endif
+                    lda       ,x
+                    call      Upcase
+                    tsx
+                    sta       target@@,spx
+
+                    lda       source@@,spx
+                    cmpa      target@@,spx        ;is the same as the one at .str2@@,sp?
+
+                    pula:2
+          ;---
+
+Cont@@              pull                          ;restore pointer to 1st memory & length
+                    bne       Done@@              ;Not same, get out with result
+
+                    dbnza     NextChar@@          ;repeat for all characters
+                    bra       Done@@
+
+NextChar@@          aix       #1                  ;No, let's go check next ones
+
+                    inc       .str2@@+1,sp        ;increment target pointer (LSB)
+                    bne       Loop@@
+
+                    inc       .str2@@,sp          ;increment target pointer (MSB)
+                    bra       Loop@@
+
+          ;---------------------------------------------------------------------
+          ; Z flag always in correct state when coming to Done@@
+          ;---------------------------------------------------------------------
+
+Done@@              ais       #:ais
+
+                    tpa                           ;A = actual CMP result [CCR]
+                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;mask off unused CCR flags
+
+                    psha
+                    tsx
+                    lda       ccr@@,spx           ;A = caller's CCR
+                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_^NOT ;mask off our CCR result bits
+                    ora       {::},spx            ;combine with our CCR result bits
+                    sta       ccr@@,spx           ;save it for the caller
+                    pula                          ;(WAS: ais #:psp)
+
+                    pula                          ;shorter PULCC (since RegA
+                    tap                           ;will be restored by PULL)
+                    pull
+                    rtc
+
+?Compare.Exit       equ       Done@@
+
+;*******************************************************************************
+; Purpose: Compare ASCIZ strings pointed by HX and TOS (case [in]sensitive)
+; Input  : HX -> first ASCIZ string
+;        : TOS -> second ASCIZ string
+; Output : N Z V C set or cleared in accordance with the CMP instruction
+;        : Allows BEQ, BNE, BLO, BHS, etc. to be used on result just as if
+;        : a regular CMPA instruction had been used.
+; Note(s): All registers except N Z V C flags are preserved
+;        : Violates Carry-Set on error rule.  Carry set is used for result (BLO, etc.)
+;        : Stacked pointer not destroyed
+
+StringCompare       macro     [#]ASCIZ_String1 [#]ASCIZ_String2
+                    mset      #' '
+                    mreq      1,2:[#]ASCIZ_String1 [#]ASCIZ_String2
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+StringCompareCase   macro     [#]ASCIZ_String1 [#]ASCIZ_String2
+                    mset      #' '
+                    mreq      1,2:[#]ASCIZ_String1 [#]ASCIZ_String2
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCompareCase   proc
+                    clc                           ;case-sensitive
+                    bra       ?StringCompare
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCompare       proc
+                    sec                           ;case-insensitive
+;                   bra       ?StringCompare
+
+;===============================================================================
+
+                    #spauto   :ab
+
+?StringCompare      proc
+.str2@@             equ       1
+                    push      .str1@@,2
+                    pshcc     ccr@@
+
+                    #ais
+                    ldhx      .str2@@,sp
+                    pshhx     .str2@@
+
+                    ldhx      .str1@@,sp
+
+Loop@@              lda       ,x                  ;get char from 1st string
+                    aix       #1                  ;bump up 1st ASCIZ pointer
+
+                    pshhx
+          #ifhcs
+                    ldhx      .str2@@,sp
+          #else
+                    ldx       .str2@@,sp
+                    txh
+                    ldx       .str2@@+1,sp
+          #endif
+                    #psp
+
+                    inc       .str2@@+1,sp        ;bump up 2nd ASCIZ pointer
+                    bne       Compare@@
+                    inc       .str2@@,sp
+
+Compare@@           psha      a@@                 ;save char from 1st string
+
+                    lda       ,x                  ;get char from 2nd string
+                    psha      b@@
+
+                    tsx
+
+                    lda       ccr@@,spx
+                    tap
+                    bcc       DoneCase@@
+          ;-------------------------------------- ;case-insensitive case (convert both to uppercase for comparison)
+                    lda       a@@,spx
+                    call      Upcase              ;convert to uppercase
+                    sta       a@@,spx
+
+                    lda       b@@,spx
+                    call      Upcase              ;convert to uppercase
+                    sta       b@@,spx
+          ;--------------------------------------
+DoneCase@@          lda       a@@,spx             ;compare chars from both strings
+                    cmpa      b@@,spx             ;(in this order: a cmp b)
+
+                    ais       #:psp               ;balance stack
+
+                    pulhx
+                    bne       Done@@              ;if different, get out
+
+                    cbeqa     #0,Done@@           ;on terminator, we're done
+                    bra       Loop@@
+
+Done@@              equ       ?Compare.Exit
+
+;*******************************************************************************
+; Purpose: Delete a number of characters in an ASCIZ (sub-)string
+; Input  : HX -> ASCIZ string
+;        : A = Number of chars to delete
+; Output : None
+; Note(s):
+
+StringDeleteChars   macro     [#]ASCIZ_String,[#]Count
+                    #push
+                    #spauto   :sp
+          #ifnb ~2~
+                    psha
+                    lda       ~2~
+          #endif
+          #ifnb ~1~
+                    pshhx
+                    @@lea     ~1~
+          #endif
+                    call      ~0~
+          #ifnb ~1~
+                    pulhx
+          #endif
+          #ifnb ~2~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringDeleteChars   proc
+                    psha
+
+Loop@@              tst       ,x
+                    beq       Done@@
+                    call      StringDeleteChar
+                    dbnza     Loop@@
+
+Done@@              pula
+                    rtc
+
+;*******************************************************************************
+; Purpose: Delete chars until (and including) a certain char
+; Input  : HX -> ASCIZ string
+;        : A = target character (zero for remaining string)
+; Output : None
+
+StringDeleteWord    macro     [#]ASCIZ_String,[#]Delimiter
+                    mreq      1,2:[#]ASCIZ_String,[#]Delimiter
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~2~
+                    @@lea     ~1~
+                    call      ~0~
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringDeleteWord    proc
+                    push
+
+Loop@@              tst       ,x                  ;to reset the zero flag (do NOT use CBEQ)
+                    beq       Done@@              ;exit on ASCIZ terminator
+
+                    cmpa      ,x                  ;is this character the target?
+                    psha                          ;save target character
+                    tpa                           ;save CMPA result
+                    @StringDeleteChar             ;Delete first character
+                    tap                           ;restore CMPA result
+                    pula                          ;restore target character
+                    bne       Loop@@              ;repeat until target's found
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Replace all occurences of TOS chars to RegA char
+; Input  : HX -> ASCIZ string whose chars to change
+;        : A = Character to replace with
+;        : TOS = Character to be replaced
+; Output : HX -> Buffer with TOS characters changed to RegA character
+
+StringReplaceChars  macro     [#]FromChar,[#]ToChar,[#]ASCIZ_String
+                    mreq      1,2,3:[#]FromChar,[#]ToChar,[#]ASCIZ_String
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~1~
+                    psha
+                    lda       ~2~
+                    @@lea     ~3~,~4~
+                    call      ~0~
+                    pula
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringReplaceChars  proc
+target@@            equ       1
+                    psha      replacement@@
+                    pshhx
+
+Loop@@              lda       ,x
+                    beq       Done@@
+
+                    cmpa      target@@,sp
+                    bne       Cont@@
+
+                    lda       replacement@@,sp
+                    sta       ,x
+
+Cont@@              aix       #1
+                    bra       Loop@@
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Reverse the order of characters in an ASCIZ string
+; Input  : HX -> buffer with ASCIZ string
+; Output : None
+
+StringReverseString macro     [[#]ASCIZ_String]
+          #ifb ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~@~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringReverseString proc
+                    push
+
+                    @StringLength                 ;A = length of string
+                    cmpa      #2                  ;less-than-two length strings
+                    blo       Done@@              ;... are not processed
+
+                    #ais
+
+                    psha      length@@            ;placeholder for length
+                    pshhx     .left@@             ;left-to-right pointer
+
+                    deca
+                    @aax                          ;offset to end-of string
+                    pshhx     .right@@            ;right-to-left pointer
+
+                    lsr       length@@,sp         ;divide length by two
+Loop@@
+          #ifhcs
+                    ldhx      .left@@,sp          ;HX -> left
+                    lda       ,x
+
+                    psha
+                    ldhx      .right@@,sp         ;HX -> right
+                    lda       ,x
+                    @PutNextA .left@@,sp
+                    pula
+
+                    ldhx      .right@@,sp         ;HX -> right
+                    sta       ,x
+
+                    aix       #-1                 ;back-up right pointer
+                    sthx      .right@@,sp
+          #else
+                    ldx       .left@@,sp
+                    txh
+                    ldx       .left@@+1,sp        ;HX -> left
+
+                    lda       ,x
+                    psha
+
+                    ldx       .right@@,sp
+                    txh
+                    ldx       .right@@+1,sp       ;HX -> right
+
+                    lda       ,x
+                    @PutNextA .left@@,sp
+                    pula
+
+                    ldx       .right@@,sp
+                    txh
+                    ldx       .right@@+1,sp       ;HX -> right
+
+                    sta       ,x
+                    aix       #-1                 ;back-up right pointer
+
+                    stx       .right@@+1,sp
+                    thx
+                    stx       .right@@,sp
+          #endif
+                    dbnz      length@@,sp,Loop@@
+
+                    ais       #:ais               ;de-allocate temporaries
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Get the position of a character starting at HX
+; Input  : HX -> beginning position in search buffer (0,CR,LF terminated)
+;        : A = character to search for
+; Output : IF FOUND: A = offset from HX to found character (ready for AAX)
+;        :           Carry is Clear
+;        : IF NOT FOUND: A is unaffected and Carry is Set
+; Note(s): Target character can also be one of the terminators
+
+StringPos           macro     [[#]TargetChar]][,[#]ASCIZ_String]]
+                    #push
+                    #spauto   :sp
+          #ifparm ~1~
+                    psha      :temp
+                    lda       ~1~
+          #endif
+          #ifparm ~2~
+                    pshhx
+                    @@lea     ~@@~
+          #endif
+                    call      ~0~
+          #ifparm ~1~
+                    bcs       ?$$$
+                    sta       :temp,sp
+?$$$
+          #endif
+          #ifparm ~2~
+                    pulhx
+          #endif
+          #ifparm ~1~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringPos           proc
+                    psha      target@@
+                    pshhx
+                    #ais
+
+                    clra                          ;Initialize position counter
+                    psha      counter@@
+
+Loop@@              inc       counter@@,sp        ;count this character
+
+                    lda       ,x                  ;is buffer char ...
+                    cmpa      target@@,sp         ;... same as target?
+                    aix       #1                  ;(point to next buffer character)
+                    beq       Found@@             ;if so, go count the match
+
+                    sec                           ;assume 'not found'
+                    cbeqa     #0,Done@@           ;if at end of string, we didn't find target
+
+          ; comment out next two lines for ASCIZ strings only
+                    cbeqa     #CR,Done@@          ;A CR means end of string
+                    cbeqa     #LF,Done@@          ;A LF means end of string
+          ; comment out previous two lines for ASCIZ strings only
+
+                    bra       Loop@@              ;and try again
+
+Found@@             tsx
+                    lda       counter@@,spx
+                    deca                          ;make counter zero-based (for AAX)
+                    sta       target@@,spx        ;save result for user
+
+                    clc                           ;indicates 'found'
+Done@@              ais       #:ais               ;de-allocate temporaries
+                    pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Find a substring inside another string
+; Input  : TOS -> ASCII substring for which to search
+;        : HX -> ASCIZ string in which to search
+;        : A = number of character to search for (sizeof non-ASCIZ substr)
+;        : Carry Clear: Only check for presence (Yes/No answer in Carry)
+;        : Carry Set: Also, update HX pointer to beginning of found substring
+; Output : Carry Clear: Found
+;        :              HX -> found substring, only if Carry Set on entry
+;        : Carry Set  : Not Found
+; Note(s): Example call:
+;                   ldhx      #Substring
+;                   pshhx
+;                   ldhx      #String
+;                   lda       #::Substring
+;                   call      FindSubStr
+;                   ais       #2
+;                   bcc       Found
+
+StringFindSubStr    macro     [#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[,UpdateHXFlag]
+                    mdef      2,#::~#1~
+                    mreq      1,2,3:[#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[,UpdateHXFlag]
+                    #push
+                    #spauto   :sp
+          #ifb ~4~
+                    push
+                    #psp
+                    lda       ~2~
+                    @@lea     ~1~
+                    pshhx
+                    @@_ldhx_, ~3~ 1,psp
+                    clc
+                    call      ~0~
+                    ais       #:psp
+                    pull
+          #else ;---------------------------------------------------------------
+                    psha
+                    #psp
+          #ifparm ~'~,3~'.{:3}~ = x
+                    pshhx     hx$$$               ;we'll need it later
+          #endif
+                    lda       ~2~
+                    @@lea     ~1~
+                    pshhx
+                    @@_ldhx_, ~3~ hx$$$,sp
+                    sec
+                    call      ~0~
+                    ais       #:psp
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringFindSubStr    proc
+.substr@@           equ       1
+                    psha      len@@
+                    pshhx     .ans@@
+
+                    pshcc     ccr@@
+
+                    @StringLength                 ;A=searched-string length
+                    cmpa      len@@,sp            ;if substring is larger than string
+                    blo       Fail@@              ;a definite error
+
+                    sub       len@@,sp            ;less the parameter length
+                    inca                          ;plus one, A=number of substrings in string
+
+Loop@@              push      .str@@
+
+                    @StringCompareBuff .str@@,sp .substr@@,sp len@@,sp
+
+                    pull
+                    beq       Found@@             ;found, get out
+
+                    aix       #1                  ;move one up in searched-string
+
+                    dbnza     Loop@@              ;one less comparison, one less length
+
+;-------------------------------------------------------------------------------
+                    #push
+
+Fail@@              pula                          ;shorter PULCC (since RegA
+                    tap                           ;will be restored by PULL)
+                    pull
+                    sec                           ;indicate "failure"
+                    rtc
+
+                    #spcheck
+                    #pull
+;-------------------------------------------------------------------------------
+
+Found@@             lda       ccr@@,sp
+                    tap                           ;if entry Carry was set
+                    bcc       Done@@
+
+                    stx       .ans@@+1,sp         ;update return pointer
+                    thx
+                    stx       .ans@@,sp
+
+Done@@              pula                          ;shorter PULCC (since RegA
+                    tap                           ;will be restored by PULL)
+                    pull
+                    clc                           ;indicate "success"
+                    rtc
+
+;*******************************************************************************
+; Purpose: Insert an ASCIZ sub-string into another string
+; Input  : HX -> String position to insert at
+;        : TOS -> ASCIZ sub-string
+; Output : None
+; Note(s): If sub-string is null, no action
+
+StringInsertString  macro     [#]StringToInsert,[#]IntoString
+                    mreq      1,2:[#]StringToInsert,[#]IntoString
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~1~
+                    pshhx
+                    @@_ldhx_, ~2~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringInsertString  proc
+                    push      .str@@,2
+
+                    ldhx      1,sp
+                    @StringLength
+                    beq       Done@@              ;Null string causes exit
+                    @aax                          ;HX -> end of substring
+
+Loop@@              aix       #-1                 ;HX -> previous substring char
+                    @StringInsertChar, ,x .str@@,sp
+                    dbnza     Loop@@              ;repeat for all substring chars
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Pad an ASCIZ string with leading blanks upto specific string size
+; Input  : HX -> ASCIZ string
+;        : A = Max. string length
+; Output : None
+
+StringPadLeft       macro     [#]MaxLength[,[#]StringToInsert]
+          #ifb ~1~~2~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifb ~2~
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+          #else
+                    push
+                    lda       ~1~
+                    @@lea     ~@@~
+                    call      ~0~
+                    pull
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringPadLeft       proc
+                    psha
+                    @StringLength
+                    bsr       ?PadLoop
+                    pula
+                    rtc
+
+;*******************************************************************************
+; Purpose: Local subroutine to pad an ASCIZ string upto given length
+; Input  : A = Current string length
+;        : HX -> ASCIZ string
+;        : TOS = Max. string length
+; Output : A = Updated string length
+
+                    #spauto   2
+
+?PadLoop            proc
+Loop@@              cmpa      1,sp                ;(TOS of caller)
+                    bhs       Done@@
+                    @StringInsertChar #' '
+                    inca                          ;update string length
+                    bra       Loop@@
+Done@@              equ       :AnRTS
+
+;*******************************************************************************
+; Purpose: Pad an ASCIZ string with trailing blanks upto specific string size
+; Input  : HX -> ASCIZ string
+;        : A = Max. string length
+; Output : None
+
+StringPadRight      macro     [#]MaxLength[,[#]StringToInsert]
+          #ifb ~1~~2~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifb ~2~
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+          #else
+                    push
+                    lda       ~1~
+                    @@lea     ~@@~
+                    call      ~0~
+                    pull
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringPadRight      proc
+                    pshhx
+                    psha                          ;A must be at TOS for ?PadLoop
+                    @StringLength
+                    @aax                          ;HX -> end of string
+                    bsr       ?PadLoop
+                    pula
+                    pulhx
+                    rtc
+
+;*******************************************************************************
+; Purpose: Return the n-th part/field of a string delimited by delimiter ...
+;        : ... while skipping over all quoted strings (e.g., CSV or similar
+;        : formats can be processed with this subroutine)
+;        : (Delimiters inside quoted strings are ignored.  Quotes are single,
+;        : double, and back quote.  The first quote encountered decides which of
+;        : the three will be used for the given sub-string.)
+; Input  : HX -> ASCIZ phrase
+;        : A = One-based index of part to find (0=256)
+;        : TOS = field delimiter (default is comma via macro call)
+; Output : Carry Clear if found, Carry Set if not found
+;        : If CCR[C] = 0: HX -> found substring
+;        :              : A = Length of found substring
+; Note(s): The 1st part of a non-empty string is always found even if no
+;        : delimiter is present.  If the delimiter is not present, the whole
+;        : ASCIZ string is "returned".
+;        : The macro call (only) destroys all registers, even in case the
+;        : sought-for part isn't found.
+
+StringFindPart      macro     ASCIZ,Index[,Delimiter]
+                    mreq      1,2:ASCIZ,Index[,Delimiter]
+                    mdef      3,#','              ;;default delimiter is a comma
+                    #push
+                    #spauto   :sp
+                    @@_lda_   ~3~
+                    psha
+                    @@_lda_   ~2~
+                    @@lea     ~1~
+                    call      ~0~
+                    ais       #:ais
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringFindPart      proc
+                    psha      len@@               ;length of substring result
+                    pshhx     .ans@@              ;substring result
+                    #ais
+
+target@@            equ       1,1                 ;delimiter to use
+
+                    @local    tmp 2
+
+                    psha      index@@             ;1b-index of part to find
+                    pshhx     .str@@              ;current substring
+
+                    tst       ,x                  ;if string is empty ...
+                    beq       NotFound@@          ;... always an error
+
+Loop@@              lda       ,x                  ;get next string character
+                    beq       Found?@@            ;end-of-string, found?
+
+                    aix       #1                  ;bump up pointer
+
+                    cbeq      target@@,sp,Found@@
+
+                    cbeqa     #'"',Quoted@@       ;any kind of quote
+                    cbeqa     #"'",Quoted@@       ;... is treated as embedded
+                    cbeqa     #'`',Quoted@@       ;... string
+
+Cont@@              bra       Loop@@              ;repeat
+
+NewPart@@           sthx      .str@@,sp           ;save pointer to next substring
+                    bra       Cont@@              ;and repeat
+
+Quoted@@            @SkipChar                     ;skip over quoted part by searching for same quote
+                    bne       Cont@@              ;if not end-of-string, continue
+
+NotFound@@          sec                           ;indicate "not found"
+                    bra       Done@@
+
+Found?@@            dbnz      index@@,sp,NotFound@@
+                    bra       Save@@
+
+Found@@             dbnz      index@@,sp,NewPart@@          ;right index? if not, go search for another
+                    aix       #-1                 ;back up before delimiter
+
+Save@@              sthx      tmp@@,sp
+                    tsx
+
+                    @sub.s    tmp@@,spx .str@@,spx tmp@@,spx
+
+                    tst       tmp@@,spx           ;if MSB non-zero, "too long" error
+                    bne       NotFound@@
+
+                    lda       tmp@@+1,spx         ;A = calculated offset
+                    sta       len@@,spx           ;return offset into string
+
+                    ldhx      .str@@,sp           ;HX -> most recent substring
+                    sthx      .ans@@,sp           ;save as answer
+
+                    clc                           ;indicate "found"
+Done@@              ais       #:ais               ;de-allocate temporaries
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    #MapOn
+
+String              @var      80
+
+?                   macro     'String'
+                    mset      #
+                    mstr      1
+                    fcc       ~1~
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    fcb       0
+                    endm
+
+String1             @?        '  This  is   a   sample    test   string    !'
+String2             @?        '  This  is   a   sample    TEST   string    !'
+SubString           @?        'SAMPLE'
+String3             fcs       '+XXXX: 1,"Hello, World!",3,,'
+
+                    #spauto
+
+Start               proc
+                    @rsp
+
+                    @StringFindPart, #String3 #1 #'|'
+                    bcs       *                   ;1st always found, if not, error
+
+                    @StringFindPart, #String3 #2 #'|'
+                    bcc       *                   ;2nd never found, else, error
+
+                    lda       #5
+FPLoop@@            psha      index@@
+                    @StringFindPart, #String3 index@@,sp #','
+                    pula
+                    dbnza     FPLoop@@
+
+                    @StringFindPart, #String3 #1 #':'
+
+                    @StringLength       #String1
+                    cmpa      #::String1
+                    jne       Failure
+                    @StringCopy         #String1,#String
+                    @StringInsertChar   #'>',#String
+                    @StringUpcase       #String
+                    @StringDeleteChar   #String
+                    @StringTrim         #String
+                    @cop
+                    @StringCompareBuff  #String1 #String2 #::String1
+                    jeq       Failure
+                    @cop
+                    @StringCompBuff     #String1 #String2 #::String1
+                    jne       Failure
+                    @cop
+                    @StringCompare      #String1 #String2
+                    jne       Failure
+                    @cop
+                    @StringCompareCase  #String1 #String2
+                    jeq       Failure
+                    @cop
+                    @StringDeleteWord   #String,#' '
+                    @StringReverseString #String
+                    @StringReverseString #String
+                    @StringPos          #' ',#String        ;to be found
+                    @StringPos          #'#',#String        ;not to be found
+                    @StringReplaceChars #' ',#'_',#String
+                    @StringFindSubStr   #SubString,,#String
+                    @StringFindSubStr   #SubString,,#String,xxx
+                    @StringInsertChar   #' ',#String
+                    @StringInsertString #SubString,#String
+                    @StringReplaceChars #'_',#' ',#String
+                    @StringDeleteChars  #String,#10
+
+                    @clr.b    String+1            ;make it a one-char string
+                    @StringReverseString #String  ;nothing should happen (2011.07.14 bugfix)
+
+                    bra       *
+Failure             bra       *
+
+                    @vector   Vreset,Start

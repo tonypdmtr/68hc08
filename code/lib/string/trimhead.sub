@@ -1,0 +1,29 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     deletechar.sub
+
+;*******************************************************************************
+; Purpose: Trim leading spaces (head of string)
+; Input  : HX -> ASCIZ (sub-)string
+; Output : None
+; Note(s):
+                    #spauto   :ab
+
+StringTrimHead      proc
+                    psha
+
+                    lda       #' '                ;will be looking for spaces
+Loop@@              cmpa      ,x                  ;is first string char a space?
+                    bne       Done@@              ;no, we're done
+                    @StringDeleteChar             ;else, delete this char
+                    bra       Loop@@              ;repeat
+
+Done@@              pula
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

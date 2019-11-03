@@ -1,0 +1,55 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Replace all occurences of TOS chars to RegA char
+; Input  : HX -> ASCIZ string whose chars to change
+;        : A = Character to replace with
+;        : TOS = Character to be replaced
+; Output : HX -> Buffer with TOS characters changed to RegA character
+
+StringReplaceChars  macro     [#]FromChar,[#]ToChar,[#]ASCIZ_String
+                    mreq      1,2,3:[#]FromChar,[#]ToChar,[#]ASCIZ_String
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~1~
+                    psha
+                    lda       ~2~
+                    @@lea     ~3~,~4~
+                    call      ~0~
+                    pula
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringReplaceChars  proc
+target@@            equ       1
+                    psha      replacement@@
+                    pshhx
+
+Loop@@              lda       ,x
+                    beq       Done@@
+
+                    cmpa      target@@,sp
+                    bne       Cont@@
+
+                    lda       replacement@@,sp
+                    sta       ,x
+
+Cont@@              aix       #1
+                    bra       Loop@@
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

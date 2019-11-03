@@ -1,0 +1,30 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Trim trailing spaces (tail of string)
+; Input  : HX -> ASCIZ (sub-)string
+; Output : None
+; Note(s):
+                    #spauto   :ab
+
+StringTrimTail      proc
+                    push
+
+                    clra                          ;A = target char is ASCIZ terminator
+                    @SkipChar                     ;go past end of string
+
+                    lda       #' '                ;will be looking for spaces
+Loop@@              aix       #-2                 ;back up one (and one from SkipChar or cbeq x+)
+                    cbeq      x+,Loop@@           ;repeat while last string char is a space
+
+Done@@              clr       ,x                  ;make this the end of string
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

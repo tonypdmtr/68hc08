@@ -1,0 +1,30 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+          #ifhcs
+?SRS                def       SRS
+          #endif
+?SRS                def       RSR
+
+;*******************************************************************************
+; Purpose: Return Yes if coming from a Power On reset
+; Input  : None
+; Output : Carry Clear = Power On Reset, Carry Set = Other reset
+; Note(s):
+                    #spauto   :ab
+
+PowerOn?            proc
+                    lda       ?SRS                ;check cause of reset
+                    bit       #POR_               ;power-on? (WAS: #POR_|LVD_|LVI_)
+                    clc                           ;indicate 'Yes'
+                    bne       Done@@
+                    sec                           ;indicate 'No'
+Done@@              rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************

@@ -1,0 +1,81 @@
+;*******************************************************************************
+;* Module    : PI.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Multiply a long (32-bit) number by the Greek PI (3.141592)
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Note(s)   : Use: #Include pi.sub
+;*           : Requires: stkmth32.sub
+;* History   : 10.01.22 v1.00 Original
+;*           : 10.10.21 v1.01 Made better use of updated STKMTH32.SUB macros
+;*           : 12.11.09 v1.02 Adapted to STAKMATH.SUB v6.00 new macro behavior
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #MapOff
+                    #Uses     stkmth32.sub
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Multiply a long (32-bit) number by the Greek PI (3.141592)
+; Input  : HX -> variable with number to multiply by PI approximation (355/113)
+; Output : HX -> variable contains result (original number is replaced)
+; Note(s): You may append a few zeros to the PI numerator constant (355) to get
+;        : some extra precision, e.g., 35500 will give two extra decimal digits
+;        : in the (always) integer result.
+;        : (Just make sure the Mul32 result doesn't overflow the 32-bit word.)
+;        : Hint: If the number to multiply with PI is already on top-of-stack,
+;        :       use the following code:
+;        :          tsx
+;        :          call      MultiplyPI32
+
+                    #spauto   :ab
+
+MultiplyPI32        proc
+                    push      .ans@@,2            ;save pointer to number/answer
+                    @Eval32   .ans@@,sp = .ans@@,sp * 355 / 113
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    #MapOn
+                    #ROM
+
+TESTVALUE           def       3183                ;x PI=9999 (decimal part lost)
+
+MyVar               @var      DWORD
+
+SampleNumber        long      TESTVALUE
+
+                    #spauto
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+          ;Copy number to RAM (result overwrites number, so it can't be in ROM)
+
+                    @Eval     MyVar = SampleNumber
+
+          ;Multiply number with the Greek PI
+
+                    ldhx      #MyVar
+                    call      MultiplyPI32
+
+          ;Check result for correctness
+
+                    @cmp.s    MyVar #TESTVALUE*355/113  ;TESTVALUE * PI
+                    bne       *                   ;Unexpected result
+                    bra       *                   ;Expected result
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc

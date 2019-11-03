@@ -1,0 +1,38 @@
+;*******************************************************************************
+;* Module    : REVERSEBYTE.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Reverse the bit order of any byte value
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/reversebyte.html
+;* Note(s)   : Use: #Include reversebyte.sub
+;* History   : 17.07.21 v1.00 Original (Started on 2017.07.21)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Reverse a byte's bit order from MSB to LSB or back
+; Input  : A = byte whose bit order to change
+; Output : A = byte with bit order changed
+; Note(s):
+                    #spauto
+
+ReverseByte         proc
+                    pshx                          ;protect caller's X
+                    tax                           ;X = original byte
+                    lda       #1                  ;termination flag on overflow
+Loop@@              lsrx                          ;get right-most bit in Carry
+                    rola                          ;get Carry in right-most RegA bit
+                    bcc       Loop@@              ;one less bit to process
+                    pulx                          ;restore caller's X
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
+                    @EndStats

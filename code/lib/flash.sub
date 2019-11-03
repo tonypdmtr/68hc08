@@ -1,0 +1,499 @@
+;*******************************************************************************
+;* Module    : FLASH.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Routines to program the Flash of 9S08 GB, QG8, QE, or compatible
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/flash.html
+;* Note(s)   : This version tested on 9S08GB60, 9S08QG8, 9S08QE32, 9S08QE128.
+;*           :
+;*           : Synopsis -- The following calls are currently available:
+;*           :
+;*           : Flash_Write              - Program a single Flash location
+;*           : Flash_Erase              - Erase a single Flash page by address
+;*           : Flash_ErasePage          - Erase a single Flash page by page #
+;*           : Flash_Normalize          - Normalize address to start of Flash page
+;*           : Flash_CopyBlock          - Copy a block from A to B in Flash
+;*           : Flash_CopyPage           - Copy a Flash page by page #
+;*           : Flash_PageToPtr          - Return address for given Flash page #
+;*           :
+;* History   : 10.02.01 v1.00 Original (based on 2010.02.01 OS8/FLASH_GB.MOD)
+;*           : 10.04.17       Minor optimization (combined some exits for size)
+;*           : 10.10.01       Added macros for each call
+;*           : 11.04.21       Changed test code a bit
+;*           : 11.11.11       Minor optimization(s)
+;*           : 11.11.16       Added PSHCC and PULCC around RAM routine call
+;*           : 11.11.19       Improved some macros for X-indexed mode
+;*           :                Optimized some more SP => SPX
+;*           : 12.11.07       Improved Flash_CopyPage macro
+;*           : 13.09.24 v1.01 Simpified FCDIV initialization in ?StackRoutine [-7 bytes]
+;*           : 17.10.01       Removed use of deprecated _push_ macro call
+;*           : 18.02.11       Added FLASH_TEST_FIRST condition for safer writes [+6 bytes]
+;*           : 18.04.30       Optimized ?StackRoutine for no PSHCC/PULCC [-12 bytes]
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+FLASH_DATA_SIZE     def       60288
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+          #ifnhcs
+                    #Error    FLASH.SUB requires 9S08 MCU (#HcsOn directive)
+          #endif
+;*******************************************************************************
+; Flash programming command codes
+
+?mByteProg          equ       $20                 ;Byte programming
+?mPageErase         equ       $40                 ;Page erase
+;?mBlank            equ       $05                 ;Blank check
+;?mBurstProg        equ       $25                 ;Burst programming
+;?mMassErase        equ       $41                 ;Mase erase
+
+;*******************************************************************************
+                    #ROM
+;*******************************************************************************
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: RAM routine to do the job we can't do from Flash
+; Input  : A = value to program
+; Output : None
+; Note(s): This routine is modified in RAM by its loader at zero-based offsets
+;        : @1, @2 (?FlashAddress) and @4 (?FlashCommand)
+;        : Stack needed: 20 bytes + 2 for JSR
+
+?RAM_Code           proc
+                    sta       $FFFF               ;Step 1 - Latch data/address
+?FlashAddress       equ       *-?RAM_Code-2,2     ;$FFFF (@1,@2) replaced with actual address during RAM copying
+
+                    lda       #?mByteProg         ;mByteProg (@4) replaced with actual command during RAM copying
+?FlashCommand       equ       *-?RAM_Code-1,1     ;offset into command byte
+                    sta       FCMD                ;Step 2 - Write command to FCMD
+
+                    lda       #FCBEF_             ;Step 3 - Write FCBEF_ in FSTAT
+                    sta       FSTAT
+
+                    lsra                          ;min delay before checking FSTAT (four bus cycles)
+                                                  ;instead of NOP (moves FCBEF -> FCCF for later BIT)
+Loop@@              bit       FSTAT               ;Step 4 - Wait for completion
+                    beq       Loop@@              ;check FCCF_ for completion
+                    rts                           ;after exit, check FSTAT for FPVIOL and FACCERR
+?RAM_Code_End
+                    #size     ?RAM_Code
+
+;*******************************************************************************
+; Purpose: Program an internal Flash location
+; Input  : HX -> Flash memory location to program
+;        : A = value to write
+; Output : None
+
+Flash_Write         macro     [Address],[Value]
+                    #push
+                    #spauto   :sp
+          #ifparm ~2~
+                    psha
+                    lda       ~2~
+          #endif
+          #ifparm ~1~
+                    pshhx
+                    ldhx      ~1~
+          #endif
+                    call      ~0~
+          #ifparm ~1~
+                    pulhx
+          #endif
+          #ifparm ~2~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Flash_Write         proc
+                    push
+          #ifdef FLASH_TEST_FIRST
+            #ifz ERASED_STATE
+                    tst       ,x                  ;test if erased, and if not
+            #else
+                    psha
+                    lda       ,x                  ;if not erased already
+                    coma
+                    pula
+            #endif
+                    bne       ?Failure            ;failure
+          #endif
+                    cbeq      x+,??PullSuccess    ;value already there, no need to update
+
+                    lda       #?mByteProg         ;command to execute
+;                   bra       ?StackRoutine
+
+;-------------------------------------------------------------------------------
+; Purpose: Copy RAM_Execute routine to stack (read backwards so it turns out correctly)
+; Input  : HX -> Flash memory location
+;        : A = Flash command to perform
+; Output : None
+; Note(s): Destroys all registers
+
+                    #spauto
+
+?StackRoutine       proc
+                    #temp     ::
+addr@@              next      :temp,2
+val@@               next      :temp
+          ;---------------------------------------------------------------------
+          ;Prepare the Flash memory for programming
+          ;FCLK must fall between 150-200KHz [FCLK=FBUS/(DIV+1)] and DIV=0..63
+
+;                   ldx       FCDIV               ;(redundant check)
+;                   bmi       DoFSTAT@@
+
+                    ldx       #FLASH_CLK_VALUE    ;required to allow further
+                    stx       FCDIV               ;access to Flash programming
+;DoFSTAT@@
+                    ldx       #FPVIOL_|FACCERR_   ;clear possible errors
+                    stx       FSTAT
+          ;---------------------------------------------------------------------
+
+                    #ais
+
+                    ldhx      #[[?RAM_Code_End    ;HX -> end of routine
+
+Loop@@              psha      code@@
+                    aix       #-1                 ;one less routine byte to process
+                    psha                          ;save the command byte
+                    lda       ,x                  ;get code byte
+                    sta       code@@,sp           ;save it on stack
+                    pula                          ;A = cascaded command byte
+                    cphx      #[[?RAM_Code        ;are we done?
+                    bhi       Loop@@              ;repeat for all bytes
+
+                    #spadd    ::?RAM_Code-1       ;account for stacked routine
+
+                    tsx                           ;HX -> routine's start in RAM
+                    sta       ?FlashCommand,x     ;save command within LDA #?? instruction
+
+                    lda       addr@@,spx
+                    sta       ?FlashAddress,x     ;save H within STA $FFxx instruction
+
+                    lda       addr@@+1,spx
+                    sta       ?FlashAddress+1,x   ;save X within STA $xxFF instruction
+
+                    tpa
+                    psha                          ;save CCR[I]
+                    sei                           ;disable interrupts
+                    @cop                          ;reset COP (for maximum tolerance)
+                    lda       val@@,spx           ;get value to write (don't care for erase)
+                    jsr       ,x                  ;execute RAM routine to perform Flash command
+                    pula                          ;restore CCR[I]
+                    tap
+
+                    ais       #:ais               ;de-allocate temporaries
+
+                    lda       FSTAT
+                    bit       #FPVIOL_|FACCERR_
+                    beq       ?PullSuccess
+
+?Failure            sec                           ;indicate "error"
+                    pull
+                    rtc                           ;error code is propagated to caller
+
+;*******************************************************************************
+; Purpose: Erase an internal Flash page by page number
+; Input  : A = page number to erase ($00..$?F)
+; Output : None
+
+Flash_ErasePage     macro     [PageNumber]
+          #ifparm ~1~
+                    #push
+                    #spauto   :sp
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Flash_ErasePage     proc
+                    push
+
+                    call      Flash_PageToPtr     ;HX -> beginning of page
+                    call      Flash_Erase         ;NOTE: Do NOT just fall thru to ?Erase
+
+??PullSuccess       bra       ?PullSuccess
+
+;*******************************************************************************
+; Purpose: Erase an internal Flash page by address
+; Input  : HX -> location within page to erase
+; Output : None
+; Note(s): Forces address past HighRegs (if any).
+
+Flash_Erase         macro     [Address]
+          #ifparm ~1~
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    ldhx      ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Flash_Erase         proc
+                    push
+
+          #ifdef HighRegs
+                    cphx      #HighRegs
+                    blo       Cont@@
+
+                    cphx      #HighRegs_End
+                    bhi       Cont@@
+
+                    ldhx      #HighRegs_End+1
+Cont@@
+          #endif
+                    lda       #?mPageErase        ;command to execute
+                    bra       ?StackRoutine
+
+;*******************************************************************************
+; Purpose: Normalize pointer to beginning of Flash page
+; Input  : HX -> anywhere within Flash page
+; Output : HX -> beginning of Flash page
+
+Flash_Normalize     macro     [FlashAddress]
+          #ifparm ~1~
+                    ldhx      ~1~
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Flash_Normalize     proc
+                    push      addr@@,2
+                    #ais
+
+                    pshh
+                    txa
+                    tsx
+                    and       #[FLASH_PAGE_MASK
+                    sta       addr@@+1,spx
+
+                    pula
+                    and       #]FLASH_PAGE_MASK
+                    sta       addr@@,spx
+
+?PullSuccess        clc
+?PullOut            pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Copy a block of Flash memory from point A to point B inclusive
+; Input  : CALLERSTACK+4 -> Source Begin
+;        : CALLERSTACK+2 -> Source End
+;        : CALLERSTACK+0 -> Destination
+; Output : Stacked parameters updated, accordingly
+; Note(s): At least one byte is copied (when SourceBegin and SourceEnd are equal)
+;        : Calling sequence:
+;        :          ldhx      #SourceBegin
+;        :          pshhx
+;        :          ldhx      #SourceEnd
+;        :          pshhx
+;        :          ldhx      #Destination
+;        :          pshhx
+;        :          call      Flash_CopyBlock
+;        :          ais       #6
+;        :          bcs       ProcessError
+;-------------------------------------------------------------------------------
+
+Flash_CopyBlock     macro     SourceBegin,SourceEnd,Destination
+                    mreq      1,2,3:SourceBegin,SourceEnd,Destination
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    ldhx      ~1~
+                    pshhx
+                    @@_ldhx_, ~2~ 1,psp
+                    pshhx
+                    @@_ldhx_  ~3~
+                    pshhx
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab                 ;account for RTS/RTC
+
+Flash_CopyBlock     proc
+                    @parms    .dst,.to,.from
+                    push
+
+Loop@@              ldhx      .from@@,sp          ;compare current pointer
+                    cphx      .to@@,sp            ; with ending pointer
+                    bhi       Done@@              ;if above, we're done
+
+                    lda       ,x                  ;get data to copy
+                    aix       #1                  ;bump up source pointer
+                    sthx      .from@@,sp          ;and save it
+
+                    ldhx      .dst@@,sp           ;get destination pointer
+                    call      Flash_Write         ;write data to destination
+                    bcs       Fail@@              ;on error, exit
+                    aix       #1                  ;bump up destination pointer
+                    sthx      .dst@@,sp           ;and save it
+
+                    bra       Loop@@              ;repeat for all bytes
+
+Fail@@              equ       ?PullOut
+Done@@              equ       ?PullSuccess
+
+;*******************************************************************************
+; Purpose: Copy one flash page to another
+; Input  : A = source page index ($00..$?F)
+;        : X = destination page index ($00..$?F)
+; Output : None
+
+Flash_CopyPage      macro     [SourcePage,DestinationPage]
+          #ifnoparm ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshxa
+                    lda       ~1~
+                    ldx       ~2~
+                    call      ~0~
+                    pulxa
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Flash_CopyPage      proc
+                    psha
+                    pshx      dp@@
+                    pshh
+                    #ais
+
+                    call      Flash_PageToPtr     ;convert source page to pointer
+                    pshhx                         ;save source pointer
+
+                    addhx     #FLASH_PAGE_SIZE-1  ;end of source page
+                    pshhx
+
+                    lda       dp@@,sp             ;get destination page
+                    call      Flash_PageToPtr     ;convert to pointer
+                    call      Flash_Erase         ;erase the destination before writing
+                    pshhx                         ;save destination pointer
+
+                    call      Flash_CopyBlock
+
+                    ais       #:ais               ;de-allocate temporaries
+                    bra       Done@@
+
+Done@@              equ       ?PullOut
+
+;*******************************************************************************
+; Purpose: Offset HX to the start of the requested page
+; Input  : A = flash page number ($00..$?F) counting from zero
+; Output : HX -> absolute start of flash page
+
+Flash_PageToPtr     macro     [FlashPageNumber]
+          #ifparm ~1~
+                    #push
+                    #spauto   :sp
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Flash_PageToPtr     proc
+                    psha      pg@@
+                    pshhx     addr@@
+                    #ais
+
+          #ifz ]FLASH_PAGE_SIZE
+                    ldx       #FLASH_PAGE_SIZE
+                    mul                           ;XA = pointer
+                    stx       addr@@,sp
+                    sta       addr@@+1,sp
+          #else
+                    ldx       #]FLASH_PAGE_SIZE
+                    mul                           ;XA = pointer
+                    tsx
+                    sta       addr@@,spx
+                    clr       addr@@+1,spx
+          #endif
+                    bra       ?PullSuccess
+
+                    #sp                           ;cancel all SP offsets
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+Start               proc
+                    @rsp
+
+          ;test the various calls (and macro expansions)
+
+                    @Flash_Write #EEPROM,#$AA
+                    @Flash_Write #EEPROM
+                    @Flash_Write ,#$AA
+                    @Flash_Write
+
+                    @Flash_ErasePage
+                    @Flash_ErasePage #0
+
+                    @Flash_Erase
+                    @Flash_Erase #EEPROM
+
+                    @Flash_Normalize
+                    @Flash_Normalize #EEPROM+1
+
+                    @Flash_CopyPage #0,#1
+                    @Flash_CopyPage
+
+                    @Flash_CopyBlock #EEPROM,#EEPROM_END,#RAM
+                    @Flash_CopyBlock, ,x 2,x 4,x
+
+                    @Flash_PageToPtr
+                    @Flash_PageToPtr #0
+
+                    bra       *
+
+                    @vector   Vreset,Start

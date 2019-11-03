@@ -1,0 +1,276 @@
+;*******************************************************************************
+;* Module    : PRINT.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Provides macro(s) to print strings and numeric expressions in a
+;*           ; single statement, just like in a HLL.  Example,
+;*           : @print 'Hello ' sqr(2)+1 ' times!'
+;*           : will print the string 'Hello 5 times!' making it simple to add
+;*           : print statements containing math expressions (uses STAKMATH).
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/print.html
+;* Note(s)   : Use: #Include print.sub
+;*           : You need to supply your own 'putc' and 'puts' macros that call
+;*           : the appropriate routines to print an ASCII character, or an ASCIZ
+;*           : string pointed to by HX, respectively.
+;* History   : 13.05.30 v1.00 Original (Started on 2013.05.30)
+;*           : 13.08.22       Improvement allows [StringVar] and #CONST syntax
+;*           :                If [StringVar] is size one, then it is [CharVar]
+;*           :                (pointers assumed to always point to StringVar)
+;*           : 13.10.16 v1.10 PrintStr optimized for single-char string constant
+;*           : 13.10.22 v1.20 PrintStr optimized for string constants by FCS macro
+;*           : 13.11.22 v1.30 Added PrintStr string printing routine override
+;*           : 14.04.02 v1.31 Replaced @FCC/FCS macro use with actual directives
+;*           : 15.05.31 v1.32 Added 1st : expression option to allow decimal dots definition
+;*           : 15.06.01       Added 2nd : expression option to allow left padding
+;*           : 15.06.04       Added missing #uses for AddDecimalPoint & StringPadLeft
+;*           : 15.06.13 v1.33 Added optional leading $ symbol to the Print macro
+;*           :                to specify that we need to protect all registers
+;*           : 15.06.27 v1.34 Added optional inline subroutine call
+;*           : 16.06.10 v1.35 Reverted the use of fPrint as it does not use putc
+;*           : 16.06.15 v1.36 BugFix: Print macro no longer assumes # for [...]
+;*           : 19.04.19       Removed MMU case warning with constant strings
+;*           : 19.09.23 v1.37 Added optional leading $$ symbol to the Print macro
+;*           :                to specify that we also need to protect the CCR
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #Uses     stkmth32.sub
+                    #ListOn
+
+putc                macro
+                    call      PutCharInBuffer     ;;print char in RegA
+                    endm
+
+puts                macro
+                    call      PrintAsciz          ;;print ASCIZ string pointed to by HX
+                    endm
+#endif ;------------------------------------------------------------------------
+                    #Uses     string/adddecimalpoint.sub
+                    #Uses     string/padleft.sub
+?_OBJECT_?
+;*******************************************************************************
+; Macro to print an ASCIZ string (constant or variable)
+; You can override the default string printing routine by appending |subname
+; after the operand, where subname is the name of the subroutine to be CALLed.
+
+PrintStr            macro
+                    mset      #'|'
+                    #Message  ~0~: ~1~
+          #ifstr ~1~
+            #if :1 = 3                            ;;single character
+                    lda       #~1~
+                    @putc
+                    mexit
+            #endif
+                    bra       Go$$$
+                    #temp     :pc
+                    fcs       ~1~                 ;;string constant
+Go$$$               ldhx      #[[{:temp}          ;;HX -> constant string
+          #else
+                    @@lea     ~1~                 ;;HX -> user string
+          #endif
+          #ifnb ~2~
+                    call      ~2~
+                    mexit
+          #endif
+                    @puts
+                    endm
+
+;*******************************************************************************
+; Macro to print a number or expression as string
+
+PrintNum            macro
+                    mset      #
+                    #Message  ~0~: ~1~
+                    #push
+                    #spauto   :sp
+                    #psp
+                    @@Eval    n$$$,sp = ~[:]~     ;;evaluate expression/number
+                    ais       #-{::n$$$*3+3}      ;;make room for string
+s$$$                equ       ::,{:ais}           ;;assign it a name (and size)
+                    @@StrMath, n$$$,sp s$$$,sp    ;;convert number to ASCIZ
+          #ifnb ~[:]2~
+                    lda       ~[:]2~
+                    @@lea     s$$$,sp
+                    call      AddDecimalPoint
+          #endif
+          #ifnb ~[:]3~
+                    lda       ~[:]3~
+            #ifdef DEBUG
+                    cmpa      #::s$$$             ;compare against allocated string space
+                    bhs       *                   ;new string length is too big
+            #endif
+                    @@lea     s$$$,sp
+                    call      StringPadLeft
+          #endif
+                    @@PrintStr s$$$,sp            ;;print it
+                    ais       #:psp               ;;de-allocate all temporaries
+                    #pull
+                    endm
+
+;*******************************************************************************
+; Macro to print a mixed series of strings and/or expressions separated by
+; spaces, regardless of the #PARMS setting.
+; If you need to include spaces inside an expression, you must enclose the whole
+; expression in parentheses.
+; (Strings must be quoted.  String or character variables must be enclosed in
+; [ ] pairs, with size one meaning character variable else string variable,
+; character constants must be given as immediate mode or zero-size labels, and
+; finally, any other non-quoted parts are assumed to be expressions.  Pointers
+; are always assumed to point to string variables.)
+; You can override the default string printing routine by appending '|subname'
+; (without the quotes) after the corresponding operand, where subname is the
+; name of the subroutine to be CALLed.
+; You can call any routine inline by using the @Routine format.
+; Important Note: To prevent ambiguity with [ ... ] between Eval macro expressions
+; that use this to denote unsigned item, and Print macro that uses this to denote
+; variable, you can either put an expression inside parentheses, or simply end it
+; with a colon even if no formatting parameters will be used.
+
+Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:DotsConstant])+
+                    mset      #' '                ;;re-split on space delimiter
+          #ifnb ~1~ = $
+                    mdel      1
+                    mset      #
+                    #push
+                    #spauto   :sp
+                    push
+                    @@~0~     ~1~
+                    pull
+                    #pull
+                    mexit
+          #else ifnb ~1~ = $$
+                    mdel      1
+                    mset      #
+                    #push
+                    #spauto   :sp
+                    push
+                    tpa
+                    psha
+                    @@~0~     ~1~
+                    pula
+                    tap
+                    pull
+                    #pull
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    mdo
+                    mswap     1,:mloop
+                    mset      0,~'|'2~
+                    mset      1,~'|'1~
+                    #temp
+          #ifdef ~#1~                             ;;if a defined symbol
+            #ifnostr ~1~                          ;;but not a string
+              #ifz ::~#1~                         ;;and having size zero
+                #ifb ~#~                          ;;but not immediate mode
+                  #ifnoparm ~1.1.1~ = [
+                    mset      1,#~#1~             ;;force it to immediate mode
+                  #endif
+                #endif
+              #endif
+            #endif
+          #endif
+          #ifparm ~#~                             ;;immediate mode is a char
+                    #temp     1
+                    @@_lda_   ~1~
+                    @@putc
+          #endif
+          #ifstr ~1~                              ;;explicit string constant
+                    #temp     2
+                    @@PrintStr ~1~|~text~
+          #endif
+          #ifparm \@~1.1.1~\@ = \@.\@             ;;pointer to string variable
+                    #temp     3
+                    @@PrintStr ~1~|~text~
+          #endif
+          #ifparm ~1.1.1~~1.{:1}~ = []            ;;explicit string variable
+                    #temp     4
+                    mset      1,~1.2.{:1-2}~      ;;remove outer []
+            #if ::~1,~ = 1                        ;;character variable
+                    #temp     5
+                    lda       ~1~
+                    @@putc
+            #endif
+            #if :temp = 4
+                    @@PrintStr ~1~|~text~         ;;print without outer []
+            #endif
+          #endif
+          #ifparm \@~1.1.1~\@ = \@@\@             ;;subroutine call
+                    #temp     6
+                    !jsr      ~1.2~
+          #endif
+          #ifz :temp                              ;;assume math expression
+                    @@PrintNum ~1~
+          #endif
+                    mloop     :n                  ;;repeat for all parms
+                    #pull
+                    endm
+
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #HideMacros
+
+ResetBuffer         macro
+                    @mov.s    #buffer .ptr
+                    endm
+
+.ptr                @var      2
+buffer              @var      20
+
+;*******************************************************************************
+; A dummy routine to emulate printing of a single ASCII character
+
+                    #spauto
+
+PutCharInBuffer     proc
+                    pshhx
+                    @PutNextA .ptr
+                    clr       ,x                  ;make ASCIZ string
+                    pulhx
+                    rtc
+
+;*******************************************************************************
+; A dummy routine to emulate printing of an ASCIZ string
+
+                    #spauto
+
+PrintAsciz          proc
+                    push
+Loop@@              lda       ,x
+                    beq       Done@@
+                    @putc
+                    aix       #1
+                    bra       Loop@@
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+
+                    #spauto
+
+Start               proc
+                    lda       #2
+                    psha      a@@                 ;create a local variable
+          ;-------------------------------------- ;Example 1
+Ex1                 @ResetBuffer
+                    @print    $ 'This is the ' (3 + a@@,sp) 'th number!' CR LF
+          ;-------------------------------------- ;Example 2
+Ex2                 @ResetBuffer
+                    @print    $ 'Hello ' sqr(a@@,sp)+1 ' times!' CR LF
+          ;--------------------------------------
+Done                ais       #:ais               ;de-allocate local variable(s)
+
+Halt@@              proc
+                    @cop
+                    bra       Halt@@
+
+;*******************************************************************************
+                    @vector   Vreset,Start
+;*******************************************************************************

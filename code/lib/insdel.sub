@@ -1,0 +1,178 @@
+;*******************************************************************************
+;* Module    : INSDEL.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : General-purpose block insert/delete functions
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/insdel.html
+;* Note(s)   : Use: #Include insdel.sub
+;*           : The insert operation only make room for the data.
+;* History   : 13.11.29 v1.00 Original (Started on 2013.11.29)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #MapOff
+                    #Uses     copy.sub
+                    #MapOn
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Make room for a data record
+; Input  : A = record size (number of bytes to move everything else up)
+;        : HX -> position at which to insert
+;        : TOS -> last byte of array/table
+; Output : Carry Clear on success, Carry Set on Error
+; Note(s): Does not actually insert the new record data, only makes room for it
+
+MakeRoomForRecord   macro     RecordByteSize,AtLocationPtr,LastBytePtr
+                    mreq      1,2,3:RecordByteSize,AtLocationPtr,LastBytePtr
+                    #push
+                    #spauto   :sp
+                    lda       ~[3.-2]~
+                    psha
+                    lda       ~[3.-1]~
+                    psha
+                    lda       ~1~
+                    ldhx      ~2~
+                    call      ~0~
+                    ais       #:ais
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+MakeRoomForRecord   proc
+                    @parms    .user_end
+                    psha      recsize@@
+                    pshhx
+                    #ais
+
+                    pshhx     .end@@              ;actual termination pointer is current location
+
+                    ldhx      .user_end@@,sp      ;last byte is our start point
+                    pshhx     .dst@@              ;destination pointer
+
+                    txa                           ;calculate the pointer
+                    tsx
+                    sub       recsize@@,spx       ; to the previous record
+                    psha                          ; by subtracting the record
+                    lda       .dst@@,spx          ; size
+                    sbc       #0                  ; (also MSB)
+                    psha      .src@@,2            ;source pointer
+
+Loop@@              ldhx      .src@@,sp
+                    cphx      .end@@,sp
+                    blo       Done@@
+
+                    ldhx      .src@@,sp
+                    lda       ,x                  ;copy a byte from current record
+                    clr       ,x                  ;zero removed item (optional but useful)
+                    aix       #-1
+                    sthx      .src@@,sp
+
+                    ldhx      .dst@@,sp           ; to next record until the last
+                    sta       ,x
+                    aix       #-1
+                    sthx      .dst@@,sp
+                    bra       Loop@@              ;repeat for all bytes
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Delete record
+; Input  : A = record size (number of bytes to move everything else down)
+;        : HX -> position at which to delete
+;        : TOS -> last byte of array/table
+; Output : Carry Clear on success, Carry Set on Error
+; Note(s):
+
+DeleteRecord        macro     RecordByteSize,AtLocationPtr,LastBytePtr
+                    mreq      1,2,3:RecordByteSize,AtLocationPtr,LastBytePtr
+                    #push
+                    #spauto   :sp
+                    lda       ~[3.-2]~
+                    psha
+                    lda       ~[3.-1]~
+                    psha
+                    lda       ~1~
+                    ldhx      ~2~
+                    call      ~0~
+                    ais       #:ais
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+DeleteRecord        proc
+                    @parms    .end
+                    psha      recsize@@
+                    pshhx
+                    #ais
+
+                    pshhx     .dst@@              ;destination pointer
+                    @aax                          ;HX -> next record
+                    pshhx     .src@@              ;source pointer
+
+Loop@@              ldhx      .src@@,sp           ;until the last byte of the
+                    cphx      .end@@,sp           ;array is processed
+                    bhi       Done@@
+
+                    @GetNextA .src@@,sp           ;copy a byte from next record
+                    @PutNextA .dst@@,sp           ;to current record
+                    bra       Loop@@              ;repeat for all bytes
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    @XRAM
+table
+entry1              rmb       4
+entry2              rmb       4
+entry3              rmb       4
+                    #size     table
+
+                    #ROM
+
+Start               proc
+                    @rsp
+                    clra
+
+                    @Copy     RomTable table
+                    @MakeRoomForRecord #::entry1,#entry1,#table+::table-1
+
+                    @Copy     RomTable table
+                    @MakeRoomForRecord #::entry1,#entry2,#table+::table-1
+
+                    @Copy     RomTable table
+                    @MakeRoomForRecord #::entry1,#entry3,#table+::table-1
+          ;---
+                    @Copy     RomTable table
+                    @DeleteRecord      #::entry1,#entry1,#table+::table-1
+
+                    @Copy     RomTable table
+                    @DeleteRecord      #::entry1,#entry2,#table+::table-1
+
+                    @Copy     RomTable table
+                    @DeleteRecord      #::entry1,#entry3,#table+::table-1
+
+                    bra       *
+
+RomTable            long      $12345678,$11223344,$87654321
+
+                    @vector   Vreset,Start

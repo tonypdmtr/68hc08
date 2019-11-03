@@ -1,0 +1,44 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Delete first character in ASCIZ (sub-)string
+; Input  : HX -> ASCIZ (sub-)string
+; Output : None
+
+StringDeleteChar    macro     [[#]String]
+                    mset      #
+          #ifb ~1~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+StringDeleteChar    proc
+                    push
+                    tst       ,x
+Loop@@              beq       Done@@
+                    lda       1,x                 ;next character
+                    sta       ,x                  ;moves down one spot
+                    aix       #1                  ;bump up pointer
+                    bra       Loop@@              ;repeat for all chars
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

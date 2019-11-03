@@ -1,0 +1,49 @@
+;*******************************************************************************
+;* Module    : UPCASE.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Uppercase conversion routine
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/upcase.html
+;* Note(s)   : Use: #Include upcase.sub
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Exit     Upcase              ;skip Upcase if already defined
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Convert character in A to uppercase
+; Input  : A = character
+; Output : A = CHARACTER
+; Note(s):
+                    #spauto
+
+Upcase              proc
+                    pshx
+                    tpx                           ;(transfer CCR to X)
+
+                    cmpa      #'a'                ;less than 'a'?
+                    blo       Done@@              ;yes, skip
+
+                    cmpa      #'z'                ;greater than 'z'?
+                    bhi       Done@@              ;yes, skip
+
+                    add       #'A'-'a'            ;do the conversion
+
+Done@@              txp                           ;(transfer X to CCR)
+                    pulx
+                    rtc
+
+;-------------------------------------------------------------------------------
+ToUpper             equ       Upcase              ;alias for routine
+;-------------------------------------------------------------------------------
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

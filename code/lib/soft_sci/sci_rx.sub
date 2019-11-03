@@ -1,0 +1,106 @@
+;*******************************************************************************
+;* Module    : SCI_RX.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Software SCI RX (receiver)
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Segments  : To be placed in user defined segment (MMU compatible)
+;* Subsystems: None -- Fully software driven (bit-banged)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     qd4.inc
+                    #ListOn
+                    #MCF
+SCI_RX_PIN          @pin      PORTA,1
+#endif ;------------------------------------------------------------------------
+
+                    @CheckPin SCI_RX_PIN
+
+?RX                 @pin      SCI_RX_PIN,SCI_RX_PIN.
+
+;*******************************************************************************
+; To determine the value to use for each bps rate, you must divide the
+; bus-clock (e.g., 8MHz) by the bps rate (e.g., 9600).  So, 8000000/9600=
+; 833.33333 but we round to the closest integer which in this case is 833.
+; So, for an 8MHz bus system, to get a bps rate of 9600, we use the value 833
+;-------------------------------------------------------------------------------
+; Note: This software driven SCI is more capable than a built-in SCI, found in
+; most HC08s, in that it can produce pretty much any bps rate (within the speed
+; limits of the MCU) using any crystal frequency.  All you have to do is come
+; up with the correct values as described above.
+;*******************************************************************************
+
+BPS_RATE            def       9600
+?bps_value          equ       BUS_HZ/BPS_RATE
+
+;*******************************************************************************
+; Purpose: Read SCI char into RegA
+; Input  : None
+; Output : A = character [CCR destroyed]
+; Notes  : Interrupts may have to be disabled during reception
+
+                    #spauto
+
+SCI_GetChar         proc
+                    psha      ch@@
+                    pshhx
+                    tsx
+                    @Input    ?RX                 ;insure data line is input
+                    lda       #$80                ;Bit 7 flags full receive when in Carry
+                    sta       ch@@,spx
+WaitStart@@         @cop                          ;reset COP to be safe
+                    brset     ?RX,WaitStart@@
+                    bsr       ?DelayHalfBitTime   ;delay one-half bit time
+                              #Cycles
+Loop@@              bsr       ?DelayBitTime       ;delay one bit time
+                              #temp :cycles       ;?BSR_CYCLES
+                    @ReadPin  ?RX                 ;sets Carry accordingly
+                    ror       ch@@,spx            ;save received bit
+                    bcc       Loop@@              ;not done yet, get another bit
+                    bsr       ?DelayBitTime       ;delay one bit time
+                    @ReadPin  ?RX
+                    pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Delay a full bit time (based on ?bps_value) including JSR & RTS
+; Input  : None
+; Output : None
+; Note(s):
+                    #spauto
+                              #Cycles :temp
+?DelayBitTime       proc
+                    psha
+                    lda       #DELAY@@
+                    brn       *                   ;for timing symmetry with ?DelayHalfBitTime
+                              #Cycles
+Loop@@              @cop
+                    dbnza     Loop@@
+                              #temp :cycles
+                    pula
+                    rts
+
+?CYCLES             equ       :ocycles+:cycles
+DELAY@@             equ       ?bps_value-?CYCLES/:temp
+
+?DelayBitTime_Loop  equ       Loop@@
+
+;*******************************************************************************
+; Purpose: Delay a half bit time (based on ?bps_value) including JSR & RTS
+; Input  : None
+; Output : None
+; Note(s):
+                    #spauto
+
+?DelayHalfBitTime   proc
+                    psha
+                    lda       #DELAY@@
+                    bra       ?DelayBitTime_Loop
+
+DELAY@@             equ       ?bps_value/2-?CYCLES/:temp
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

@@ -1,0 +1,121 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     length.sub
+                    #Uses     comparebuff.sub
+
+;*******************************************************************************
+; Purpose: Find a substring inside another string
+; Input  : TOS -> ASCII substring for which to search
+;        : HX -> ASCIZ string in which to search
+;        : A = number of character to search for (sizeof non-ASCIZ substr)
+;        : Carry Clear: Only check for presence (Yes/No answer in Carry)
+;        : Carry Set: Also, update HX pointer to beginning of found substring
+; Output : Carry Clear: Found
+;        :              HX -> found substring, only if Carry Set on entry
+;        : Carry Set  : Not Found
+; Note(s): Example call:
+;                   ldhx      #Substring
+;                   pshhx
+;                   ldhx      #String
+;                   lda       #::Substring
+;                   call      FindSubStr
+;                   ais       #2
+;                   bcc       Found
+
+StringFindSubStr    macro     [#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[,UpdateHXFlag]
+                    mdef      2,#::~#1~
+                    mreq      1,2,3:[#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[,UpdateHXFlag]
+                    #push
+                    #spauto   :sp
+          #ifb ~4~
+                    push
+                    #psp
+                    lda       ~2~
+                    @@lea     ~1~
+                    pshhx
+                    @@_ldhx_, ~3~ 1,psp
+                    clc
+                    call      ~0~
+                    ais       #:psp
+                    pull
+          #else ;---------------------------------------------------------------
+                    psha
+                    #psp
+          #ifparm ~'~,3~'.{:3}~ = x
+                    pshhx     hx$$$               ;we'll need it later
+          #endif
+                    lda       ~2~
+                    @@lea     ~1~
+                    pshhx
+                    @@_ldhx_, ~3~ hx$$$,sp
+                    sec
+                    call      ~0~
+                    ais       #:psp
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringFindSubStr    proc
+.substr@@           equ       1
+                    psha      len@@
+                    pshhx     .ans@@
+
+                    tpa                           ;shorter PSHCC (A need not be preserved)
+                    psha      ccr@@
+
+                    @StringLength                 ;A=searched-string length
+                    cmpa      len@@,sp            ;if substring is larger than string
+                    blo       Fail@@              ;a definite error
+
+                    sub       len@@,sp            ;less the parameter length
+                    inca                          ;plus one, A=number of substrings in string
+
+Loop@@              push      .str@@
+
+                    @StringCompareBuff .str@@,sp .substr@@,sp len@@,sp
+
+                    pull
+                    beq       Found@@             ;found, get out
+
+                    aix       #1                  ;move one up in searched-string
+
+                    dbnza     Loop@@              ;one less comparison, one less length
+
+;-------------------------------------------------------------------------------
+                    #push
+
+Fail@@              pula                          ;shorter PULCC (since RegA
+                    tap                           ;will be restored by PULL)
+                    pull
+                    sec                           ;indicate "failure"
+                    rtc
+
+                    #spcheck
+                    #pull
+;-------------------------------------------------------------------------------
+
+Found@@             lda       ccr@@,sp
+                    tap                           ;if entry Carry was set
+                    bcc       Done@@
+
+                    stx       .ans@@+1,sp         ;update return pointer
+                    thx
+                    stx       .ans@@,sp
+
+Done@@              pula                          ;shorter PULCC (since RegA
+                    tap                           ;will be restored by PULL)
+                    pull
+                    clc                           ;indicate "success"
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

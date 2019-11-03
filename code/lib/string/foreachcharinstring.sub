@@ -1,0 +1,86 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Call a given routine for each char in ASCIZ string having these parms:
+;        :   Callout parms: A = current string character
+;        :                  HX -> current string character
+; Input  : HX -> ASCIZ string to iterate over
+;        : Word after CALL -> Call-out routine, called once for each char
+; Output : None
+; Note(s):
+                    #spauto   :ab
+
+ForEachCharInString proc
+pc@@                equ       ::+{:ab-2},2
+                    push      hx@@,2
+                    #ais
+
+                    @local    routine 2
+          #ifhcs
+                    ldhx      pc@@,sp
+          #else
+                    tsx
+                    lda       pc@@,spx
+                    psha
+                    ldx       pc@@+1,spx
+                    pulh
+          #endif
+                    @mova.s   ,x routine@@,sp
+                    aix       #2
+          #ifhcs
+                    sthx      pc@@,sp
+                    ldhx      hx@@,sp             ;HX -> ASCIZ string
+          #else
+                    stx       pc@@+1,sp           ;equivalent to `sthx pc@@,sp`
+                    tha
+                    ;tsx
+                    tsx
+                    sta       pc@@,spx
+
+                    lda       hx@@,spx            ;equivalent to `ldhx hx@@,sp`
+                    psha
+                    ldx       hx@@+1,spx
+                    pulh
+          #endif
+Loop@@              lda       ,x                  ;A = current string char
+                    beq       Done@@              ;on terminator, exit
+
+                    pshhx     pointer@@           ;save pointer to string
+
+                    ldhx      #Return@@           ;HX -> return point
+                    pshhx                         ;stack return address
+          #ifhcs
+                    ldhx      routine@@,sp        ;HX -> user callout
+                    pshhx                         ;stack callout address
+                    ldhx      pointer@@,sp        ;HX -> current string char
+          #else
+                    tsx
+                    lda       routine@@+1,spx
+                    psha
+                    lda       routine@@,spx
+                    psha
+
+                    lda       pointer@@,spx
+                    psha
+                    ldx       pointer@@+1,spx
+                    pulh
+                    lda       ,x
+          #endif
+                    RTS                           ;call the callout routine
+                    #spadd    -4                  ;adjust stack for JSR/RTS
+
+Return@@            pulhx                         ;restore pointer to string
+                    aix       #1
+                    bra       Loop@@
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

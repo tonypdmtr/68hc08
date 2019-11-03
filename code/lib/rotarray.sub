@@ -1,0 +1,108 @@
+;*******************************************************************************
+;* Module    : ROTARRAY.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Rotate any array up to 256 bytes long
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/rotarray.html
+;* Note(s)   : Can be placed in any memory (normal or paged).  Always use CALL.
+;* History   : 18.10.16 v1.00 Original
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #Cycles
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Macro to perform rotation in a single command
+
+RotArray            macro     Array ArraySize
+                    mset      #' '
+                    mreq      1,2:Array ArraySize
+                    mdef      3,#1                ;;default size is one byte
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~2~                 ;byte size of array
+                    ldhx      ~1~
+                    call      ~0~                 ;make the call
+                    pull
+                    #pull
+                    endm
+
+;*******************************************************************************
+; Purpose: Rotate an array by any number of bytes up to 256
+; Input  : HX -> array to rotate
+;        : A = byte size of array
+; Output : None
+; Use    :          #Uses     rotarray.sub
+; Call   :          ldhx      #Array
+;        :          lda       #::Array3           ;byte size of array
+;        :          call      RotArray            ;make the call
+
+                    #spauto   :ab                 ;account for RTS/RTC
+                              #Cycles
+RotArray            proc
+                    push      .arr@@ 2
+                    #ais
+                    psha      byte_to_ins@@       ;placeholder for transit byte
+Loop@@              psha
+                    lda       ,x                  ;A = old array byte
+                    psha                          ;save it for now
+                    lda       byte_to_ins@@,sp    ;A = new byte
+                    sta       ,x                  ;save it at current position
+                    pula                          ;A = old array byte
+                    sta       byte_to_ins@@,sp    ;save old for next iteration
+                    aix       #1                  ;HX -> next byte position
+                    pula
+                    dbnza     Loop@@              ;repeat for all bytes in array
+          ;-------------------------------------- ;copy last byte to first
+          #ifhcs
+                    ldhx      .arr@@,sp           ;HX -> array
+          #else
+                    lda       .arr@@,sp
+                    ldx       .arr@@+1,sp
+                    tah                           ;HX -> array
+          #endif
+                    lda       byte_to_ins@@,sp
+                    sta       ,x
+          ;--------------------------------------
+          #if :ais = 1
+                    pula
+          #else ifnz :ais
+                    ais       #:ais               ;remove temp variable(s)
+          #endif
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  Execution: {:cycles}+ cycles
+
+                    #MapOff
+                    #Uses     copy.sub
+                    #MapOn
+
+Source              fcs       '0123456789ABCDEF'
+
+DATASIZE            def       ::Source-1
+
+array               @var      DATASIZE
+
+                    #spauto
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+                    @Copy     Source array
+Loop@@              @RotArray #array #::array
+                    bra       Loop@@
+
+                    @vector   Vreset,Start

@@ -1,0 +1,197 @@
+;*******************************************************************************
+;* Module    : PRINTBIG.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Print from 8-bit to 2048-bit (256-byte) integer to output device
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/printbig.html
+;* Note(s)   : Use: #Include printbig.sub
+;*           :
+;*           : Output is sent by the user-supplied "putc" macro.
+;*           :
+;*           : putc can be made to write to any output device if you use an
+;*           : "OutputDevice" control flag, so that the subroutine can send its
+;*           : output to any device (e.g., LCD, SCI), depending on OutputDevice.
+;*           :
+;*           :?Number         long      123456789           ;somewhere in RAM
+;*           :                ...
+;*           :                ldhx      #?Number            ;HX -> RAM number
+;*           :                lda       #4                  ;A = bytes in number
+;*           :                call      PrintBig            ;print plain number
+;*           :
+;* History   : 10.05.13 v1.00 Original
+;*           : 11.03.31       putc macro must be predefined by user
+;*           : 11.04.21       Moved test code at EOF (for #EXIT optimization)
+;*           :                Optimized SP => SPX where possible
+;*           : 15.07.10       Optimized PrintBig LDH with LDHX [-2 bytes]
+;*           :                Added HC08 compatibility
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+
+;*******************************************************************************
+; Macro to print a single ASCII character in RegA
+
+putc                macro
+                    call      PutChar
+                    endm
+
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Print a variable-size number as decimal ASCII string
+; Input  : HX -> RAM-based (eg., stack) number to display as ASCII string
+;        : A = size of number in bytes
+; Output : None
+; Note(s): Leading zeros are suppressed.
+;        : Enough stack is required to hold the result for the largest number.
+;        : Original number is destroyed (zeroed), so you may need to copy it
+;        : to some temp location first, and use the temp for passing it to this
+;        : function.
+
+                    #spauto
+
+PrintBig            proc
+                    push
+                    #ais
+
+                    psha                          ;stacked first is the
+                    clr       1,asp               ;ASCIZ terminator
+
+NextDigit@@         psha      digit@@             ;room for next digit (right to left)
+
+                    psha      sz@@                ;save size and dividend pointer
+                    pshhx     .dividend@@
+
+                    clr       digit@@,sp          ;initial remainder = 0
+Loop@@              psha
+
+                    lda       ,x                  ;get dividend digit
+
+                    pshhx
+          #ifhcs
+                    ldhx      digit@@,sp          ;get previous remainder into H
+          #else
+                    ldx       digit@@,sp          ;get previous remainder into X
+                    txh                           ;and then into H
+          #endif
+                    ldx       #10                 ;X = divisor (10)
+                    div
+
+                    thx                           ;put new remainder temporarily
+                    stx       digit@@,sp          ;... into digit@@
+                    pulhx
+
+                    sta       ,x                  ;save updated dividend digit
+                    aix       #1                  ;HX -> next dividend digit
+
+                    pula
+                    dbnza     Loop@@              ;repeat for all digits
+
+                    tsx
+                    lda       digit@@,spx         ;A = remainder
+                    add       #'0'                ;convert to ASCII
+                    sta       digit@@,spx         ;save next result byte (right to left)
+
+                    #psp
+
+                    lda       sz@@,spx
+                    psha      counter@@
+
+                    clra
+          #ifhcs
+                    ldhx      .dividend@@,spx
+          #else
+                    psha
+                    lda       .dividend@@,spx
+                    ldx       .dividend@@+1,spx
+                    tah
+                    pula
+          #endif
+IsItZero@@          ora       ,x
+                    aix       #1
+                    dbnz      counter@@,sp,IsItZero@@
+                    ais       #:psp
+
+;                   tsta                          ;while dividend <> 0 ...
+                    pull                          ;...(CCR not changed since ORA)
+                    bne       NextDigit@@         ;... keep going
+
+Print@@             pula                          ;get next ASCIZ char
+                    cbeqa     #0,Done@@           ;on terminator, exit
+                    @putc                         ;else, print digit
+                    bra       Print@@
+
+Done@@              pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    #MapOn
+
+                    #RAM
+
+index               rmb       1
+buffer              rmb       21                  ;long enough for 64-bit ASCIZ result
+
+                    #ROM
+
+;*******************************************************************************
+; This example PutChar instead of printing it simply stores results in Buffer
+
+PutChar             proc
+                    pshhx
+                    clrh
+                    ldx       index
+                    sta       buffer,x
+                    inc       index
+                    pulhx
+                    rtc                           ;(breakpoint here; see RegA in simulator)
+
+;*******************************************************************************
+
+                    #spauto
+
+Start               proc
+                    @rsp
+
+                    clr       index
+          ;-------------------------------------- ;test PrintBig
+                    #ais
+          #ifhcs
+                    ldhx      Number@@+6
+                    pshhx
+                    ldhx      Number@@+4
+                    pshhx
+                    ldhx      Number@@+2
+                    pshhx
+                    ldhx      Number@@
+                    pshhx
+          #else
+                    ldhx      #Number@@
+                    @rep,|    8|lda 8-:loop,x|psha
+          #endif
+                    lda       #:ais               ;however many bytes were pushed
+                    tsx
+                    call      PrintBig
+                    ais       #:ais
+
+Done                bra       *                   ;Answer: 9223372036854775807
+
+;-------------------------------------------------------------------------------
+Number@@            long      $7FFFFFFF,$FFFFFFFF ;decimal: 9223372036854775807
+;-------------------------------------------------------------------------------
+
+                    #sp
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc

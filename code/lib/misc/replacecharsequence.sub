@@ -1,0 +1,35 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Replace all sequential occurences of 1st character to another char
+; Input  : HX -> Buffer (not necessarily ASCIZ string as even 0 can be replaced)
+;        : A = replacement character
+; Output : None
+; Note(s):
+                    #spauto   :ab
+
+ReplaceCharSequence proc
+                    psha      ch@@
+                    pshhx     ;.s@@
+                    #ais
+
+                    lda       ,x                  ;A = 1st character
+                    bra       Go@@
+
+Loop@@              psha
+                    lda       ch@@,sp             ;A = replacement character
+                    sta       -1,x                ;save it in just compared position
+                    pula
+
+Go@@                cbeq      x+,Loop@@
+                    pull
+                    rtc
+#spcheck
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

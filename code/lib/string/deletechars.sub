@@ -1,0 +1,51 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     deletechar.sub
+
+;*******************************************************************************
+; Purpose: Delete a number of characters in an ASCIZ (sub-)string
+; Input  : HX -> ASCIZ string
+;        : A = Number of chars to delete
+; Output : None
+; Note(s):
+
+StringDeleteChars   macro     [#]ASCIZ_String,[#]Count
+                    #push
+                    #spauto   :sp
+          #ifnb ~2~
+                    psha
+                    lda       ~2~
+          #endif
+          #ifnb ~1~
+                    pshhx
+                    @@lea     ~1~
+          #endif
+                    call      ~0~
+          #ifnb ~1~
+                    pulhx
+          #endif
+          #ifnb ~2~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringDeleteChars   proc
+                    psha
+Loop@@              tst       ,x
+                    beq       Done@@
+                    call      StringDeleteChar
+                    dbnza     Loop@@
+Done@@              pula
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

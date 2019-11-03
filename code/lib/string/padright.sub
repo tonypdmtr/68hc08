@@ -1,0 +1,56 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     length.sub
+                    #Uses     insertchar.sub
+
+;*******************************************************************************
+; Purpose: Pad an ASCIZ string with trailing blanks upto specific string size
+; Input  : HX -> ASCIZ string
+;        : A = Max. string length
+; Output : None
+
+StringPadRight      macro     [#]MaxLength[,[#]StringToInsert]
+          #ifb ~1~~2~
+                    call      ~0~
+                    mexit
+          #endif
+                    #push
+                    #spauto   :sp
+          #ifb ~2~
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+          #else
+                    push
+                    lda       ~1~
+                    @@lea     ~@@~
+                    call      ~0~
+                    pull
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringPadRight      proc
+                    psha      max@@
+                    pshhx
+                    @StringLength
+                    @aax                          ;HX -> end of string
+Loop@@              cmpa      max@@,sp
+                    bhs       Done@@
+                    @StringInsertChar #' '
+                    inca                          ;update string length
+                    bra       Loop@@
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

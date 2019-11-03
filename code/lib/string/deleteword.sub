@@ -1,0 +1,49 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     deletechar.sub
+
+;*******************************************************************************
+; Purpose: Delete chars until (and including) a certain char
+; Input  : HX -> ASCIZ string
+;        : A = target character (zero for remaining string)
+; Output : None
+
+StringDeleteWord    macro     [#]ASCIZ_String,[#]Delimiter
+                    mreq      1,2:[#]ASCIZ_String,[#]Delimiter
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~2~
+                    @@lea     ~1~
+                    call      ~0~
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringDeleteWord    proc
+                    push
+
+Loop@@              tst       ,x                  ;to reset the zero flag (do NOT use CBEQ)
+                    beq       Done@@              ;exit on ASCIZ terminator
+
+                    cmpa      ,x                  ;is this character the target?
+                    psha                          ;save target character
+                    tpa                           ;save CMPA result
+                    @StringDeleteChar             ;Delete first character
+                    tap                           ;restore CMPA result
+                    pula                          ;restore target character
+                    bne       Loop@@              ;repeat until target's found
+
+Done@@              pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

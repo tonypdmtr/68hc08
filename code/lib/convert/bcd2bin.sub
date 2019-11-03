@@ -1,0 +1,106 @@
+;*******************************************************************************
+;* Subroutine: BCD2BIN.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Purpose   : Convert a two-digit or four-digit packed BCD number to binary
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/bcd2bin.html
+;* History   : 03.07.11 v1.00 Original
+;*           : 10.02.07       Adapted to latest ASM8 version
+;*           : 10.03.23       Added #SPAUTO
+;*           : 10.10.19       Adapted to latest ASM8
+;*           : 11.04.21       Moved test code at EOF (for #EXIT optimization)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #Cycles
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Convert a two-digit packed BCD number to binary
+; Input  : A = packed BCD
+; Output : A = binary equivalent
+; Note(s): Size: 18 bytes, Cycles: 32 [HC08], 34 [S08], 35 [MMU]
+
+                    #spauto
+
+ByteBCD2Bin         proc
+                    pshx
+
+                    tax                           ;save original number in X
+                    and       #$0F                ;isolate low nibble
+                    psha      a@@                 ;save low nibble only
+
+                    txa                           ;reload original A
+                    nsa                           ;move high nibble to low
+                    and       #$0F                ;isolate nibble
+                    ldx       #10                 ;multiplier for decimal
+                    mul
+
+                    add       a@@,sp
+
+                    pulx::ais
+                    rtc
+
+#ifmain ;-----------------------------------------------------------------------
+?BCD2BinCycles      equ       :cycles
+                    #Message  ByteBCD2Bin Size: {*-ByteBCD2Bin} bytes, Cycles: {?BCD2BinCycles}
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Convert a four-digit packed BCD number to binary
+; Input  : XA = BCD number (0 to 9999, no error checking)
+; Output : XA = binary equivalent
+; Note(s): Size: 23 [25 MMU] bytes, Cycles: 102 [HC08], 111 [S08], 118 [MMU]
+
+                    #spauto
+
+WordBCD2Bin         proc
+                    call      ByteBCD2Bin         ;convert lsb first
+                    psha      a@@                 ;save lsb result
+
+                    txa                           ;get msb
+                    call      ByteBCD2Bin         ;convert msb second
+                    ldx       #100
+                    mul                           ;XA := msb * 100
+
+                    add       a@@,sp              ;add the lsb
+                    sta       a@@,sp
+
+                    txa                           ;add the msb
+                    adc       #0
+                    tax                           ;place result in XA
+
+                    pula
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    #Message  WordBCD2Bin Size: {*-WordBCD2Bin} bytes, Cycles: {?BCD2BinCycles*2+:cycles}
+                    @EndStats
+
+                    #MapOn
+
+Start               proc
+                    @rsp
+
+                    @ldxa     PackedBCD
+                    call      WordBCD2Bin         ;sample call for testing
+
+                    txh
+                    tax                           ;HX = binary result
+                    cphx      Binary
+
+Success             beq       *                   ;correct result
+Error               bra       *                   ;error, if here
+
+PackedBCD           dw        $5678               ;sample number as BCD
+Binary              dw        5678                ;sample number as binary
+
+                    @vector   Vreset,Start

@@ -1,0 +1,193 @@
+;*******************************************************************************
+;* Module    : READLN.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Read a text line (with or w/out echo) from getc macro input
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/readln.html
+;* Note(s)   : Use: #Include readln.sub
+;* History   : 10.12.09 v1.00 Original
+;*           : 16.06.17       BugFix: Added missing TSTA instruction to check length
+;*           :                Added echo option via the putc macro
+;*           :                Added backspace recognition in echo mode only
+;*           :                Added Escape recognition in echo mode only
+;*           : 16.08.01       Minor optimization in Readln proc [-1 byte]
+;*           :                Removed redundant BEQ in Readln proc [-2 bytes]
+;*           :                Minor optimization in Readln proc Done@@ [-4 bytes]
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+
+getc                macro
+                    ...
+                    endm
+putc                macro
+                    ...
+                    endm
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Read a CR terminated line (LFs ignored)
+; Input  : HX -> buffer for received string
+;        : A = maximum buffer size (including NUL terminator)
+;        : CCR[C] = 0: no echo and no editing allowed
+;        : CCR[C] = 1: with echo and editing allowed
+; Output : A = number of characters read
+;        : (HX -> Buffer) is filled with input data
+; Note(s): A terminator character (CR) is required to exit the routine
+;        : If length is zero, you just wait for a CR without saving
+;        : If more characters arrive than buffer can hold, they are truncated
+
+Readln              macro     [Buffer][,MaxLength][,echo]
+          #ifb ~@~
+                    call      ~0~
+                    mexit
+          #endif
+                    mdef      3,clc               ;;default is no echo
+          #ifnoparm ~3~ = clc
+                    mset      3,sec
+          #endif
+          #ifparm ~1~
+           #ifb ~2~
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    @@lea     ~1~
+                    ~3~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    mexit
+           #endif
+          #endif
+          #ifparm ~2~
+           #ifb ~1~
+                    #push
+                    #spauto   :sp
+                    psha
+                    lda       ~2~
+                    ~3~
+                    call      ~0~
+                    pula
+                    #pull
+                    mexit
+           #endif
+          #endif
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~2~
+                    @@lea     ~1~
+                    ~3~
+                    call      ~0~
+                    pull
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Readln              proc
+                    pshhx     .buf@@
+
+                    #ais
+                    psha      len@@
+
+                    tpa
+                    psha      ccr@@
+
+                    lda       len@@,sp
+                    psha      remain@@            ;chars remaining (max characters to read)
+                    beq       WaitEol@@           ;if zero, wait for terminator
+
+                    clr       ,x                  ;assume ASCIZ string
+                    dec       remain@@,sp         ;one less char to receive
+
+Loop@@              @getc                         ;read a character
+                    cbeqa     #LF,Loop@@          ;LFs are ignored
+                    cbeqa     #CR,Done@@          ;on CR terminator, exit
+
+                    psha
+                    lda       ccr@@,sp
+                    tap
+                    pula
+                    bcc       WaitEol@@           ;the remaining check apply only in echo mode
+
+                    cbeqa     #BS,Backspace@@     ;on BS, if in echo mode, delete last character
+                    cbeqa     #ESC,ClearLine@@    ;on ESC, if in echo mode, clear the whole line
+
+WaitEol@@           tst       remain@@,sp         ;a possible BS puts us back in the game
+                    beq       Loop@@              ;if zero, only terminator will work
+
+                    cmpa      #' '                ;nothing below space is accepted
+                    blo       Loop@@
+
+                    sta       ,x                  ;anything else save in buffer
+
+                    lda       ccr@@,sp
+                    tap
+                    bcc       MakeAsciz@@
+
+                    lda       ,x                  ;reload character to echo
+                    @putc                         ;echo character
+
+MakeAsciz@@         aix       #1                  ;point to next buffer position
+                    clr       ,x                  ;maintain as ASCIZ string
+                    dec       remain@@,sp         ;one less char to receive
+                    bra       Loop@@
+
+ClearLine@@         lda       len@@,sp            ;delete all characters
+                    bra       BS_Loop@@
+
+Backspace@@         lda       #1                  ;delete just one character
+
+BS_Loop@@           psha
+                    lda       remain@@,sp         ;get remaining length
+                    inca                          ;if incremented, check if we
+                    cmpa      len@@,sp            ;are we at the beginning?
+                    bhs       BS_Cont@@           ;yes, ignore backspace
+          ;-------------------------------------- ;erase previous character
+                    lda       #BS
+                    @putc
+                    lda       #' '
+                    @putc
+                    lda       #BS
+                    @putc
+          ;--------------------------------------
+                    inc       remain@@,sp         ;un-count deleted character
+                    aix       #-1                 ;back up buffer position
+                    clr       ,x                  ;ASCIZ terminate it
+BS_Cont@@           pula
+                    dbnza     BS_Loop@@
+                    bra       Loop@@
+
+Done@@              tsx
+                    lda       len@@,spx           ;original string length
+                    sub       remain@@,spx        ;subtract remaining length
+                    deca                          ;do NOT count end-of-line
+          ;-------------------------------------- ;A = number of characters read
+                    ais       #:ais
+                    pulhx
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+buffer              @var      80
+
+Start               proc
+                    @rsp
+                    ldhx      #buffer
+                    lda       #::buffer
+                    sec
+                    call      Readln
+                    bra       *
+
+                    @vector   Vreset,Start

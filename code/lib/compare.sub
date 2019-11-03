@@ -1,0 +1,115 @@
+;*******************************************************************************
+;* Module    : COMPARE.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Compare two byte arrays (tables, strings, or whatever)
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/compare.html
+;* Note(s)   : Use: #Include compare.sub
+;* History   : 10.03.23 v1.00 Original (Started on 2012.03.23)
+;*           : 10.03.26       Optimized exit
+;*           : 11.11.03       Minor optimization(s)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Compare two byte arrays (tables, strings, or whatever)
+; Input  : TOS: -> Table1 (word), -> Table2 (word), Table size (word)
+; Output : Carry Clear on match, Carry Set on mismatch
+; Note(s):
+; Call by:          ldhx      #TableSize
+;        :          pshhx
+;        :          ldhx      #Table2
+;        :          pshhx
+;        :          ldhx      #Table1
+;        :          pshhx
+;        :          call      ByteCompare
+;        :          ais       #6
+;        :          bcc       Success
+
+ByteCompare         macro
+                    #push
+                    #spauto   :sp
+                    ldhx      ~3~
+                    pshhx
+                    ldhx      ~2~
+                    pshhx
+                    ldhx      ~1~
+                    pshhx
+                    call      ByteCompare
+                    ais       #:ais
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+ByteCompare         proc
+                    @parms    .tab1,.tab2,count 2
+                    push
+
+Loop@@              @GetNextA .tab1@@,sp          ;get byte from first array
+          #ifhcs
+                    ldhx      .tab2@@,sp
+                    cmpa      ,x                  ;compare with byte from second array
+                    tpa                           ;keep comparison result for later
+                    aix       #1
+                    sthx      .tab2@@,sp
+
+                    tap                           ;restore comparison flags
+                    bne       Fail@@
+
+                    ldhx      count@@,sp
+                    aix       #-1                 ;one less byte to compare
+                    sthx      count@@,sp
+                    bne       Loop@@
+                    clc                           ;indicate 'success'
+;-------------------------------------------------------------------------------
+          #else
+;-------------------------------------------------------------------------------
+                    ldx       .tab2@@,sp
+                    txh
+                    ldx       .tab2@@+1,sp
+
+                    cmpa      ,x                  ;compare with byte from second array
+                    tpa                           ;keep comparison result later
+                    aix       #1
+
+                    stx       .tab2@@+1,sp
+                    thx
+                    stx       .tab2@@,sp
+
+                    tap                           ;restore comparison flags
+                    bne       Fail@@
+
+                    tsx
+                    lda       count@@,spx
+                    ldx       count@@+1,spx
+                    tah
+
+                    aix       #-1                 ;one less byte to compare
+
+                    stx       count@@+1,sp
+                    tha
+                    sta       count@@,sp
+
+                    cphx      #0
+                    bne       Loop@@              ;fall-thru implies CLC
+          #endif
+                    bra       Done@@
+
+Fail@@              sec                           ;indicate 'failure'
+Done@@              pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

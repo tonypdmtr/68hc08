@@ -1,0 +1,130 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Return the n-th part/field of a string delimited by delimiter ...
+;        : ... while skipping over all quoted strings (e.g., CSV or similar
+;        : formats can be processed with this subroutine)
+;        : (Delimiters inside quoted strings are ignored.  Quotes are single,
+;        : double, and back quote.  The first quote encountered decides which of
+;        : the three will be used for the given sub-string.)
+; Input  : HX -> ASCIZ phrase
+;        : A = One-based index of part to find (0=256)
+;        : TOS = field delimiter (default is comma via macro call)
+; Output : Carry Clear if found, Carry Set if not found
+;        : If CCR[C] = 0: HX -> found substring
+;        :              : A = Length of found substring
+; Note(s): The 1st part of a non-empty string is always found even if no
+;        : delimiter is present.  If the delimiter is not present, the whole
+;        : ASCIZ string is "returned".
+;        : The macro call (only) destroys all registers, even in case the
+;        : sought-for part isn't found.
+
+StringFindPart      macro     ASCIZ,Index[,Delimiter]
+                    mreq      1,2:ASCIZ,Index[,Delimiter]
+                    mdef      3,#','              ;;default delimiter is a comma
+                    #push
+                    #spauto   :sp
+                    @@_lda_   ~3~
+                    psha
+                    @@_lda_   ~2~
+                    @@lea     ~1~
+                    call      ~0~
+                    ais       #:ais
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringFindPart      proc
+                    psha      len@@               ;length of substring result
+                    pshhx     .ans@@              ;substring result
+                    #ais
+
+target@@            equ       1,1                 ;delimiter to use
+
+                    @local    tmp 2
+
+                    psha      index@@             ;1b-index of part to find
+                    pshhx     .str@@              ;current substring
+
+                    tst       ,x                  ;if string is empty ...
+                    beq       NotFound@@          ;... always an error
+
+Loop@@              lda       ,x                  ;get next string character
+                    beq       Found?@@            ;end-of-string, found?
+
+                    aix       #1                  ;bump up pointer
+
+                    cbeq      target@@,sp,Found@@
+
+                    cbeqa     #'"',Quoted@@       ;any kind of quote
+                    cbeqa     #"'",Quoted@@       ;... is treated as embedded
+                    cbeqa     #'`',Quoted@@       ;... string
+
+Cont@@              bra       Loop@@              ;repeat
+
+NewPart@@
+          #ifhcs
+                    sthx      .str@@,sp           ;save pointer to next substring
+          #else
+                    stx       .str@@+1,sp
+                    tha
+                    sta       .str@@,sp
+          #endif
+                    bra       Cont@@              ;and repeat
+
+Quoted@@            @SkipChar                     ;skip over quoted part by searching for same quote
+                    bne       Cont@@              ;if not end-of-string, continue
+
+NotFound@@          sec                           ;indicate "not found"
+                    bra       Done@@
+
+Found?@@            dbnz      index@@,sp,NotFound@@
+                    bra       Save@@
+
+Found@@             dbnz      index@@,sp,NewPart@@          ;right index? if not, go search for another
+                    aix       #-1                 ;back up before delimiter
+
+Save@@
+          #ifhcs
+                    sthx      tmp@@,sp
+                    tsx
+          #else
+                    stx       tmp@@+1,sp
+                    tha
+                    tsx
+                    sta       tmp@@,spx
+          #endif
+                    @sub.s    tmp@@,spx .str@@,spx tmp@@,spx
+
+                    tst       tmp@@,spx           ;if MSB non-zero, "too long" error
+                    bne       NotFound@@
+
+                    lda       tmp@@+1,spx         ;A = calculated offset
+                    sta       len@@,spx           ;return offset into string
+          #ifhcs
+                    ldhx      .str@@,sp           ;HX -> most recent substring
+                    sthx      .ans@@,sp           ;save as answer
+          #else
+                    tsx
+
+                    lda       .str@@,spx
+                    sta       .ans@@,spx
+
+                    lda       .str@@+1,spx
+                    sta       .ans@@+1,spx
+          #endif
+                    clc                           ;indicate "found"
+Done@@              ais       #:ais               ;de-allocate temporaries
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

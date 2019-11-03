@@ -1,0 +1,187 @@
+;*******************************************************************************
+;* Module    : FROM_TO.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Makes it easier to work with FROM .. TO memory ranges
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/from_to.html
+;* Note(s)   : You must provide the following:
+;*           : A 'reader' routine that gets a single byte into RegA from RegHX.
+;*           : A 'writer' routine that puts RegA into the destination.
+;*           : A source pointer to read from; a destination pointer, to write to.
+;*           : The number of bytes to process.
+;*           : Then, simply call the FromTo subroutine.
+;* History   : 10.05.17 v1.00 Original
+;*           : 10.08.19 v1.10 Added related macro
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+          #ifmmu
+QE128
+          #endif
+                    #Uses     mcu.inc
+                    #ListOn
+                    #Cycles
+                    #MapOff
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+
+FromTo              macro     [#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]DestRoutine
+                    mreq      1,2,3,4,5:[#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]DestRoutine
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    ldhx      ~5~
+                    pshhx
+                    @@_ldhx_, ~4~ 1,psp
+                    pshhx
+                    @@_ldhx_  ~3~
+                    pshhx
+                    @@_ldhx_  ~2~
+                    pshhx
+                    @@_ldhx_  ~1~
+                    pshhx
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;*******************************************************************************
+; Purpose: Call SOURCE and DESTINATION routines for each iteration
+; Input  : HX -> parameter block
+; Output : None
+; Note(s): This operation makes it easier to perform operations for a range of
+;        : addresses.
+;        : Example call (in #spauto mode):
+;        :          #psp
+;        :          ldhx      #DestRoutine
+;        :          pshhx
+;        :          ldhx      #SourceRoutine
+;        :          pshhx
+;        :          ldhx      #Size
+;        :          pshhx
+;        :          ldhx      #Destination
+;        :          pshhx
+;        :          ldhx      #Source
+;        :          pshhx
+;        :          call      FromTo
+;        :          ais       #:psp
+; Size   : 78 bytes
+;===============================================================================
+
+                    #spauto   :ab
+
+FromTo              proc
+                    #temp     1
+.src_data@@         next      :temp,2             ;data source pointer
+.dst_data@@         next      :temp,2             ;data destination pointer
+data_size@@         next      :temp,2             ;data size
+.src_rtn@@          next      :temp,2             ;source routine pointer
+.dst_rtn@@          next      :temp,2             ;destination routine pointer
+
+                    push
+                    #ais
+
+          ;initialize local work variables
+
+                    ldhx      .src_data@@,sp
+                    pshhx     .src_data@@         ;local copy of source pointer
+
+                    ldhx      .dst_data@@,sp
+                    pshhx     .dst_data@@         ;local copy of dest pointer
+
+                    ldhx      data_size@@,sp
+                    pshhx     data_size@@         ;local copy of size counter
+
+          ;for each iteration call the user source and destination routines
+          ;with the appropriate values in RegHX and RegA
+
+Loop@@              ldhx      #RetSource@@
+                    pshhx                         ;stack return address
+                    ldhx      .src_rtn@@,sp
+                    pshhx                         ;stack execution address
+                    ldhx      .src_data@@,sp
+                    RTS                           ;make the call
+                    #spadd    -4                  ;less the from/to addresses
+
+RetSource@@         ldhx      .src_data@@,sp
+                    aix       #1
+                    sthx      .src_data@@,sp
+
+                    ldhx      #RetDest@@
+                    pshhx                         ;stack return address
+                    ldhx      .dst_rtn@@,sp
+                    pshhx                         ;stack execution address
+                    ldhx      .dst_data@@,sp
+                    RTS                           ;make the call
+                    #spadd    -4                  ;less the from/to addresses
+
+RetDest@@           ldhx      .dst_data@@,sp
+                    aix       #1
+                    sthx      .dst_data@@,sp
+
+                    ldhx      data_size@@,sp
+                    aix       #-1
+                    sthx      data_size@@,sp
+                    bne       Loop@@
+
+                    ais       #:ais               ;de-allocate local variables
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  Cycles: {:cycles}+
+
+                    #MapOn
+
+                    #ROM
+
+MyData              fcc       'Copy this data block to RAM'
+
+                    #RAM
+
+mydest              rmb       ::MyData
+
+                    #ROM
+
+                    #spauto
+
+Start               proc
+                    @rsp
+                    clra
+                    clrhx
+
+                    @FromTo   #MyData,#mydest,#::MyData,#MyLoad,#MySave
+
+Stop                bra       *
+
+;-------------------------------------------------------------------------------
+; Example LOAD routine
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+MyLoad              proc
+                    lda       ,x
+                    rts
+
+;-------------------------------------------------------------------------------
+; Example SAVE routine
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+MySave              proc
+                    sta       ,x
+                    rts
+
+                    #sp
+
+                    @vector   Vreset,Start

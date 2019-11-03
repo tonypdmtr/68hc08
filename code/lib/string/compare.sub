@@ -1,0 +1,170 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     upcase.sub
+
+;*******************************************************************************
+; Purpose: Compare ASCIZ strings pointed by HX and TOS (case [in]sensitive)
+; Input  : HX -> first ASCIZ string
+;        : TOS -> second ASCIZ string
+; Output : N Z V C set or cleared in accordance with the CMP instruction
+;        : Allows BEQ, BNE, BLO, BHS, etc. to be used on result just as if
+;        : a regular CMPA instruction had been used.
+; Note(s): All registers except N Z V C flags are preserved
+;        : Violates Carry-Set on error rule.  Carry set is used for result (BLO, etc.)
+;        : Stacked pointer not destroyed
+
+StringCompare       macro     [#]ASCIZ_String1 [#]ASCIZ_String2
+                    mset      #' '
+                    mreq      1,2:[#]ASCIZ_String1 [#]ASCIZ_String2
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+StringCompareCase   macro     [#]ASCIZ_String1 [#]ASCIZ_String2
+                    mset      #' '
+                    mreq      1,2:[#]ASCIZ_String1 [#]ASCIZ_String2
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCompareCase   proc
+                    clc                           ;case-sensitive
+                    bra       ?StringCompare
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCompare       proc
+                    sec                           ;case-insensitive
+;                   bra       ?StringCompare
+
+;===============================================================================
+
+                    #spauto   :ab
+
+?StringCompare      proc
+.str2@@             equ       1
+                    push      .str1@@,2
+                    tpa                           ;shorter PSHCC (A need not be preserved)
+                    psha      ccr@@
+
+                    #ais
+          #ifhcs
+                    ldhx      .str2@@,sp
+          #else
+                    tsx
+                    lda       .str2@@,spx
+                    psha
+                    ldx       .str2@@+1,spx
+                    pulh
+          #endif
+                    pshhx     .str2@@
+          #ifhcs
+                    ldhx      .str1@@,sp
+          #else
+                    tsx
+                    lda       .str1@@,spx
+                    psha
+                    ldx       .str1@@+1,spx
+                    pulh
+          #endif
+Loop@@              lda       ,x                  ;get char from 1st string
+                    aix       #1                  ;bump up 1st ASCIZ pointer
+
+                    pshhx
+          #ifhcs
+                    ldhx      .str2@@,sp
+          #else
+                    ldx       .str2@@,sp
+                    txh
+                    ldx       .str2@@+1,sp
+          #endif
+                    #psp
+
+                    inc       .str2@@+1,sp        ;bump up 2nd ASCIZ pointer
+                    bne       Compare@@
+                    inc       .str2@@,sp
+
+Compare@@           psha      a@@                 ;save char from 1st string
+
+                    lda       ,x                  ;get char from 2nd string
+                    psha      b@@
+
+                    tsx
+
+                    lda       ccr@@,spx
+                    tap
+                    bcc       DoneCase@@
+          ;-------------------------------------- ;case-insensitive case (convert both to uppercase for comparison)
+                    lda       a@@,spx
+                    call      Upcase              ;convert to uppercase
+                    sta       a@@,spx
+
+                    lda       b@@,spx
+                    call      Upcase              ;convert to uppercase
+                    sta       b@@,spx
+          ;--------------------------------------
+DoneCase@@          lda       a@@,spx             ;compare chars from both strings
+                    cmpa      b@@,spx             ;(in this order: a cmp b)
+
+                    ais       #:psp               ;balance stack
+
+                    pulhx
+                    bne       Done@@              ;if different, get out
+
+                    cbeqa     #0,Done@@           ;on terminator, we're done
+                    bra       Loop@@
+
+          ;---------------------------------------------------------------------
+          ; Z flag always in correct state when coming here
+          ;---------------------------------------------------------------------
+
+Done@@              ais       #:ais
+
+                    tpa                           ;A = actual CMP result [CCR]
+                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;mask off unused CCR flags
+
+                    psha
+                    tsx
+                    lda       ccr@@,spx           ;A = caller's CCR
+                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_^NOT ;mask off our CCR result bits
+                    ora       {::},spx            ;combine with our CCR result bits
+                    sta       ccr@@,spx           ;save it for the caller
+                    pula                          ;(WAS: ais #:psp)
+
+                    pula                          ;shorter PULCC (since RegA
+                    tap                           ;will be restored by PULL)
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

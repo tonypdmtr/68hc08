@@ -1,0 +1,361 @@
+;*******************************************************************************
+;* Module    : JULIAN.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Calculate Julian day number from (YY)YYMMDD and back
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/julian.html
+;* Note(s)   : Usage:
+;*           : SIGNED ;tell STKMTH32.SUB we need signed versions of routines
+;*           :                #Include  stkmth32.sub
+;*           :                #Include  julian.sub
+;*           :
+;*           : Use CALL if assembled in #MMU mode (regardless of placement).
+;*           : By using CALL and #JUMP (or default -J+ command line option), the
+;*           : assembler will automatically adjust between CALL and JSR
+;*           : depending on the current #MMU mode.
+;*           :
+;*           : Two pairs of routines are provided.  One pair for working with
+;*           : 20xx range exclusively, and the other for any year.
+;*           :
+;*           : Because of the limited registers in the 9S08 the 20xx-only version
+;*           : will use registers H for Year, X for Month, and A for day.
+;*           :
+;*           : The normal version will need parameters in the three long words
+;*           : julian_year, julian_month, and julian_day (which may be defined
+;*           : elsewhere prior to including this module).
+;*           :
+;*           : The julian_number long holds the Julian day number in all cases.
+;*           :
+;* History   : 10.06.08 v1.00 Original FREEWARE version
+;*           : 10.08.19 v1.10 Added macros for each call
+;*           : 10.08.31 v1.20 Size optimization due to optimized @Load32 macros
+;*           : 10.10.19 v1.21 Adapted to latest ASM8 (better use of macros)
+;*           : 10.11.06 v1.22 Improved indexed mode in single operand macros
+;*           : 10.11.18 v1.23 Improved YYYYMMDD2Julian (first MUL then DIV)
+;*           : 11.03.29 v1.24 Made A & B temporaries stack-based locals
+;*           :                (code up by 22 bytes, static RAM down by 8 bytes)
+;*           : 11.04.12       Changes in STKMTH32.SUB
+;*           : 11.05.02       Changes in STKMTH32.SUB
+;*           : 12.11.09 v1.25 Adapted to STAKMATH.SUB v6.00 new macro behavior
+;*           : 12.12.04       New CRC due to updated STAKMATH.SUB
+;*           : 13.02.11       New MACROS.INC
+;*           : 13.03.27       Optimized by using Copy32 instead of copy.l macro
+;*           :                Uses new version of STAKMATH (v7.50)
+;*           : 13.04.03 v1.26 Now uses the new Eval macro in STAKMATH
+;*           : 13.04.05 v1.27 Optimized by allowing Eval to create locals
+;*           :                Allowed for julian_year/Month/Day to be non-long
+;*           : 13.04.06 v1.28 BugFix: Put PSHHX/PULHX around macros
+;*           : 13.04.09 v1.29 New STAKMATH macros
+;*           :                Allowed HC08 compilation
+;*           : 13.04.09       New STAKMATH macros (no functional changes)
+;*           : 13.04.18       New STAKMATH macro Eval and NeedMath used
+;*           : 13.04.21       BugFix introduced in previous version
+;*           : 13.05.03       New SPEED_SIZE = 2 (by default) gives shorter code
+;*           : 13.06.08 v1.30 Added RegA protection where needed, and removed
+;*           :                redundant PSHx/PULx
+;*           : 13.12.11       Renamed variables to all-lowercase (my latest naming convention)
+;*           : 14.02.14       Added [ ... ] syntax to @Eval calls (just in case)
+;*******************************************************************************
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #Liston
+SIGNED                                            ;we need signed routines
+NO_BIT_OPS                                        ;bit ops not needed
+                    #MapOff
+                    #Uses     stkmth32.sub
+                    #MapOn
+#endif ;------------------------------------------------------------------------
+                    #Exit     _JULIAN_
+_JULIAN_
+?_OBJECT_?
+                    @_signed_
+
+                    #push
+                    @XRAM
+
+?                   macro
+                    mswap     1,:loop
+          #ifndef ~1~
+~1~                 rmb       4
+          #endif
+                    mtop      :n
+                    endm
+
+                    @?        julian_number,julian_year,julian_month,julian_day
+
+                    #pull
+
+;-------------------------------------------------------------------------------
+
+?                   macro     Variable,MinSize
+          #ifndef ~1~
+                    merror    Undefined \@~1~\@ (size ~2~)
+          #endif
+          #if ::~1~ < ~2~
+                    merror    \@~1~\@ size < ~2~
+          #endif
+          #if ::~1~ > 4
+                    #Warning  \@~1~\@ size > 4 is inefficient
+          #endif
+                    endm
+
+                    @?        julian_number,2
+                    @?        julian_year,2
+                    @?        julian_month,1
+                    @?        julian_day,1
+
+;*******************************************************************************
+; Purpose : Convert a Julian 20xx date to YY, MM, DD
+; Input   : julian_number long variable has the Julian day number
+; Output  : H = Year (20xx-based)
+;         : X = Month
+;         : A = Day
+
+Julian2YYMMDD       macro     [JulianNumber]
+          #ifparm ~1~
+                    @@Eval    julian_number = [~1~]
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Julian2YYMMDD       proc
+                    call      Julian2YYYYMMDD
+
+                    ldhx      julian_year+{::julian_year-2}
+                    addhx     #-2000              ;remove 2000 base year
+                    txh                                       ;H = Year
+                    ldx       julian_month+{::julian_month-1} ;X = Month
+                    lda       julian_day+{::julian_day-1}     ;A = Day
+                    rtc
+
+;*******************************************************************************
+; Purpose : Convert a Julian date since 1/1/1900 to YYYY, MM, DD
+; Input   : julian_number long variable has the Julian day number
+; Output  : julian_year, julian_month, and julian_day filled with result
+
+Julian2YYYYMMDD     macro     [JulianNumber]
+          #ifparm ~1~
+                    push
+                    @@Eval    julian_number = [~1~]
+                    pull
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+Julian2YYYYMMDD     proc
+                    push
+                    #ais
+
+                    @Eval     a@@,sp = [julian_number] + 2483590
+                    @Eval     b@@,sp = 4 * a@@,sp / 146097
+                    @Eval     a@@,sp = a@@,sp - (146097 * b@@,sp + 3) / 4
+                    @Eval     julian_year = 4000 * (a@@,sp + 1) / 1461001
+                    @Eval     a@@,sp = a@@,sp - (1461*julian_year/4) + 31
+                    @Eval     julian_month = 80 * a@@,sp / 2447
+                    @Eval     julian_day = a@@,sp - (2447 * julian_month / 80)
+                    @Eval     a@@,sp = julian_month / 11
+                    @Eval     julian_month = julian_month + 2 - (12 * a@@,sp)
+                    @Eval     julian_year = 100 * (b@@,sp - 49) + julian_year + a@@,sp
+
+                    ais       #:ais
+                    pull
+                    rtc
+
+;*******************************************************************************
+; Purpose : Convert YY, MM, DD to a 20xx Julian date
+; Input   : H = Year (20xx-based)
+;         : X = Month
+;         : A = Day
+; Output  : julian_number long variable has the Julian day number
+
+YYMMDD2Julian       macro     20xxYear,Month,Day
+          #ifnb ~@~
+                    mreq      1,2,3:20xxYear,Month,Day
+                    #push
+                    #spauto   :sp
+                    push
+                    lda       ~2~
+                    psha
+                    lda       ~1~
+                    psha
+                    lda       ~3~
+                    pulhx
+                    call      ~0~
+                    pull
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+YYMMDD2Julian       proc
+                    psha      a@@
+                    pshhx     hx@@
+
+                    @Eval     julian_year = 0
+                    @Eval     julian_month = 0
+                    @Eval     julian_day = 0
+          #ifhcs
+                    ldhx      hx@@,sp             ;reload HX, destroyed by Eval
+          #else
+                    ldx       hx@@,sp
+                    txh
+                    ldx       hx@@+1,sp
+          #endif
+                    lda       a@@,sp
+                    sta       julian_day+{::julian_day-1}
+                    stx       julian_month+{::julian_month-1}
+                    thx
+                    clrh
+                    addhx     #2000               ;make Year 2000-based
+                    sthx      julian_year+{::julian_year-2}
+
+                    pull
+;                   bra       YYYYMMDD2Julian
+
+                    #spcheck
+
+;*******************************************************************************
+; Purpose : Convert YYYY, MM, DD to a Julian date since 1/1/1900
+; Input   : julian_year, julian_month, and julian_day preset accordingly
+; Output  : julian_number long variable has the Julian day number
+
+YYYYMMDD2Julian     macro     [Year],[Month],[Day]
+          #ifnb ~@~
+                    #push
+                    #spauto   :sp
+                    push
+
+            #if ::julian_year <> 2
+                    @@Eval    julian_year = 0
+            #endif
+            #if ::julian_month <> 1
+                    @@Eval    julian_month = 0
+            #endif
+            #if ::julian_day <> 1
+                    @@Eval    julian_day = 0
+            #endif
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            #ifparm ~2~
+                    lda       ~2~
+                    sta       julian_month+{::julian_month-1}
+            #endif
+            #ifparm ~3~
+                    lda       ~3~
+                    sta       julian_day+{::julian_day-1}
+            #endif
+            #ifparm ~1~
+                    ldhx      ~1~
+                    sthx      julian_year+{::julian_year-2}
+            #endif
+                    pull
+                    #pull
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+YYYYMMDD2Julian     proc
+                    push
+                    #ais
+
+                    @Eval     a@@,sp = ([julian_month] - 14) / 12
+                    @Eval     t1@@,sp = [julian_day] - 32075 + (1461 * ([julian_year] + 4800 + a@@,sp) / 4)
+                    @Eval     t2@@,sp = 367 * ([julian_month] - 2 - a@@,sp * 12) / 12
+                    @Eval     t3@@,sp = 3 * (([julian_year] + 4900 + a@@,sp) / 100) / 4
+                    @Eval     julian_number = t1@@,sp + t2@@,sp - t3@@,sp - 2415021
+
+                    ais       #:ais
+                    pull
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    #MapOn
+                    #ROM
+
+                    #spauto
+
+Start               proc
+                    @rsp
+                    clra                          ;(keeps simulator happy)
+
+                    call      ClearAll
+
+Test1               ldhx      #:year\100<8|:month ;test with today's date
+                    lda       #:date
+                    @YYMMDD2Julian
+                    nop                           ;examine julian_number for answer
+
+                    call      ClearAll            ;for verifying next call
+
+                    @YYMMDD2Julian #:year\100,#:month,#:date ;test with today's date
+                    nop                           ;examine julian_number for answer
+
+                    call      ClearElements       ;for verifying next call
+
+                    @Julian2YYMMDD
+                    nop                           ;examine HXA for answer (YMD)
+
+                    @Julian2YYMMDD #7524
+                    nop                           ;examine HXA for answer (YMD)
+
+          ;---------------------------------------------------------------------
+                    call      ClearAll
+          ;---------------------------------------------------------------------
+
+Test2                                             ;test with today's date
+                    @Eval     julian_year = :year
+                    @Eval     julian_month = :month
+                    @Eval     julian_day = :date
+
+                    @YYYYMMDD2Julian
+                    nop                           ;examine julian_number for answer
+
+                    call      ClearAll            ;for verifying next call
+
+                    call      Julian2YYYYMMDD
+
+                    call      ClearAll            ;for verifying next call
+                    @YYYYMMDD2Julian #1920,#8,#8
+Done                bra       *                   ;examine HXA for answer (YMD)
+
+;-------------------------------------------------------------------------------
+
+                    #MapOff
+                    #spauto
+
+ClearAll            proc
+                    @Eval     julian_number = 0
+;                   bra       ClearElements
+
+ClearElements       proc
+                    @Eval     julian_year = 0
+                    @Eval     julian_month = 0
+                    @Eval     julian_day = 0
+                    clrhx
+                    clra
+                    rts
+
+                    @vector   Vreset,Start

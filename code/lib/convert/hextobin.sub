@@ -1,0 +1,30 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+                    #Uses     lib/string/upcase.sub
+                    #Uses     dectobin.sub
+
+;*******************************************************************************
+; Purpose: Convert an ASCII hex digit to binary.
+; Input  : A = ASCII equivalent of hex digit
+; Output : A = Binary value (only if input was valid hex digit), if CCR[C] = 0
+;        : CCR[C] = 1 if digit not in 0-9 and/or A-F/a-f range. A = uppercase of input
+; Note(s):
+
+HexToBin            proc
+                    call      Upcase
+
+                    cmpa      #'A'
+                    blo       DecToBin            ;go check for Number
+
+                    cmpa      #'F'
+                    bhi       DecToBin            ;go check for Number
+
+                    sub       #'A'-10             ;convert letter to binary (also does CLC)
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

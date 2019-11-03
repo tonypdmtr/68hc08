@@ -1,0 +1,67 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Copy an ASCIZ string
+; Input  : HX -> Source ASCIZ string
+;        : TOS -> Destination
+; Output : None
+; Note(s):
+
+StringCopy          macro     [#]SourceASCIZ_String,[#]Destination
+                    mreq      1,2:[#]SourceASCIZ_String,[#]Destination
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    @@lea     ~2~
+                    pshhx
+                    @@_ldhx_, ~1~ 1,psp
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+StringCopy          proc
+.dst@@              equ       1
+                    push
+                    #ais
+                    pshhx     .src@@              ;a working copy of src pointer
+          #ifhcs
+                    ldhx      .dst@@,sp
+                    pshhx     .dst@@              ;a working copy of dst pointer
+          #else
+                    tsx
+                    lda       .dst@@+1,spx
+                    psha
+                    lda       .dst@@,spx
+                    psha      .dst@@,2
+          #endif
+Loop@@              @GetNextA .src@@,sp           ;get source byte & bump up source pointer
+          #ifhcs
+                    ldhx      .dst@@,sp
+                    sta       ,x                  ;put destination byte
+                    beq       Done@@              ;after copying null, exit
+                    aix       #1                  ;bump up destination pointer
+                    sthx      .dst@@,sp
+          #else
+                    @PutNextA .dst@@,sp           ;put destination byte & bump up destination pointer
+                    cbeqa     #0,Done@@           ;after copying null, exit
+          #endif
+                    bra       Loop@@              ;repeat for all chars
+
+Done@@              ais       #:ais               ;de-allocate temporaries
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************

@@ -1,0 +1,36 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #HideMacros
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Divide HX by constant 10 returning quotient and remainder
+; Input  : HX = dividend
+; Output : HX = quotient
+;        : A  = remainder
+; Note(s):
+                    #spauto
+
+DivHXby10           proc
+                    pshhx     ans@@
+                    clrh
+                    ldx       #10
+                    @div.s    ans@@,sp
+                    tha                           ;fractional bits of result
+                    pulhx
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
+                    #Exit
+
+Start               proc
+                    clra
+                    ldhx      #12345
+                    call      DivHXby10
+                    bra       *                   ;HX = 1234, A = 5
+
+                    @vector   Vreset,Start

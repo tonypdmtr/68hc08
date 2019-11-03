@@ -1,0 +1,46 @@
+;*******************************************************************************
+;* Module    : BSETBCLR.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : General-purpose variable BSET/BCLR equivalents
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/bsetbclr.html
+;* Note(s)   : Use: #Include bsetbclr.sub
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Variable BSET
+; Input  : A = mask
+;        : HX = address
+; Output : None
+
+BSET                proc
+                    psha                          ;mask
+                    ora       ,x                  ;get value to update
+                    bra       ?SaveAndExit
+
+;*******************************************************************************
+; Purpose: Variable BCLR
+; Input  : A = mask
+;        : HX = address
+; Output : None
+
+BCLR                proc
+                    psha                          ;mask
+                    coma                          ;complement mask for ANDing
+                    and       ,x                  ;get value to update
+?SaveAndExit        sta       ,x
+                    pula                          ;restore registers
+                    rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats

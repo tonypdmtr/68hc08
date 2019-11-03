@@ -1,0 +1,127 @@
+;*******************************************************************************
+;* Module    : LOADSTCK.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Makes it easy to expand stack with arbirtary new data
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/loadstck.html
+;* History   : 09.11.14 v1.00 Original (Started on 2009.11.14)
+;*           : 10.01.16       Allowed for auto-MMU code
+;*           : 10.05.13       Added #SPAUTO and optimized with ,SPX
+;*           : 10.11.27       Added macro call
+;*           : 11.04.21       Corrected macro call (by removing push/pull's)
+;*           : 12.11.12       Improved macro to do #SPAUTO when possible
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+          #ifmmu
+QE128
+          #endif
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+
+                    #ROM
+                    #Cycles
+#endif ;------------------------------------------------------------------------
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: Add to top-of-stack (TOS) RegA number of bytes pointed to by HX
+; Input  : HX -> A string of up to 255 data bytes
+;        : A = number of bytes (0 = NOP)
+; Output : Stack = New data
+; Note(s): This operation makes it easier to load data blocks on to the stack.
+;        : Do NOT change the order of moving data in the stack.
+;        : Stack is expanded.
+;        : Example call:
+;        :          ldhx      #DataBlock
+;        :          lda       #DataBlockSize
+;        :          call      LoadStack
+;        :
+;        : IMPORTANT: Macro should NOT save registers, or it will upset the stack
+; Size   : 68 bytes (normal mode), 74 (MMU mode)
+
+LoadStack           macro     [[#]DataBlock][,#Size]
+                    @@_#_     ~2~
+                    @@_lda_   ~2~
+          #ifnb ~2~
+            #ifspauto                             ;;if in SPAUTO mode
+                    #spadd    ~#2~                ;;account for stack depth change
+            #endif
+          #endif
+                    @@lea     ~1~
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab
+
+LoadStack           proc
+                    #temp     ::
+rts@@               next      :temp,:ab-1         ;our return address (RTS/RTC) [-1 for data@@]
+byte@@              next      :temp               ;most recent user data (overlaps RTS/RTC last byte)
+
+                    cbeqa     #0,Done@@           ;nothing to do, get out
+
+                    psha      a@@
+                    pshx      x@@
+                    pshh      h@@
+
+                    @aax                          ;HX -> past last data byte
+
+Loop@@              psha                          ;dummy to account for new byte
+                    psha                          ;save loop counter for now
+
+                    @cop                          ;in case of many iterations
+
+                    pshhx
+                    tsx
+
+?                   macro     PartToMove[,Size]
+                    mdef      2,1                 ;;default size is 1 byte
+                    lda       ~1,~+{:loop-1},spx  ;move from old position
+                    sta       ~1,~+{:loop-1}-1,spx  ;to new (closer to TOS)
+                    mtop      ~2~
+                    endm
+
+                    @?        h@@
+                    @?        x@@
+                    @?        a@@
+                    @?        rts@@,:ab           ;(:AB = account for possible MMU mode)
+                    pulhx
+
+                    aix       #-1                 ;data is read backwards
+                    lda       ,x                  ;stack [previous] user data byte
+                    sta       byte@@,sp
+
+                    pula                          ;restore loop counter
+                    dbnza     Loop@@              ;repeat for all data bytes
+
+                    pull
+Done@@              rtc
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+                    #Message  Cycles: {:cycles}+
+
+                    #MapOn
+
+MyData              fcc       'Copy this data block to the TOS'
+
+Start               proc
+                    @rsp
+
+                    clra                          ;keeps simulator happy
+                    clrhx                         ;       -//-
+
+                    @LoadStack #MyData,#::MyData
+
+                    bra       *
+
+                    @vector   Vreset,Start
+
+                    end       :s19crc
