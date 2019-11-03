@@ -1,0 +1,177 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+
+buf                 @var      10
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; BCD MULTIPLY
+;*******************************************************************************
+; On entry, First 3-bytes of buf contains 5-digit packed BCD
+; value, right aligned.
+; ACC = packed BCD (2-digit) multiplier value.
+; On exit, first 3-bytes of buf contain 24-bit result of the
+; multiplication.
+
+                    #spauto
+
+BCDMULT             proc
+                    bsr       BCDCONV             ; Convert packed BCD byte to binary
+
+                    psha      mult@@              ; Multiplier (binary) value 0-99
+
+          ; Packed BCD (5-digit) to binary
+
+                    lda       buf                 ; MS byte ($00- $09)
+                    and       #$0F                ; Ensure high nibble is zero
+                    ldx       #100
+                    mul
+                    psha      ans@@
+                    lda       buf+1               ; Second byte ($00-$99)
+                    bsr       BCDCONV             ; Convert packed BCD byte to binary
+                    add       ans@@,sp
+                    sta       ans@@,sp
+                    bcc       Skip@@              ; Skip next if no carry
+                    incx
+Skip@@              pshx      ans@@
+
+                    ldx       #100
+                    mul
+                    sta       ans@@+1,sp
+                    lda       buf+2               ; LS byte ($00-$99)
+                    bsr       BCDCONV             ; Convert packed BCD byte to binary
+                    add       ans@@+1,sp
+                    sta       ans@@+1,sp
+                    bcc       Skip@@0             ; Skip next if no carry
+                    incx
+Skip@@0             stx       buf                 ; Temporary storage
+                    lda       ans@@,sp
+                    ldx       #100
+                    mul
+                    add       buf
+                    sta       ans@@+1,sp
+                    bcc       Skip@@1             ; Skip next if no carry
+                    incx
+Skip@@1             pshx      ans@@
+
+          ; Multiplication process
+
+                    ldx       mult@@,sp           ; Multiplier (binary)
+                    lda       ans@@+2,sp
+                    mul
+                    sta       buf+2
+                    stx       ans@@+2,sp
+                    lda       ans@@+1,sp
+                    ldx       mult@@,sp           ; Multiplier (binary)
+                    mul
+                    add       ans@@+2,sp
+                    sta       buf+1
+                    bcc       Skip@@2             ; Skip next if no carry
+                    aix       #1
+Skip@@2             stx       ans@@+2,sp
+                    lda       ans@@,sp
+                    ldx       mult@@,sp           ; Multiplier (binary)
+                    mul
+                    add       ans@@+2,sp
+                    sta       buf
+                    ais       #:ais               ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; CONVERT PACKED BCD BYTE TO BINARY
+; On entry, ACC = Packed BCD byte
+; On exit, ACC = Binary value
+
+                    #spauto
+
+BCDCONV             proc
+                    pshx                          ; Save current value
+                    #ais
+                    psha      bcd@@
+                    nsa
+                    and       #$0F                ; High nibble
+                    ldx       #10
+                    mul
+                    psha      mult@@
+                    lda       bcd@@,sp
+                    and       #$0F                ; Low nibble
+                    add       mult@@,sp
+                    ais       #:ais               ; Adjust stack pointer
+                    pulx                          ; Restore previous value
+                    rts
+
+; The following sub-routine takes the 24-bit value within buf, and converts it back to packed BCD, this time within the first four byes of buf.
+
+;*******************************************************************************
+; 24-BIT BINARY TO 8-DIGIT BCD CONVERSION
+;*******************************************************************************
+; On entry, first three bytes of buf contain binary number.
+; On exit, the four bytes of buf contain packed BCD data.
+
+                    #sp
+
+CONVERT             proc                          ; Convert to four byte values within range 0 - 100
+b1@@                equ       buf,3
+b2@@                equ       buf+1,2
+
+                    clrh
+                    ldx       #100                ; Set up divisor & clear H-reg
+                    @div.s    b1@@
+
+                    pshh                          ; Store remainder to stack
+
+                    lda       buf
+                    tah
+
+                    @div.s    b2@@
+
+                    pshh                          ; Store remainder to stack
+
+                    lda       buf+1
+                    tah
+                    lda       buf+2
+                    div
+                    pshh                          ; Store remainder to stack
+
+                    ldx       #10
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf
+
+                    pula
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf+1
+
+                    pula
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf+2
+
+                    pula
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf+3
+                    rts
+
+;*******************************************************************************
+; Convert byte value to packed BCD
+; On entry, ACC = byte value and X = 10
+; On exit, ACC = packed BCD
+
+                    #spauto
+
+BCDPACK             proc
+                    clrh
+                    div
+                    nsa
+                    pshh
+                    ora       1,asp
+                    pulh                          ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
