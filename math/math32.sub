@@ -1,0 +1,194 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #RAM
+                    org       *
+mult1               rmb       2
+mult2               rmb       2
+product             rmb       4
+                    #ROM
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Unsigned multiply 16 x 16
+;        : Stack usage: 11
+;        : The following memory variables need to be allocated.
+;        : Each variable may be located anywhere in memory, e.g. constant
+;        : multiplier value could be hard coded within flash memory.
+;        : mult1   - 16-bit multiplicand
+;        : mult2   - 16-bit multiplier
+;        : product - 32-bit result
+
+                    #spauto
+
+UMULT16             proc                          ; Setup stack frame structure
+                    ais       #-5                 ; Temp storage & product result
+                    #temp     ::
+prod32@@            next      :temp,4             ; MS byte Product
+temp16@@            next      :temp
+                    ldhx      #mult2              ; Multiplier
+                    lda       1,x                 ; LS byte
+                    psha
+                    lda       ,x                  ; MS byte
+                    psha      mult2@@,2
+
+                    ldhx      #mult1              ; Multiplicand
+                    lda       1,x                 ; LS byte
+                    psha
+                    lda       ,x                  ; MS byte
+                    psha      mult1@@,2
+
+                    tsx
+                    clr       prod32@@,spx
+                    lda       mult2@@+1,spx       ; Multiplier LS byte
+                    ldx       mult1@@+1,spx       ; Multiplicand LS byte
+                    mul
+                    stx       prod32@@+2,sp
+                    tsx
+                    sta       prod32@@+3,spx
+
+                    lda       mult2@@+1,spx       ; Multiplier LS byte again
+                    ldx       mult1@@,spx         ; Multiplicand MS byte
+                    mul
+                    stx       prod32@@+1,sp
+                    tsx
+                    add       prod32@@+2,spx
+                    sta       prod32@@+2,spx
+                    bcc       _1@@
+                    inc       prod32@@+1,spx
+_1@@                lda       mult2@@,spx         ; Multiplier MS byte
+                    ldx       mult1@@+1,spx       ; Multiplicand LS byte
+                    mul
+                    stx       temp16@@,sp
+                    tsx
+                    add       prod32@@+2,spx
+                    sta       prod32@@+2,spx
+                    bcc       _2@@
+                    inc       temp16@@,spx
+_2@@                lda       prod32@@+1,spx
+                    add       temp16@@,spx
+                    sta       prod32@@+1,spx
+                    bcc       _3@@
+                    inc       prod32@@,spx
+_3@@                lda       mult2@@,spx         ; Multiplier MS byte again
+                    ldx       mult1@@,spx         ; Multiplicand MS byte
+                    mul
+                    stx       temp16@@,sp
+                    tsx
+                    add       prod32@@+1,spx
+                    sta       prod32@@+1,spx
+                    bcc       _4@@
+                    inc       temp16@@,spx
+_4@@                lda       prod32@@,spx
+                    add       temp16@@,spx
+                    sta       prod32@@,spx
+          ;-------------------------------------- ; Unload stack frame structure
+                    ais       #4                  ; Adjust stack pointer
+                    ldhx      #product
+                    pula
+                    sta       ,x
+                    pula
+                    sta       1,x
+                    pula
+                    sta       2,x
+                    pula
+                    sta       3,x
+                    ais       #1                  ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; Purpose: 16-bit binary to 5-digit numeric ASCII conversion
+;        : Buffer pointer version
+; Input  : HX = address of buffer containing the 16-bit number
+; Output : Six bytes of the same buffer will contain null terminated numeric
+;        : ASCII data string, right justified with leading zeros.
+; Note(s):
+                    #spauto
+
+CONVERT3            proc
+                    pshhx     .buffer@@           ; save buffer address
+                    ldhx      ,x                  ; binary value to be converted
+                    clra
+                    psha                          ; ASCIZ terminator
+                    psha      counter@@           ; additional storage on stack
+                    lda       #5                  ; number of divisions required
+Loop@@              sta       counter@@,sp        ; digit counter
+                    bsr       DIV10               ; divide HX by 10
+                    psha      digit@@             ; save next ASCII numeral
+          ;-------------------------------------- ; Swap last two stack positions
+                    lda       counter@@,sp        ; counter value
+                    psha
+                    lda       digit@@,sp          ; last ASCII digit
+                    sta       counter@@,sp
+                    pula                          ; A = counter
+          ;--------------------------------------
+                    dbnza     Loop@@              ; loop for next digit
+                    pula                          ; remove counter
+                    #spadd    4
+          ;-------------------------------------- ; Get buffer address into HX
+                    ldhx      .buffer@@,sp        ; HX = buffer address
+          ;-------------------------------------- ; Transfer stack contents to buffer
+CopyToBuf@@         pula                          ; get value from stack
+                    sta       ,x                  ; save digit to buffer
+                    aix       #1
+                    bne       CopyToBuf@@         ; loop if not null
+                    #spadd    -5
+                    ais       #:ais               ; adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; Purpose: 16-bit binary to 5-digit numeric ASCII conversion
+;        : Buffer pointer version
+; Input  : HX -> buffer containing the 16-bit number
+; Output : buffer = left justified leading zero suppressed ASCIZ result
+; Note(s): Minimum buffer size is 6 bytes
+
+                    #spauto
+
+CONVERT4            proc
+                    pshhx                         ; save buffer address
+                    ldhx      ,x                  ; binary value to be converted
+                    clra
+                    psha                          ; ASCIZ terminator
+DivDigit@@          bsr       DIV10               ; divide HX by 10
+                    psha                          ; save next ASCII numeral
+                    cphx      #0                  ; test for zero quotient
+                    bne       DivDigit@@          ; loop for next digit if not
+          ;-------------------------------------- ; Find position of null
+                    tsx
+SkipNull@@          aix       #1
+                    tst       ,x
+                    bne       SkipNull@@          ; loop if not null
+          ;-------------------------------------- ; Get buffer address into HX
+                    ldhx      1,x                 ; HX = saved buffer address
+          ;-------------------------------------- ; Transfer stack contents to buffer
+Copy@@              pula                          ; get value from stack
+                    sta       ,x                  ; save digit to buffer
+                    aix       #1
+                    bne       Copy@@              ; loop if not null
+                    ais       #2                  ; adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; Purpose: Divide 16-bit unsigned value in HX by 10
+; Input  : HX = dividend
+; Output : HX = quotient
+;        : A = remainder as ASCII
+
+                    #spauto
+
+DIV10               proc
+                    pshx      lsb@@               ; dividend LS byte (2,sp)
+                    tha                           ; MS byte
+                    ldhx      #10                 ; divisor
+                    div
+                    psha
+                    lda       lsb@@,sp
+                    div
+                    sta       lsb@@,sp
+                    tha                           ; remainder -> ACC
+                    pulhx                         ; remove quotient from stack
+                    add       #'0'                ; convert to ASCII
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
