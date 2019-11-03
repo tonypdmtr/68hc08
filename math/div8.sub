@@ -1,0 +1,47 @@
+;*******************************************************************************
+; Purpose: Divide a 16/24/32 bit number by an 8 bit number
+; Input  : Push the dividend and divisor before calling.
+;        : ARGS: SP+3= 8 bit divisor SP+4= dividend
+; Output : SP+3= 8 bit remainder SP+4= quotient
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+DIVIDEND_BITS       def       32
+?WORD               equ       DIVIDEND_BITS/8
+
+;*******************************************************************************
+
+?                   macro
+                    lda       dividend@@+{:loop-1},sp
+                    div
+                    sta       dividend@@+{:loop-1},sp
+                    mtop      ?WORD
+                    endm
+
+;*******************************************************************************
+
+                    #spauto   :ab
+
+divide_by_8bit      proc
+                    @parms    divisor,dividend ?WORD
+                    push
+
+                    clrh
+                    ldx       divisor@@,sp
+
+                    @?
+
+                    tha
+                    sta       divisor@@,sp        ; remainder replaces divisor
+
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
