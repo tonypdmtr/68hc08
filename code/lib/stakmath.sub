@@ -338,6 +338,7 @@
 ;*           : 19.03.04       Added warning in _DoStr macro when using StrNN
 ;*           :                when NN is different from MATHSIZE and no explicit
 ;*           :                variable is given
+;*           : 19.10.04 v8.56 Minor HC08 mode optimization in SIGNED ?ToStr [-1 byte]
 ;*******************************************************************************
 
 ;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
@@ -2213,20 +2214,18 @@ SkipSign@@
 ; Common exit removes lower 32-bit stack element and returns to caller
 ;*******************************************************************************
 
-?RemoveAndReturn
-
+?RemoveAndReturn    proc
           #ifhcs
                     ldhx      ?pc,sp              ;our return address moved up
                     sthx      ?pc+?WORD,sp        ;above word to remove
-          #else
-                    tsx
-                    @mova.w,  ?pc,spx ?pc+?WORD,spx
-          #endif
-
-          #ifmmu
+            #ifmmu
                     tsx
                     lda       ?pc+2,spx           ;process extra RTC byte
                     sta       ?pc+2+?WORD,spx     ; (if in MMU mode)
+            #endif
+          #else
+                    tsx
+                    @mova.w,  ?pc,spx ?pc+?WORD,spx
           #endif
                     pull
                     ais       #?WORD              ;remove top-of-stack ?WORD
@@ -2517,8 +2516,7 @@ Done@@              ais       #:ais
 
 ?ToStr              proc
                     push
-
-                    #psp                          ;mark beginning of temporaries
+                    #ais                          ;mark beginning of temporaries
 
                     pshhx     .buffer@@           ;working copy of pointer to buffer
                     clr       ,x                  ;make it an ASCIZ string
@@ -2535,9 +2533,10 @@ number@@            equ       ::,?WORD
           #ifhcs
                     ldhx      .buffer@@,sp
           #else
-                    ldx       .buffer@@,sp
-                    txh
-                    ldx       .buffer@@+1,sp
+                    tsx
+                    lda       .buffer@@,spx
+                    ldx       .buffer@@+1,spx
+                    tah
           #endif
                     lda       #'-'                ;a 'minus' sign
                     sta       ,x                  ; is saved first
@@ -2574,8 +2573,7 @@ ToStrLoop@@         ldhx      #10                 ;H = 0 (always), X = divisor
                     @zero?.s  number@@,spx
                     bne       ToStrLoop@@
 
-                    ais       #:psp               ;free temporaries
-
+                    ais       #:ais               ;free temporaries
                     pull
                     rtc
 
