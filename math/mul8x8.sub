@@ -1,0 +1,49 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Signed byte multiplication 16=8x8 :  product = X * A
+; Input  : X = multiplicand
+;        : A = multiplier
+; Output : XA = product
+; Note(s): H destroyed
+;        : CCR destroyed
+
+                    #spauto
+
+_BMULS              proc
+                    psha      a@@
+                    pshx      x@@
+
+                    mul
+                    psha
+                    txa
+
+                    tsx
+
+                    tst       x@@,spx             ; test sign of x
+                    bpl       xpos@@
+                    sub       a@@,spx             ; subtract a from high byte of result
+
+xpos@@              tst       a@@,spx             ; test sign of a
+                    bpl       ypos@@
+                    sub       x@@,spx             ; subtract x from high byte of result
+
+ypos@@              tax
+                    pula
+
+                    ais       #:ais
+                    rts
+
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+
+                    #Message  Size: {*-_BMULS}, cycles: {:cycles}
