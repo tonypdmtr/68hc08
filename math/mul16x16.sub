@@ -1,0 +1,102 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+; Improved by <tonyp@acm.org> and made compatible to ASM8 syntax
+;-------------------------------------------------------------------------------
+;void Mul16x16(unsignedshort a, unsigned short b, unsigned long *ans)
+;
+; Unsigned 16 bit multiply - generates 32 bit unsigned result
+;
+; Algorithm
+;   Uses the algebraic formula
+;     (x + y) (w + z) = xw + yz + yz + xz
+;   result = ah * bh * 2^16 + (ah * bl + al * bh) * 2^8 + al * bl
+;       where:  ah = high byte of a
+;               al = low byte of a
+;               bh = high byte of b
+;               bl = low byte of b
+;
+; Execution cycles - 175 maximum - includes call and return
+; Max stack depth - 8 bytes
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;void Mul16x16(unsignedshort a, unsigned short b, unsigned long *ans)
+
+                    #spauto   :ab
+
+Mul16x16            proc
+                    @parms    a 2,b 2
+                    push      .ans@@              ; C uses HX for result address argument
+
+          ; ah * bh * 2^16 calculation
+
+                    tsx                           ; X addressing is faster/ smaller (HX = SP + 1)
+                    lda       a@@,spx             ; get ah and bh
+                    ldx       b@@,spx
+                    mul                           ; ah * bh * 2^16
+                    pshx
+                    ldhx      .ans@@,sp           ; pointer to result
+                    sta       1,x                 ; save result
+                    pula
+                    sta       ,x                  ; save result
+
+          ; al * bl calculation
+
+                    tsx
+                    lda       a@@+1,spx           ; get al and bl
+                    ldx       b@@+1,spx
+                    mul                           ; al * bl
+                    pshx
+                    ldhx      .ans@@,sp
+                    sta       3,x                 ; save result
+                    pula
+                    sta       2,x                 ; save result
+
+          ; ah * bl * 2^8 calculation
+
+                    tsx
+                    lda       a@@,spx             ; get ah and bl
+                    ldx       b@@+1,spx
+                    bsr       ?AddTerm
+
+          ; al * bh * 2^8 calculation
+
+                    tsx
+                    lda       a@@+1,spx           ; get al and bh
+                    ldx       b@@,spx
+                    bsr       ?AddTerm
+
+                    pull
+                    rtc
+
+;===============================================================================
+
+                    #spauto   2
+
+?AddTerm            proc
+                    @parms    .ans
+                    mul
+                    pshx
+
+                    ldhx      .ans@@,sp
+                    add       2,x
+                    sta       2,x
+
+                    pula
+                    adc       1,x
+                    sta       1,x
+
+                    clra
+                    adc       ,x
+                    sta       ,x
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
