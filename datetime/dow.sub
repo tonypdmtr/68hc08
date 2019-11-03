@@ -1,0 +1,68 @@
+;*******************************************************************************
+; This routine works for any date from 1900-03-01 to 2155-12-31
+; No range checking is done, so validate input before calling.
+;
+; I use the formula
+;     Weekday = (day + offset[month] + year + year/4 + fudge) mod 7
+; where the value of fudge depends on the century.
+;
+; Input: H = year (0=1900, 1=1901, ..., 255=2155)
+;        X = month (1=Jan, 2=Feb, ..., 12=Dec)
+;        A = day (1 to 31)
+;
+; Output: Weekday in A (0=Sunday, 1=Monday, ..., 6=Saturday)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+                    #spauto
+
+GetWeekday          proc
+                    cmpx      #3                  ; Year starts in March to bypass
+                    bhs       March@@             ; leap year problem
+                    dech                          ; If Jan or Feb, decrement year
+March@@             eor       #$7F                ; Invert A so carry works right
+                    psha
+                    tha
+                    cmpa      #200                ; Carry will be 1 if 22nd century
+                    tpa
+                    eor       #CCR_C_             ; invert carry
+                    tap
+                    pula
+                    pshh
+                    clrh
+                    adc       Months@@-1,x        ; A is now day+month offset
+                    pulh
+                    psha      tmp@@
+                    tha                           ; Get the year
+                    bsr       Mod7@@              ; Do a modulo to prevent overflow
+                    sbc       tmp@@,sp            ; Combine with day+month
+                    sta       tmp@@,sp
+                    tha                           ; Get the year again
+                    lsra:2                        ; Divide it by 4
+                    clc                           ; Add it to y+m+d and fall through
+                    adc       tmp@@,sp
+                    ais       #:ais
+Mod7@@              adc       #7                  ; Returns (A+3) modulo 7
+                    bcc       Mod7@@              ; for A in 0..255
+                    rts
+
+Months@@            fcb       1,5,6,3,1,5,3,0,4,2,6,4  ; Month offsets
+
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+
+                    #spauto
+
+Start               proc
+                    ldhx      #{:year-1900}<8|{:month}
+                    lda       #{:date}
+                    bsr       GetWeekday
+                    bra       *
+
+                    @vector   Vreset,Start
