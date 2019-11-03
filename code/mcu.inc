@@ -9,7 +9,7 @@
 
 ?                   macro
           #ifb ~1~
-                    %~0~      GB60,QE8,QE32,QE128,QG8,QT4,QT4A,QY4,QD4,QD2,DZ32,DZ60,FL16,SH8,PA16,PA32
+                    %~0~      GB60,QE8,QE32,QE128,QG8,QT4,QT4A,QY4,QD4,QD2,DZ32,DZ60,FL16,SH8,PA16,PA32,GP32,LJ12
                     mexit
           #endif
                     mdo
