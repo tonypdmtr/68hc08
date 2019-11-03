@@ -1,0 +1,103 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+buf                 @var      4
+
+;*******************************************************************************
+; Purpose: 24-BIT BINARY TO 6-DIGIT BCD CONVERSION
+; Input  : First three bytes of buf contain binary number.
+; Output : buf contains packed BCD data.
+; Note(s): Convert to four byte values within range 0 - 100
+
+                    #spauto
+
+Bin24ToBCD          proc
+                    ldx       #100                ; Set up divisor & clear H-reg
+
+                    bsr       Divide1
+                    pshh                          ; Store remainder to stack
+
+                    bsr       Divide1
+                    pshh                          ; Store remainder to stack
+
+                    clrh
+                    bsr       Divide2
+                    pshh                          ; Store remainder to stack
+
+                    bsr       PackBcd             ; Convert to packed BCD
+                    sta       buf
+
+                    pula
+                    bsr       PackBcd             ; Convert to packed BCD
+                    sta       buf+1
+
+                    pula
+                    bsr       PackBcd             ; Convert to packed BCD
+                    sta       buf+2
+
+                    pula
+                    bsr       PackBcd             ; Convert to packed BCD
+                    sta       buf+3
+                    rts
+
+                    #spcheck
+
+?CYCLES             equ       :cycles
+
+;*******************************************************************************
+
+?                   macro
+                    mdef      1,1
+                    #temp     :index-1
+                    lda       buf+:temp
+                    div
+                    sta       buf+:temp
+                    mtop      ~1~
+                    endm
+
+                    #spauto   2
+
+Divide1             proc
+                    clrh
+                    @?        1
+;                   bra       Divide2
+
+?CYCLES             set       :cycles*2+?CYCLES
+
+;===============================================================================
+
+Divide2             proc
+                    @?        2
+                    rts
+
+?CYCLES             set       :cycles*3+?CYCLES
+
+;*******************************************************************************
+; Purpose: Convert byte value to packed BCD
+; Input  : A = byte value
+; Output : A = packed BCD
+
+                    #spauto   2
+
+PackBcd             proc
+                    clrh
+                    ldx       #10
+                    div
+                    nsa
+                    pshh
+                    ora       1,asp
+                    pulh                          ; Adjust stack pointer
+                    rts
+
+                    #sp
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    #Message  Cycles: {:cycles*4+?CYCLES}
