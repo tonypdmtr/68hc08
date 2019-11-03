@@ -1,0 +1,58 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+                    #push
+                    #RAM
+buf                 rmb       5
+num                 def       buf,2
+                    #pull
+
+;*******************************************************************************
+; 16-BIT BINARY TO 5-DIGIT BCD CONVERSION
+;*******************************************************************************
+; On entry, first two bytes of buf contain binary number.
+; On exit, the 6 bytes of buf contain null terminated numeric ASCII data string.
+
+                    #spauto
+
+Convert             proc
+                    lda       #::buf              ; Number of divisions required
+Divide@@            bsr       ?DivideByTen
+                    pshh                          ; Store remainder to stack
+                    dbnza     Divide@@            ; Loop for next digit
+
+                    #spadd    ::buf-1
+
+                    ldhx      #buf                ; Buffer index
+Loop@@              pula                          ; Get value from stack
+                    add       #'0'                ; Convert to numeric ASCII
+                    sta       ,x
+                    aix       #1
+                    cphx      #buf+::buf          ; Test for maximum digits
+                    blo       Loop@@              ; Loop if not
+
+                    #spadd    1-::buf
+
+                    rts
+
+;*******************************************************************************
+
+                    #spauto
+
+?DivideByTen        proc
+                    psha
+                    ldhx      #10                 ; Divisor
+                    @div.s    num
+                    pula
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
