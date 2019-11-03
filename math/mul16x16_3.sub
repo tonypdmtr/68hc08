@@ -1,0 +1,65 @@
+                    org       *
+
+                    #push
+                    #RAM
+
+pacc                rmb       4                   ; The 32 bit pseudo-accumulator
+
+                    #pull
+
+;*******************************************************************************
+; Multiply a 16 bit, unsigned integer in the pseudo-accumulator (pacc =
+; multiplicand) by a 16 bit unsigned integer in XA (multiplier).
+; Exits with a 32 bit, unsigned integer product in the pseudo-accumulator.
+; Uses one byte of stack space for temporary storage.
+
+                    #spauto
+
+M16x16              proc
+                    psha      tmp@@               ; don't lose the low 8 bits of multiplier
+                    pshhx
+
+                    stx       pacc+1              ; or the high 8 bits of multiplier either
+
+                    ldx       pacc+3              ; get low byte of multiplicand into X
+                    mul                           ; multiply lo multiplier with lo-byte multiplicand
+                    stx       pacc+0              ; temporary store mid-lo-byte of partial product
+                    ldx       pacc+3              ; get low byte of multiplicand into X, last time
+                    sta       pacc+3              ; and store lo-byte of product in Pseudo-accumulator
+
+                    lda       pacc+1              ; get high byte of multiplier
+                    mul                           ; multiply high multiplier with lo multiplicand
+                    add       pacc+0              ; add previous mid-lo part.prod to new mid-lo part.prod
+                    sta       pacc+0              ; and replace partial product temporarily
+                    txa                           ; put mid-hi partial product in A
+                    adc       #0                  ; put carry from previous ADD in
+                    tax                           ; put mid-hi with carry back in X
+
+                    lda       tmp@@,sp            ; get the low byte of multiplier again, last time
+                    stx       tmp@@,sp            ; put mid-hi partial product aside
+                    ldx       pacc+2              ; get the high byte of multiplicand
+                    mul                           ; multiply low byte multiplier with high byte multiplicand
+                    add       pacc+0              ; add previous mid-lo partial product to last mid-lo piece
+                    sta       pacc+0              ; mid-lo is now complete, but misplaced
+                    txa                           ; get latest mid-hi partial product
+                    tsx
+                    adc       tmp@@,spx           ; add carry and previous mid-hi part
+                    sta       tmp@@,spx           ; put mid-hi aside again
+
+                    ldx       pacc+2              ; get high byte of multiplicand, last time
+                    lda       pacc+1              ; get high byte of multiplier, last time
+                    mul                           ; multiply high byte with high byte
+                    add       tmp@@,sp            ; add previous mid-hi byte to new mid-hi byte
+                    sta       pacc+1              ; store where mid-hi is supposed to be
+                    lda       pacc+0              ; get complete but misplaced mid-lo byte
+                    sta       pacc+2              ; and place it correctly
+                    txa                           ; get highest byte
+                    adc       #0                  ; add any carry from previous add
+                    sta       pacc+0              ; and store to make things complete
+
+                    pull                          ; clean the stack
+                    rts                           ; and return with 32 bits of product
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
