@@ -1,0 +1,41 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Convert from packed BCD to binary
+; Input  : A = Packed BCD
+; Output : A = Binary equivalent
+; Note(s):
+                    #spauto
+
+ConvertBcd          proc
+                    pshhx
+                    #ais
+
+                    psha      bcd@@
+
+                    and       #$F0                ;keep high nibble
+                    nsa                           ;move to low nibble
+                    ldx       #10
+                    mul                           ;multiply by ten
+                    psha      ans@@               ;save partial result
+
+                    tsx
+                    lda       bcd@@,spx           ;get original number
+                    and       #$0F                ;keep low nibble
+                    add       ans@@,spx           ;add previous partial result
+
+                    ais       #:ais
+                    pulhx
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
