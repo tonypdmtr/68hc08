@@ -1,0 +1,200 @@
+;*******************************************************************************
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+                    #push
+                    #RAM
+buf                 rmb       5
+num                 def       buf,3
+                    #pull
+
+;*******************************************************************************
+; Purpose: BCD MULTIPLY
+; Input  : buf[0..2] = 5-digit packed BCD value, right aligned
+;        : A = packed BCD (2-digit) multiplier value
+; Output : buf[0..2] = 24-bit result of the multiplication
+; Note(s):
+                    #spauto
+
+BCDMULT             proc
+                    bsr       BCDCONV             ; Convert packed BCD byte to binary
+
+                    psha      mult@@              ; Multiplier (binary) value 0-99
+
+          ; Packed BCD (5-digit) to binary
+
+                    lda       buf                 ; MS byte ($00- $09)
+                    and       #$0F                ; Ensure high nibble is zero
+                    ldx       #100
+                    mul
+                    psha      ans@@
+                    pshx
+                    tsx
+                    lda       buf+1               ; Second byte ($00-$99)
+                    bsr       BCDCONV             ; Convert packed BCD byte to binary
+                    add       ans@@,spx
+                    sta       ans@@,spx
+                    pula
+                    adc       #0
+                    psha      ans@@
+
+                    lda       ans@@+1,spx
+                    ldx       #100
+                    mul
+                    pshx
+                    tsx
+                    sta       ans@@+1,spx
+                    lda       buf+2               ; LS byte ($00-$99)
+                    bsr       BCDCONV             ; Convert packed BCD byte to binary
+                    add       ans@@+1,spx
+                    sta       ans@@+1,spx
+                    pula
+                    adc       #0
+                    sta       buf                 ; Temporary storage
+
+                    lda       ans@@,spx
+                    ldx       #100
+                    mul
+                    pshx
+                    tsx
+                    add       buf
+                    sta       ans@@,spx
+                    pula
+                    adc       #0
+                    psha      ans@@
+
+          ; Multiplication process
+
+                    lda       ans@@+2,spx
+                    ldx       mult@@,spx          ; Multiplier (binary)
+                    mul
+                    sta       buf+2
+                    stx       ans@@+2,sp
+
+                    lda       ans@@+1,sp
+                    ldx       mult@@,sp           ; Multiplier (binary)
+                    mul
+                    pshx
+                    tsx
+                    add       ans@@+2,spx
+                    sta       buf+1
+                    pula
+                    adc       #0
+                    sta       ans@@+2,spx
+
+                    lda       ans@@,spx
+                    ldx       mult@@,spx          ; Multiplier (binary)
+                    mul
+                    add       ans@@+2,sp
+                    sta       buf
+
+                    ais       #:ais               ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; Purpose: CONVERT PACKED BCD BYTE TO BINARY
+; Input  : A = packed BCD byte
+; Output : A = binary value
+; Note(s):
+                    #spauto
+
+BCDCONV             proc
+                    pshx
+                    #ais
+
+                    psha      bcd@@
+                    nsa
+                    and       #$0F                ; High nibble
+                    ldx       #10
+                    mul
+                    psha      ans@@
+                    lda       bcd@@,sp
+                    and       #$0F                ; Low nibble
+                    add       ans@@,sp
+
+                    ais       #:ais               ; Adjust stack pointer
+                    pulx
+                    rts
+
+;*******************************************************************************
+; The following sub-routine takes the 24-bit value within buf, and converts it
+; back to packed BCD, this time within the first four bytes of buf.
+;*******************************************************************************
+
+;*******************************************************************************
+; Purpose: 24-BIT BINARY TO 8-DIGIT BCD CONVERSION
+; Input  : buf[0..2] = binary number
+; Output : buf[0..3] = packed BCD data
+; Note(s):
+                    #spauto
+
+CONVERT             proc                          ; Convert to four byte values within range 0 - 100
+                    ldhx      #100                ; Set up divisor & clear H-reg
+
+                    @div.s    num
+
+                    pshh                          ; Store remainder to stack
+
+                    lda       buf
+                    tah
+
+                    lda       buf+1
+                    div
+                    sta       buf+1
+
+                    lda       buf+2
+                    div
+                    sta       buf+2
+
+                    pshh                          ; Store remainder to stack
+
+                    lda       buf+1
+                    tah
+
+                    lda       buf+2
+                    div
+
+                    pshh                          ; Store remainder to stack
+
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf
+
+                    pula
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf+1
+
+                    pula
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf+2
+
+                    pula
+                    bsr       BCDPACK             ; Convert to packed BCD
+                    sta       buf+3
+                    rts
+
+;*******************************************************************************
+; Purpose: Convert byte value to packed BCD
+; Input  : A byte value
+;        : X = 10
+; Output : A = packed BCD
+; Note(s):
+                    #spauto
+
+BCDPACK             proc
+                    ldhx      #10
+                    div
+                    nsa
+                    pshh
+                    ora       1,asp
+                    pulh                          ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
