@@ -1,0 +1,62 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+accum               @var      4                   ; the 32-bit pseudo-accumulator
+
+;*******************************************************************************
+; Multiply an 16 bit, unsigned integer in the pseudo-accumulator
+; (multiplicand) by an 16 bit unsigned integer in X:A (multiplier).
+; Exits with a 32-bit, unsigned integer product in the pseudo-accumulator.
+; Uses one byte of stack space for temporary storage.
+
+                    #spauto
+
+M16x16              proc
+                    psha      num@@               ; don't lose the low 8 bits of multiplier
+                                                  ; and reserve a byte on the stack
+                    stx       accum+1             ; or the high 8 bits of multiplier either
+
+                    ldx       accum+3             ; get low byte of multiplicand into X
+                    mul                           ; multiply lo multiplier with lo-byte multiplicand
+                    stx       accum+0             ; temporary store mid-lo-byte of partial product
+                    ldx       accum+3             ; get low byte of multiplicand into X, last time
+                    sta       accum+3             ; and store lo-byte of product in Pseudo-accumulator
+
+                    lda       accum+1             ; get high byte of multiplier
+                    mul                           ; multiply high multiplier with lo multiplicand
+                    add       accum+0             ; add previous mid-lo part.prod to new mid-lo part.prod
+                    sta       accum+0             ; and replace partial product temporarily
+                    txa                           ; put mid-hi partial product in A
+                    adc       #0                  ; put carry from previous ADD in
+                    tax                           ; put mid-hi with carry back in X
+
+                    lda       num@@,sp            ; get the low byte of multiplier again, last time
+                    stx       num@@,sp            ; put mid-hi partial product aside
+                    ldx       accum+2             ; get the high byte of multiplicand
+                    mul                           ; multiply low byte multiplier with high byte multiplicand
+                    add       accum+0             ; add previous mid-lo partial product to last mid-lo piece
+                    sta       accum+0             ; mid-lo is now complete, but misplaced
+                    txa                           ; get latest mid-hi partial product
+                    adc       num@@,sp            ; add carry and previous mid-hi part
+                    sta       num@@,sp            ; put mid-hi aside again
+
+                    ldx       accum+2             ; get high byte of multiplicand, last time
+                    lda       accum+1             ; get high byte of multiplier, last time
+                    mul                           ; multiply high byte with high byte
+                    add       num@@,sp            ; add previous mid-hi byte to new mid-hi byte
+                    sta       accum+1             ; store where mid-hi is supposed to be
+                    lda       accum+0             ; get complete but misplaced mid-lo byte
+                    sta       accum+2             ; and place it correctly
+                    txa                           ; get highest byte
+                    adc       #0                  ; add any carry from previous add
+                    sta       accum+0             ; and store to make things complete
+
+                    pula                          ; clean the stack
+                    rts                           ; and return with 32 bits of product
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
