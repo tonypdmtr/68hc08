@@ -1,0 +1,230 @@
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+; File: math.asm
+
+mult1               @var      4
+mult2               @var      4
+product             @var      4
+
+;*******************************************************************************
+; Unsigned multiply 16 x 16
+; Stack usage: 11
+;
+; The following memory variables need to be allocated.
+; Each variable may be located anywhere in memory, e.g. constant
+; multiplier value could be hard coded within flash memory.
+; mult1   - 16-bit multiplicand
+; mult2   - 16-bit multiplier
+; product - 32-bit result
+
+                    #spauto
+
+UMULT16             proc
+                    @local    temp16,prod32 4
+
+                    ldhx      #mult2              ; Multiplier
+                    lda       1,x                 ; LS byte
+                    psha
+                    lda       ,x                  ; MS byte
+                    psha      mult16@@
+
+                    ldhx      #mult1              ; Multiplicand
+                    lda       1,x                 ; LS byte
+                    psha
+                    lda       ,x                  ; MS byte
+                    psha      mcand16@@
+
+                    tsx
+                    clr       prod32@@,spx
+                    lda       mult16@@+1,spx      ; Multiplier LS byte
+                    ldx       mcand16@@+1,spx     ; Multiplicand LS byte
+                    mul
+                    stx       prod32@@+2,sp
+                    tsx
+                    sta       prod32@@+3,spx
+
+                    lda       mult16@@+1,spx      ; Multiplier LS byte again
+                    ldx       mcand16@@,spx       ; Multiplicand MS byte
+                    mul
+                    stx       prod32@@+1,sp
+                    tsx
+                    add       prod32@@+2,spx
+                    sta       prod32@@+2,spx
+                    bcc       _1@@
+                    inc       prod32@@+1,spx
+_1@@                lda       mult16@@,spx        ; Multiplier MS byte
+                    ldx       mcand16@@+1,spx     ; Multiplicand LS byte
+                    mul
+                    stx       temp16@@,sp
+                    tsx
+                    add       prod32@@+2,spx
+                    sta       prod32@@+2,spx
+                    bcc       _2@@
+                    inc       temp16@@,spx
+_2@@                lda       prod32@@+1,spx
+                    add       temp16@@,spx
+                    sta       prod32@@+1,spx
+                    bcc       _3@@
+                    inc       prod32@@,spx
+_3@@
+                    lda       mult16@@,spx        ; Multiplier MS byte again
+                    ldx       mcand16@@,spx       ; Multiplicand MS byte
+                    mul
+                    stx       temp16@@,sp
+                    tsx
+                    add       prod32@@+1,spx
+                    sta       prod32@@+1,spx
+                    bcc       _4@@
+                    inc       temp16@@,spx
+_4@@                lda       prod32@@,spx
+                    add       temp16@@,spx
+                    sta       prod32@@,spx
+
+          ; Unload stack frame structure
+
+                    ais       #:ais-4             ; Adjust stack pointer
+
+                    ldhx      #product
+
+                    pula
+                    sta       ,x
+
+                    pula
+                    sta       1,x
+
+                    pula
+                    sta       2,x
+
+                    pula
+                    sta       3,x
+                    rts
+
+;*******************************************************************************
+; 16-BIT BINARY TO 5-DIGIT NUMERIC ASCII CONVERSION
+; Buffer pointer version.
+;
+; On entry, H:X = address of buffer containing the 16-bit number
+; On exit, six bytes of the same buffer will contain null
+; terminated numeric ASCII data string, right justified with
+; leading zeros.
+                    #spauto
+
+CONVERT3            proc
+                    pshhx     .buffer@@           ; Save buffer address
+
+                    ldhx      ,x                  ; Binary value to be converted
+                    clra
+                    psha                          ; ASCIZ terminator
+
+                    lda       #5                  ; Number of divisions required
+Loop@@              psha      count@@             ; Digit counter
+                    bsr       DIV10               ; Divide H:X by 10
+                    psha                          ; Save next ASCII numeral
+                    bsr       SwapStack           ; Swap last two stack positions
+                    pula                          ; A = count@@ (because of swap)
+                    dbnza     Loop@@              ; Loop for next digit
+
+                    #spadd    5-1
+
+          ; Get buffer address into H:X
+
+                    ldhx      .buffer@@,sp        ; H:X = buffer address
+
+          ; Transfer stack contents to buffer
+
+Save@@              pula                          ; Get value from stack
+                    sta       ,x                  ; Save digit to buffer
+                    aix       #1
+                    bne       Save@@              ; Loop if not null
+
+                    #spadd    1-6
+
+                    ais       #:ais               ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; Purpose: Swap the two TOS bytes
+; Input  : None
+; Output : None
+; Note(s):
+                    #spauto   2
+
+SwapStack           proc
+                    psha
+                    @_swap_,  1,sp 2,sp
+                    pula
+                    rts
+
+;*******************************************************************************
+; 16-BIT BINARY TO 5-DIGIT NUMERIC ASCII CONVERSION
+; Buffer pointer version.
+;
+; On entry, H:X = address of buffer containing the 16-bit number
+; On exit, the same buffer will contain null terminated numeric
+; ASCII data string, left justified with leading zero suppression.
+; The minimum buffer size is 6 bytes.
+
+                    #spauto
+
+CONVERT4            proc
+                    pshhx                         ; Save buffer address
+
+                    ldhx      ,x                  ; Binary value to be converted
+                    clra
+                    psha                          ; ASCIZ terminator
+Loop@@              bsr       DIV10               ; Divide H:X by 10
+                    psha                          ; Save next ASCII numeral
+                    cphx      #0                  ; Test for zero quotient
+                    bne       Loop@@              ; Loop for next digit if not
+
+                    #spadd    -1
+
+          ; Find position of null
+
+                    tsx
+FindNull@@          aix       #1
+                    lda       ,x
+                    bne       FindNull@@          ; Loop if not null
+
+          ; Get buffer address into H:X
+
+                    ldhx      1,x                 ; H:X = saved buffer address
+
+          ; Transfer stack contents to buffer
+
+Save@@              pula                          ; Get value from stack
+                    sta       ,x                  ; Save digit to buffer
+                    aix       #1
+                    bne       Save@@              ; Loop if not null
+
+                    ais       #:ais               ; Adjust stack pointer
+                    rts
+
+;*******************************************************************************
+; DIVIDE H:X BY 10
+; Divides 16-bit (unsigned) value by 10.
+; On entry, H:X = dividend value
+; On exit, H:X = quotient result, and
+; ACC = ASCII numeral corresponding to remainder value
+
+                    #spauto   2
+
+DIV10               proc
+                    pshhx     num@@               ;save dividend
+
+                    clrh
+                    ldx       #10                 ;divisor
+                    @div.b,   num@@,sp
+                    tha
+                    add       '0'                 ;convert remainder to ASCII
+
+                    pulhx                         ;HX = quotient
+                    rts
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
