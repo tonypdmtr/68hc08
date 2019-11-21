@@ -129,6 +129,12 @@ BDIV                equ       1                   ;(actually, no BDIV in GB60)
                     #Uses     gb60.inc
           #endif
 ;-------------------------------------------------------------------------------
+          #ifdef AC32
+HZ                  def       32768*512           ;MCU & Cyclone's default
+BDIV                def       1
+                    #Uses     ac32.inc
+          #endif
+;-------------------------------------------------------------------------------
           #ifdef QD2¦QD4
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1

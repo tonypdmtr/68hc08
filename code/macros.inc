@@ -2380,6 +2380,9 @@ EndStats            macro     [Module Start Label]
           #ifincluded
                     mexit
           #endif
+          #ifndef ...                             ;;show stats only when ... is defined
+                    mexit
+          #endif
                     #Hint     +-------------------------------------------------
                     #Hint     | Statistics (from \@~mfilename~/~0~\@ macro)
                     #Hint     +-------------------------------------------------
