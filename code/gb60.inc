@@ -24,8 +24,6 @@
 _GB_                def       60
 _GB60_              def       *
 
-FLL_FACTOR          def       256                 ;dummy to silence generic warning
-
 ;*******************************************************************************
 ;* Author: Tony Papadimitriou - <tonyp@acm.org>
 ;*         Jim Sibigtroth - Motorola TSPG (Original version)

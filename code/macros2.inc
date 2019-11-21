@@ -187,7 +187,9 @@ Leap                macro     PagedAddress[,x]
                     #spauto   :sp
                     ais       #-3                 ;;make room for 24-bit address
                     #psp
-                    psha
+                    psha                          ;;save caller's A
+                    tpa
+                    psha                          ;;save caller's CCR
           #ifb ~,1~                               ;;non-indexed mode assumes IMM
                     lda       #~#1~&$FF
                     sta       3,psp
@@ -204,6 +206,8 @@ Leap                macro     PagedAddress[,x]
                     sta       1,psp
           #endif
                     pula
+                    tap                           ;;restore caller's CCR
+                    pula                          ;;restore caller's A
                     RTC                           ;;make the jump
                     #pull
                     endm
