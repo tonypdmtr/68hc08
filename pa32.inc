@@ -105,10 +105,10 @@ ADCCVL              equ       $0017,1             ;ADC_CVL - Compare Value Low R
 
 MTIMSC              equ       $0018,1             ;MTIM0_SC - MTIM Status and Control Register
 
-                    @bitnum   TSTP,4              ;MTIM Counter Stop
-                    @bitnum   TRST,5              ;MTIM Counter Reset
-                    @bitnum   TOIE,6              ;MTIM Overflow Interrupt Enable
-                    @bitnum   TOF,7               ;MTIM Overflow Flag
+                    @bitnum   MTIM_TSTP,4         ;MTIM Counter Stop
+                    @bitnum   MTIM_TRST,5         ;MTIM Counter Reset
+                    @bitnum   MTIM_TOIE,6         ;MTIM Overflow Interrupt Enable
+                    @bitnum   MTIM_TOF,7          ;MTIM Overflow Flag
 
 MTIMCLK             equ       $0019,1             ;MTIM0_CLK - MTIM Clock Configuration Register
 
@@ -124,14 +124,14 @@ MTIMMOD             equ       $001B,1             ;MTIM0_MOD - MTIM Modulo Regis
 
 FTM0_SC             equ       $0020,1             ;Status and Control
 
-                    @bitnum   FTM_PS0,0           ;Prescale Factor Selection, bit 0
-                    @bitnum   FTM_PS1,1           ;Prescale Factor Selection, bit 1
-                    @bitnum   FTM_PS2,2           ;Prescale Factor Selection, bit 2
-                    @bitnum   FTM_CLKS0,3         ;Clock Source Selection, bit 0
-                    @bitnum   FTM_CLKS1,4         ;Clock Source Selection, bit 1
-                    @bitnum   FTM_CPWMS,5         ;Center-aligned PWM Select
-                    @bitnum   FTM_TOIE,6          ;Timer Overflow Interrupt Enable
-                    @bitnum   FTM_TOF,7           ;Timer Overflow Flag
+                    @bitnum   PS0,0               ;Prescale Factor Selection, bit 0
+                    @bitnum   PS1,1               ;Prescale Factor Selection, bit 1
+                    @bitnum   PS2,2               ;Prescale Factor Selection, bit 2
+                    @bitnum   CLKS0,3             ;Clock Source Selection, bit 0
+                    @bitnum   CLKS1,4             ;Clock Source Selection, bit 1
+                    @bitnum   CPWMS,5             ;Center-aligned PWM Select
+                    @bitnum   TOIE,6              ;Timer Overflow Interrupt Enable
+                    @bitnum   TOF,7               ;Timer Overflow Flag
 
 FTM0_CNT            equ       $0021,2             ;FTM0 Timer Counter Register
 FTM0_CNTH           equ       $0021,1             ;Counter High
@@ -139,12 +139,10 @@ FTM0_CNTL           equ       $0022,1             ;Counter Low
 FTM0_MOD            equ       $0023,2             ;FTM0 Timer Counter Modulo Register
 FTM0_MODH           equ       $0023,1             ;Modulo High
 FTM0_MODL           equ       $0024,1             ;Modulo Low
-
 FTM0_C0SC           equ       $0025,1             ;Channel Status and Control
 FTM0_C0V            equ       $0026,2             ;FTM0 Timer Channel 0 Value Register
 FTM0_C0VH           equ       $0026,1             ;Channel Value High
 FTM0_C0VL           equ       $0027,1             ;Channel Value Low
-
 FTM0_C1SC           equ       $0028,1             ;Channel Status and Control
 FTM0_C1V            equ       $0029,2             ;FTM0 Timer Channel 1 Value Register
 FTM0_C1VH           equ       $0029,1             ;Channel Value High
@@ -156,6 +154,54 @@ FTM0_C1VL           equ       $002A,1             ;Channel Value Low
                     @bitnum   MSB,5               ;Channel Mode Select
                     @bitnum   CHIE,6              ;Channel Interrupt Enable
                     @bitnum   CHF,7               ;Channel Flag
+
+TPM0SC              equ       FTM0_SC,::FTM0_SC
+TPM0CNT             equ       FTM0_CNT,::FTM0_CNT
+TPM0CNTH            equ       FTM0_CNTH,::FTM0_CNTH
+TPM0CNTL            equ       FTM0_CNTL,::FTM0_CNTL
+TPM0MOD             equ       FTM0_MOD,::FTM0_MOD
+TPM0MODH            equ       FTM0_MODH,::FTM0_MODH
+TPM0MODL            equ       FTM0_MODL,::FTM0_MODL
+TPM0C0SC            equ       FTM0_C0SC,::FTM0_C0SC
+TPM0C0V             equ       FTM0_C0V,::FTM0_C0V
+TPM0C0VH            equ       FTM0_C0VH,::FTM0_C0VH
+TPM0C0VL            equ       FTM0_C0VL,::FTM0_C0VL
+TPM0C1SC            equ       FTM0_C1SC,::FTM0_C1SC
+TPM0C1V             equ       FTM0_C1V,::FTM0_C1V
+TPM0C1VH            equ       FTM0_C1VH,::FTM0_C1VH
+TPM0C1VL            equ       FTM0_C1VL,::FTM0_C1VL
+
+FTM1_SC             equ       $0030,1             ; FTM1_SC - Status and Control
+FTM1_CNT            equ       $0031,2             ; FTM1_CNT - FTM1 Timer Counter Register
+FTM1_CNTH           equ       $0031,1             ; FTM1_CNTH - Counter High
+FTM1_CNTL           equ       $0032,1             ; FTM1_CNTL - Counter Low
+FTM1_MOD            equ       $0033,2             ; FTM1_MOD - FTM1 Timer Counter Modulo Register
+FTM1_MODH           equ       $0033,1             ; FTM1_MODH - Modulo High
+FTM1_MODL           equ       $0034,1             ; FTM1_MODL - Modulo Low
+FTM1_C0SC           equ       $0035,1             ; FTM1_C0SC - Channel Status and Control
+FTM1_C0V            equ       $0036,2             ; FTM1_C0V - FTM1 Timer Channel 0 Value Register
+FTM1_C0VH           equ       $0036,1             ; FTM1_C0VH - Channel Value High
+FTM1_C0VL           equ       $0037,1             ; FTM1_C0VL - Channel Value Low
+FTM1_C1SC           equ       $0038,1             ; FTM1_C1SC - Channel Status and Control
+FTM1_C1V            equ       $0039,2             ; FTM1_C1V - FTM1 Timer Channel 1 Value Register
+FTM1_C1VH           equ       $0039,1             ; FTM1_C1VH - Channel Value High
+FTM1_C1VL           equ       $003A,1             ; FTM1_C1VL - Channel Value Low
+
+TPM1SC              equ       FTM1_SC,::FTM1_SC
+TPM1CNT             equ       FTM1_CNT,::FTM1_CNT
+TPM1CNTH            equ       FTM1_CNTH,::FTM1_CNTH
+TPM1CNTL            equ       FTM1_CNTL,::FTM1_CNTL
+TPM1MOD             equ       FTM1_MOD,::FTM1_MOD
+TPM1MODH            equ       FTM1_MODH,::FTM1_MODH
+TPM1MODL            equ       FTM1_MODL,::FTM1_MODL
+TPM1C0SC            equ       FTM1_C0SC,::FTM1_C0SC
+TPM1C0V             equ       FTM1_C0V,::FTM1_C0V
+TPM1C0VH            equ       FTM1_C0VH,::FTM1_C0VH
+TPM1C0VL            equ       FTM1_C0VL,::FTM1_C0VL
+TPM1C1SC            equ       FTM1_C1SC,::FTM1_C1SC
+TPM1C1V             equ       FTM1_C1V,::FTM1_C1V
+TPM1C1VH            equ       FTM1_C1VH,::FTM1_C1VH
+TPM1C1VL            equ       FTM1_C1VL,::FTM1_C1VL
 
 ACMP_CS             equ       $002C,1             ;ACMP Control and Status Register
 
@@ -287,6 +333,7 @@ SCG_C1              equ       $300C,1             ;System Clock Gating Control 1
                     @bitnum   RTC,0               ;RTC Clock Gate Control
                     @bitnum   MTIM0,1             ;MTIM0 Clock Gate Control
                     @bitnum   FTM0,5              ;FTM0 Clock Gate Control
+                    @bitnum   FTM1,6              ;FTM1 Clock Gate Control
                     @bitnum   FTM2,7              ;FTM2 Clock Gate Control
 
 SCG_C2              equ       $300D,1             ;System Clock Gating Control 2 Register
@@ -461,11 +508,11 @@ ICSC1               equ       $3038,1             ;ICS_C1 - ICS Control Register
                     @bitnum   IREFSTEN,0          ;Internal Reference Stop Enable
                     @bitnum   IRCLKEN,1           ;Internal Reference Clock Enable
                     @bitnum   IREFS,2             ;Internal Reference Select
-                    @bitnum   RDIV0,3             ;Reference Divider, bit 0
-                    @bitnum   RDIV1,4             ;Reference Divider, bit 1
-                    @bitnum   RDIV2,5             ;Reference Divider, bit 2
-                    @bitnum   CLKS0,6             ;Clock Source Select, bit 0
-                    @bitnum   CLKS1,7             ;Clock Source Select, bit 1
+                    @bitnum   ICS_RDIV0,3         ;Reference Divider, bit 0
+                    @bitnum   ICS_RDIV1,4         ;Reference Divider, bit 1
+                    @bitnum   ICS_RDIV2,5         ;Reference Divider, bit 2
+                    @bitnum   ICS_CLKS0,6         ;Clock Source Select, bit 0
+                    @bitnum   ICS_CLKS1,7         ;Clock Source Select, bit 1
 
 ICS_C2              equ       $3039,1             ;ICS Control Register 2
 
@@ -897,6 +944,39 @@ FTM2_FILTER1        equ       $30E7,1             ;Input Capture Filter Control
 FTM2_FLTFILTER      equ       $30E8,1             ;Fault Input Filter Control
 
 FTM2_FLTCTRL        equ       $30E9,1             ;Fault Input Control
+
+TPM2SC              equ       FTM2_SC,::FTM2_SC             ;Status and Control
+TPM2CNT             equ       FTM2_CNT,::FTM2_CNT           ;FTM2 Timer Counter Register
+TPM2CNTH            equ       FTM2_CNTH,::FTM2_CNTH         ;Counter High
+TPM2CNTL            equ       FTM2_CNTL,::FTM2_CNTL         ;Counter Low
+TPM2MOD             equ       FTM2_MOD,::FTM2_MOD           ;FTM2 Timer Counter Modulo Register
+TPM2MODH            equ       FTM2_MODH,::FTM2_MODH         ;Modulo High
+TPM2MODL            equ       FTM2_MODL,::FTM2_MODL         ;Modulo Low
+TPM2C0SC            equ       FTM2_C0SC,::FTM2_C0SC         ;Channel Status and Control
+TPM2C0V             equ       FTM2_C0V,::FTM2_C0V           ;FTM2 Timer Channel 0 Value Register
+TPM2C0VH            equ       FTM2_C0VH,::FTM2_C0VH         ;Channel Value High
+TPM2C0VL            equ       FTM2_C0VL,::FTM2_C0VL         ;Channel Value Low
+TPM2C1SC            equ       FTM2_C1SC,::FTM2_C1SC         ;Channel Status and Control
+TPM2C1V             equ       FTM2_C1V,::FTM2_C1V           ;FTM2 Timer Channel 1 Value Register
+TPM2C1VH            equ       FTM2_C1VH,::FTM2_C1VH         ;Channel Value High
+TPM2C1VL            equ       FTM2_C1VL,::FTM2_C1VL         ;Channel Value Low
+TPM2C2SC            equ       FTM2_C2SC,::FTM2_C2SC         ;Channel Status and Control
+TPM2C2V             equ       FTM2_C2V,::FTM2_C2V           ;FTM2 Timer Channel 2 Value Register
+TPM2C2VH            equ       FTM2_C2VH,::FTM2_C2VH         ;Channel Value High
+TPM2C2VL            equ       FTM2_C2VL,::FTM2_C2VL         ;Channel Value Low
+TPM2C3SC            equ       FTM2_C3SC,::FTM2_C3SC         ;Channel Status and Control
+TPM2C3V             equ       FTM2_C3V,::FTM2_C3V           ;FTM2 Timer Channel 3 Value Register
+TPM2C3VH            equ       FTM2_C3VH,::FTM2_C3VH         ;Channel Value High
+TPM2C3VL            equ       FTM2_C3VL,::FTM2_C3VL         ;Channel Value Low
+TPM2C4SC            equ       FTM2_C4SC,::FTM2_C4SC         ;Channel Status and Control
+TPM2C4V             equ       FTM2_C4V,::FTM2_C4V           ;FTM2 Timer Channel 4 Value Register
+TPM2C4VH            equ       FTM2_C4VH,::FTM2_C4VH         ;Channel Value High
+TPM2C4VL            equ       FTM2_C4VL,::FTM2_C4VL         ;Channel Value Low
+TPM2C5SC            equ       FTM2_C5SC,::FTM2_C5SC         ;Channel Status and Control
+TPM2C5V             equ       FTM2_C5V,::FTM2_C5V           ;FTM2 Timer Channel 5 Value Register
+TPM2C5VH            equ       FTM2_C5VH,::FTM2_C5VH         ;Channel Value High
+TPM2C5VL            equ       FTM2_C5VL,::FTM2_C5VL         ;Channel Value Low
+
 PORT_IOFLT0         equ       $30EC,1             ;Port Filter Register 0
 PORT_IOFLT1         equ       $30ED,1             ;Port Filter Register 1
 
