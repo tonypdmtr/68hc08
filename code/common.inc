@@ -1432,12 +1432,18 @@ Loop$$$
                     endm
 
 ;*******************************************************************************
-; Test for zero for any sized variable
+; Test for zero for any sized variable (current version leaves CCR[N] invalid)
 
-zero?.s             macro     Variable
+_tst_.s             macro     Variable
                     mset      #
                     mreq      1
                     @@_nosize_ ~1~
+          #if ::~1,~ = 1
+            #ifz ]~1,~
+                    tst       ~1~
+                    mexit
+            #endif
+          #endif
                     mdo
           #if :mloop = 1
                     lda       ~1,~+{:mloop-1}~,1~
@@ -1445,6 +1451,33 @@ zero?.s             macro     Variable
                     ora       ~1,~+{:mloop-1}~,1~
           #endif
                     mloop     ::~1,~
+                    endm
+
+;*******************************************************************************
+; TST for any sized variable (current version leaves CCR[N] invalid)
+
+tst.s               macro     Operand
+                    mset      #
+                    mreq      1
+                    @@_nosize_ ~1~
+          #if ::~1,~ = 1
+            #ifz ]~1,~
+                    tst       ~1~
+                    mexit
+            #endif
+          #endif
+                    #push
+                    #spauto   :sp
+                    psha
+                    mdo
+          #if :mloop = 1
+                    lda       ~1,~+{:mloop-1}~,1~
+          #else
+                    ora       ~1,~+{:mloop-1}~,1~
+          #endif
+                    mloop     ::~1,~
+                    pula
+                    #pull
                     endm
 
 ;*******************************************************************************

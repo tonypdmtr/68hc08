@@ -1658,7 +1658,7 @@ Loop@@              psha
 
                     clr       ?b+{::?b-1},spx     ;clear original shift counter
 b@@                 equ       ?b,::?b-1           ;(b@@ = ?b but excludes final already cleared byte - 2013.11.29 optimization)
-                    @zero?.s, b@@,spx             ;test whole word for zero (counter <= 8-bit)
+                    @_tst_.s, b@@,spx             ;test whole word for zero (counter <= 8-bit)
                     beq       Go@@                ;if so, proceed normally
 
                     lda       counter@@,spx       ;if shift counter is less than
@@ -1706,7 +1706,7 @@ Done@@
 
                     clr       ?b+{::?b-1},spx     ;clear original shift counter
 b@@                 equ       ?b,::?b-1           ;(b@@ = ?b but excludes final already cleared byte - 2013.11.29 optimization)
-                    @zero?.s, b@@,spx             ;test whole word for zero (counter <= 8-bit)
+                    @_tst_.s, b@@,spx             ;test whole word for zero (counter <= 8-bit)
                     beq       Go@@                ;if so, proceed normally
 
                     lda       counter@@,spx       ;if shift counter is less than
@@ -2071,12 +2071,12 @@ ans@@               equ       ?b,::?b             ;result overwrites divisor
 
           ; first, test for division by zero error
 
-                    @zero?.s  divisor@@,spx
+                    @_tst_.s  divisor@@,spx
                     beq       ?DivError
 
           ; if Dividend = 0, we're done
 
-                    @zero?.s  dividend@@,spx
+                    @_tst_.s  dividend@@,spx
                     !jeq      Done@@
 
           ; if (divisor = dividend) then quotient := 1; return
@@ -2570,7 +2570,7 @@ ToStrLoop@@         ldhx      #10                 ;H = 0 (always), X = divisor
 
                     tsx
 
-                    @zero?.s  number@@,spx
+                    @_tst_.s  number@@,spx
                     bne       ToStrLoop@@
 
                     ais       #:ais               ;free temporaries

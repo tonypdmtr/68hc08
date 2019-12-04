@@ -135,7 +135,7 @@ EXTRACYCLES@@       equ       :cycles
 
 Loop@@              @sub.s    burn_cycles@@,spx #1 burn_cycles@@,spx
                     @cop                          ;in case of many iterations
-                    @zero?.s  burn_cycles@@,spx
+                    @_tst_.s  burn_cycles@@,spx
                     bne       Loop@@              ;repeat for all cycles
 
 LOOPCYCLES@@        equ       :cycles
