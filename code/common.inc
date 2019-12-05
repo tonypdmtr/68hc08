@@ -2924,7 +2924,7 @@ MAX_OS_CALLS        def       64                  ;default room for OS calls (68
                     #Message  Firmware v{VERSION(2)}
           #endif
                     #Message  MCU Operating Voltage (VDD): {VDD(3)}V
-
+;-------------------------------------------------------------------------------
 ?                   macro
                     #Message  ~1~: {~1~} Hz ({~1~/RDIV} Hz IRCLK, RDIV={RDIV})
                     endm
@@ -2940,18 +2940,20 @@ MAX_OS_CALLS        def       64                  ;default room for OS calls (68
           #else
                     #Message  {KHZ(3)} MHz ({BUS_KHZ(3)} MHz bus, BDIV={BDIV}) Cycle: {10000000/BUS_KHZ(1)} nsec
           #endif
-
+;-------------------------------------------------------------------------------
 ?                   macro
                     mswap     1,:loop
           #ifdef ~1~&~1~_END
                     #Message  ~1~~'..........:'.1.{10-:1}~ {~1~(h)}-{~1~_END(h)} ({~1~_END-~1~+1} bytes)
+          #else ifdef ~1~
+                    #Message  ~1~~'..........:'.1.{10-:1}~ {~1~(h)}-{~1~+:PAGE_END-1(h)} ({~1~+:PAGE_END-~1~+1} bytes)
           #endif
                     mtop      :n
                     endm
 
-                    @?        RAM,XRAM,EEPROM,ROM,XROM
+                    @?        RAM,XRAM,EEPROM,ROM,XROM,PPAGE0,PPAGE2,PPAGE4,PPAGE5,PPAGE6,PPAGE7
                     #Message  DataFlash: {FLASH_DATA_SIZE} bytes
-
+;-------------------------------------------------------------------------------
           #ifnz REQUIRED_STACK
             #ifdef MAXTASKS
                     #temp     REQUIRED_STACK*MAXTASKS

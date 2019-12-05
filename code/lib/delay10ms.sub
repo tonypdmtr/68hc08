@@ -6,10 +6,7 @@
 ;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/delay10ms.html
 ;* Note(s)   : Use: #Include delay10ms.sub
-;*           :
-;*           : Example call:
-;*           :                call      Delay10ms
-;*           :
+;*           :      call      Delay10ms
 ;* History   : 10.01.15 v1.00 Original
 ;*           : 14.09.17       Added 6 cycles for JSR for a little greater accuracy
 ;*******************************************************************************
