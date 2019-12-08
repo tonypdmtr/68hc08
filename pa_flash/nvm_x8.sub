@@ -1,0 +1,190 @@
+;*******************************************************************************
+; Read & Write 8 bytes in NVM on a 9S08PA4
+; Original code by K.Sargent -- NO COPYRIGHT APPLIES
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     pa16.inc
+                    #ListOn
+                    #MCF
+ACCESS_LED          @pin      PORTB,0
+VIOLATION_LED       @pin
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Constant definitions
+;*******************************************************************************
+
+EERGPG              equ       $00                 ;global EEROM page addr 23:16
+EEPROT              equ       $80                 ;EE protect low 32 bytes
+NVMEXC              equ       $80                 ;exec NVM cmd (clr CCIF)
+FDIV                equ       $06                 ;NVM clk for internal default clock
+;FLHVIO             equ       4                   ;Flash pgm violation bit in FSTAT
+;FLHACC             equ       5                   ;and access error
+
+;*******************************************************************************
+                    #RAM
+;*******************************************************************************
+
+nvmadr              rmb       1                   ;NVM offset address tank
+nvmstt              rmb       1                   ;and status
+buffer              rmb       8                   ;your bytes to save in NVM
+
+NVMACC              @pin      nvmstt
+NVMVIO              @pin
+
+;*******************************************************************************
+                    #ROM
+;*******************************************************************************
+
+NVM_Init            proc
+Busy?@@             @cop                          ;reset COP
+                    lda       NVM_FSTAT           ;chk busy flag
+                    bpl       Busy?@@
+                    lda       #FDIV               ;flash clock divisor for btw .8 & 1MHz
+                    sta       NVM_FCLKDIV
+                    lda       #$30                ;reset flash error flag
+                    sta       NVM_FSTAT           ;gotta have err flag clear
+;                   bra       NVM_Read8
+
+;*******************************************************************************
+; Purpose: This reads 8 bytes from NVM base address
+; Note(s): Read parms from EEPROM area
+
+NVM_Read8           proc
+                    ldhx      #8
+Loop@@              psha
+                    lda       EEPROM-1,x
+                    sta       buffer-1,x
+                    pula
+                    dbnzx     Loop@@
+                    rts
+
+;*******************************************************************************
+; Purpose: This writes 8 bytes to NVM base address
+; Note(s): Save all 4 parms to EEPROM
+
+NVM_Write8          proc
+Busy?@@             @cop                          ;reset COP
+                    lda       NVM_FSTAT           ;chk busy flag
+                    bpl       Busy?@@             ;wait for not busy
+          ;-------------------------------------- ;go erase & program parms
+                    ldhx      #buffer             ;init @ 1st of 4 x 16 bit parms
+                    clr       nvmadr              ;EEPROM data addr
+          ;-------------------------------------- ;erase then program 1 parm / 2 byte sector
+                    bsr       ?Sav_4P
+                    mov       #$10,nvmadr
+                    bsr       ?Sav_4P
+          ;-------------------------------------- ;parms saved, put NVM registers idle
+                    clra                          ;cmd index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$12                ;Erase EEPROM Sector
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       #EERGPG             ;EER addr 23:16 (b7=EER flag)
+                    sta       NVM_FCCOBLO         ;data reg LSB
+          ;-------------------------------------- ;enable protection for EEPROM
+                    lda       #EEPROT             ;lowest 32 bytes
+                    sta       NVM_EEPROT
+                    rts
+
+;*******************************************************************************
+; Purpose: Erase 1 sector (2 bytes) @ $31:<nvmadr>
+
+NVM_EraseSector     proc
+                    clra                          ;cmd index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$12                ;Erase EEPROM Sector
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       #EERGPG             ;EER addr 23:16 (b7=EER flag)
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    lda       #$01                ;addr index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$31                ;EEPROM addr MSB
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       nvmadr              ;Address LSB
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    bra       NVM_Command         ;exec NVM cmd (<nvmstt> rtns Status)
+
+;*******************************************************************************
+; Purpose: Save 1 parms (2 bytes) from HX to $31:<nvmadr>
+
+NVM_WriteSector     proc
+                    clra                          ;cmd index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$11                ;Program EEPROM
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       #EERGPG             ;EER addr 23:16 (b7=EER flag)
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    lda       #$01                ;addr index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$31                ;addr of 1st data to verify
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       nvmadr              ;LSB = index
+                    sta       NVM_FCCOBLO         ;Address LSB -> data reg LSB
+                    lda       #$02                ;data 0 index reg
+                    sta       NVM_FCCOBIX
+                    lda       ,x                  ;Data byte to save
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    lda       #$03                ;data 1 index reg
+                    sta       NVM_FCCOBIX
+                    lda       1,x                 ;Data byte to save
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    bra       NVM_Command         ;exec NVM cmd (<nvmstt> rtns Status)
+
+;*******************************************************************************
+
+?Sav_4P             proc
+                    lda       #4                  ;# parms to save
+Loop@@              push
+                    bsr       NVM_EraseSector
+                    bsr       NVM_WriteSector     ;write 2 bytes from HX -> EEPROM
+                    pull
+                    aix       #2                  ;incr address here
+                    inc:2     nvmadr
+                    dbnza     Loop@@
+                    rts
+
+;*******************************************************************************
+; Purpose: Verify 1 sector (2 bytes) @ $31:<nvmadr> as erased
+
+NVM_VerifySector    proc
+                    clra                          ;cmd index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$10                ;Verify EEPROM Sector Erased
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       #EERGPG             ;EER addr 23:16 (b7=EER flag)
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    lda       #$01                ;addr index reg
+                    sta       NVM_FCCOBIX
+                    lda       #$31                ;EEPROM addr MSB
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       nvmadr              ;Address LSB
+                    sta       NVM_FCCOBLO         ;data reg LSB
+                    lda       #$02                ;addr index reg
+                    sta       NVM_FCCOBIX
+                    clra                          ;# bytes to verify as erased MSB
+                    sta       NVM_FCCOBHI         ;data reg MSB
+                    lda       #2                  ;and LSB
+                    sta       NVM_FCCOBLO         ;data reg LSB
+;                   bra       NVM_Command         ;exec NVM cmd (<nvmstt> rtns Status)
+
+;*******************************************************************************
+
+NVM_Command         proc
+                    lda       #$30                ;reset error flags
+                    sta       NVM_FSTAT
+                    lda       #NVMEXC             ;reset CCIF to exec cmd
+                    sta       NVM_FSTAT
+Busy?@@             @cop                          ;reset COP
+                    lda       NVM_FSTAT           ;chk busy flag
+                    bpl       Busy?@@
+                    sta       nvmstt              ;save status to tank
+                    brclr     NVMACC,AccErr@@
+                    bset      ACCESS_LED          ;ACCESS ERR, turn on One x LED
+Stall@@             @cop                          ;Stall on errors
+                    bra       Stall@@
+AccErr@@            brclr     NVMVIO,Done@@
+                    bset      VIOLATION_LED       ;VIOLATION ERR, turn on Two x LED
+                    bra       Stall@@
+Done@@              equ       :AnRTS
