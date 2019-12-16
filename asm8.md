@@ -55,7 +55,7 @@ Reference Guide
     + 4 - Assembler was not started (help screen displayed, -W option used with success)<br><br>
 
 | Option   | Default  | Description|
-|----------|----------|------------|
+|:---------|:--------:|:-------------------------------------------------------|
 | -C[±]    | -C-      | Label case sensitivity: + = case sensitive<br>_See also_ `#CASEON`/`#CASEOFF`
 | -Dlabel  | [:expr]  | Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbols are always uppercase (regardless of -C option). If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase.<br>Cannot be saved with -W.
 | -E[±]    | -E-      | Generate *.ERR file (one for each file assembled).* .ERR files are not generated for file(s) that do not contain errors.
@@ -109,7 +109,7 @@ Reference Guide
 --------------------------------------------------------------------------------
 
 | Pseudo-Op                  | Description|
-|----------------------------|-------------------------------------------------|
+|:---------------------------|:------------------------------------------------|
 | `[label] ALIGN expr`       | *Case 1*. If no label is present, it aligns the current location counter to be a multiple of the given expression.
 | `DB string`\|`expr[,...]`  | Define Byte(s). expr may be a constant numeric, a label reference, an expression, or a string. DB encodes a single byte in the object file at the current location counter for each expr encountered (using the LSB of the result) or one byte for each character in strings.
 | `DS blocksize`             | Define Storage. The assembler's location counter is incremented by blocksize. Forward references not allowed. No code is generated.
@@ -169,7 +169,7 @@ Reference Guide
 <br>
 
 | Directive         | Description|
-|-------------------|----------------------------------------------------------|
+|:------------------|:---------------------------------------------------------|
 | `#AIS [symbol]`   |`#AIS` checks the current value of the `:SP` internal variable against the most recent `AIS` instruction's value, and issues a warning if the two numbers do NOT differ by the exact value in the symbol (note: a plain symbol, not an expression), indicating a possible stack frame definition error (assuming correct placement of the relevant directives).<br><br>The warning also shows the correct `AIS` instruction that is required to correct the problem.<br><br>This directive makes it very easy to correct the numeric value in `AIS` instructions to match the following stack frame definition (normally made using the internal `::` symbol in the various `#SPAUTO` modes, and the `NEXT`/`SETN` method for defining records/structures. ) This is useful to prevent having to define the stack frame before the `AIS` instruction using a one-based starting offset just so you can use a label with `AIS` and then having to re-define it for dynamic assignment of offsets based on the current `:SP`.<br><br>v8.70+: If, however, a symbol is not specified, then this directive simply resets the value of the `:AIS` internal symbol to the current `:SP` value difference (as if a negative `AIS` instruction had been used in its place). This can be used when no actual `AIS` instruction is used (for example, a series of `PSHx` instructions are used, but we want to use the `:AIS` variable later on to de-allocate any local variables.)<br><br>The associated `:AIS` symbol returns the difference between the current `:SP` and the value saved during the most recent `AIS` instruction. This can be used to de-allocate just the number of stack bytes that are still left on the stack between the two points in your source (inclusive of the previous `AIS` instruction). This is only meant for use in `#SPAUTO` modes, which automatically adjusts the current value of the `:SP` internal symbol.<br><br>`#PUSH` and `#PULL` will save/restore the value of this setting.<br><br>Example use:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -185,7 +185,7 @@ Subroutine          ais       #-4                 ;local data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 | Directive         | Description (continued)|
-|-------------------|----------------------------------------------------------|
+|:------------------|:---------------------------------------------------------|
 |`#CALL`            |Effective only while the MMU is disabled: When active, `CALL`/`RTC` instructions are NOT treated as if they were `JSR`/`RTS` instructions, but they issue errors instead. _See also the directives_ `#JUMP`, `#MMU`, `#NOMMU`<br><br>Equivalent to the `-J-` command line option.
 |`#CASEOFF`         |When `#CASEOFF` is in effect, all symbol references that follow are converted to uppercase internally before they are searched for or placed in the symbol table.<br><br>Equivalent to the `-C-` command line option.
 |`#CASEON`          |When `#CASEON` is in effect, symbol references are NOT internally converted to uppercase before they are searched for or placed in the symbol table.<br><br>Equivalent to the `-C+` command line option.
@@ -289,7 +289,7 @@ a                   remacro
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 | Directive         | Description (continued)|
-|-------------------|----------------------------------------------------------|
+|:------------------|:---------------------------------------------------------|
 |`#S19FLUSH`        |Forces the immediate termination of an S-record line when encountered, rather than waiting for the record to reach the size specified by the `-Rn` command line directive. This directive may be used to make identification of the end of code blocks easier when viewing the *.S19 file.
 |`#S19RESET`        |Resets the S19 processor. Any used address ranges will be forgotten allowing the same ranges to possibly be used again. This directive may be used to combine multiple normally overlapping S19 files into one.
 |`#S19WRITE [text]` |Flushes the current S19 record as with the `#S19FLUSH` directive, and then writes the optional text message into the S19 file on a line by itself. This directive may be used to add arbitrary text inside the S19 file, such as comments, special processing loader directives, etc.
@@ -924,8 +924,8 @@ are defined:
 
 -   `:MACROLOOP` (or simply, `:LOOP`) is similar to `:MACRONEST` but it returns
      the current value of the macro 'loop level' only for the current macro. A
-     value of zero is returned if used outside any macros. First level is number
-     1. Each time the macro is called from outside any macros, or from a
+     value of zero is returned if used outside any macros. First level is
+     number 1. Each time the macro is called from outside any macros, or from a
      different macro, the number is reset to 1. Each time the macro calls itself
      (by either a chained macro call, or the `MTOP` directive), the number is
      incremented by 1. This can be used as an automatic loop counter. The macro
@@ -1586,31 +1586,31 @@ Expression Operators and Other Special Characters Recognized by ASM8<br>
 -   Avoid inserting spaces between values and operators (unless using -SP+
     switch and ; comments).
 
-|Operator           |Description|
-|-------------------|----------------------------------------------------------|
-|+                  |Addition
-|-                  |Subtraction. When used as a unary operator, the 2's complement of the value to the right is returned.
-|\*                 |Multiplication<br><br>Can also be used to represent the current location counter.
-|/                  |Integer Division (ignores remainder)
-|\\                 |Modulus (remainder of integer division)
-|=                  |'Equal' comparison for the `#IF` directive.
-|\<\>               |'Not equal' comparison for the `#IF` directive. \|\>=\|'Greater than or equal' comparison for the `#IF` directive.
-|\>                 |Shift right - operand to the left is shifted right by the count to the right.<br><br>Also used to specify extended addressing mode.<br><br>'Greater than' comparison for the `#IF` directive.
-|\<=                |'Less than or equal' comparison for the `#IF` directive.
-|\<                 |Shift left - operand to the left is shifted left by the count to the right.<br><br>Also used to specify direct addressing mode.<br><br>'Less than' comparison for the `#IF` directive.
-|\&                 |Bitwise AND
-|\|                 |Bitwise OR
-|\^                 |Bitwise XOR (exclusive OR)
-|\~                 |Swap high and low bytes (unary): `~$1234 = $3412`<br><br>Useful for converting word constants from big endian to little endian, or the inverse.
-|[[                 |Extract low 16 bits (unary): `[[$123456 = $3456`
-|]]                 |Extract high 16 bits (unary): `]]$123456 = $0012`
-|[                  |Extract low 8 bits from lower 16-bit word (unary): `[$1234 = $34`
-|]                  |Extract high 8 bits from lower 16-bit word (unary): `]$1234 = $12`
-|$                  |Interpret numeric constant that follows as a hexadecimal number.<br><br>Can also be used to represent the current location counter.
-|%                  |Interpret numeric constant that follows as a binary number
-|'\`"               |Any one of these characters _(single, back, or double-quote)_ may be used to enclose a string or character entity.  The character used at the start of the string must be used to end it.
-|#                  |Specifies immediate addressing mode
-|@                  |Specifies direct addressing mode (same as`<`)
+|Operator|Description|
+|:------:|:---------------------------------------------------------|
+|+       |Addition
+|-       |Subtraction. When used as a unary operator, the 2's complement of the value to the right is returned.
+|\*      |Multiplication<br><br>Can also be used to represent the current location counter.
+|/       |Integer Division (ignores remainder)
+|\\      |Modulus (remainder of integer division)
+|=       |'Equal' comparison for the `#IF` directive.
+|\<\>    |'Not equal' comparison for the `#IF` directive. \|\>=\|'Greater than or equal' comparison for the `#IF` directive.
+|\>      |Shift right - operand to the left is shifted right by the count to the right.<br><br>Also used to specify extended addressing mode.<br><br>'Greater than' comparison for the `#IF` directive.
+|\<=     |'Less than or equal' comparison for the `#IF` directive.
+|\<      |Shift left - operand to the left is shifted left by the count to the right.<br><br>Also used to specify direct addressing mode.<br><br>'Less than' comparison for the `#IF` directive.
+|\&      |Bitwise AND
+|\|      |Bitwise OR
+|\^      |Bitwise XOR (exclusive OR)
+|\~      |Swap high and low bytes (unary): `~$1234 = $3412`<br><br>Useful for converting word constants from big endian to little endian, or the inverse.
+|[[      |Extract low 16 bits (unary): `[[$123456 = $3456`
+|]]      |Extract high 16 bits (unary): `]]$123456 = $0012`
+|[       |Extract low 8 bits from lower 16-bit word (unary): `[$1234 = $34`
+|]       |Extract high 8 bits from lower 16-bit word (unary): `]$1234 = $12`
+|$       |Interpret numeric constant that follows as a hexadecimal number.<br><br>Can also be used to represent the current location counter.
+|%       |Interpret numeric constant that follows as a binary number
+|'\`"    |Any one of these characters _(single, back, or double-quote)_ may be used to enclose a string or character entity.  The character used at the start of the string must be used to end it.
+|#       |Specifies immediate addressing mode
+|@       |Specifies direct addressing mode (same as`<`)
 
 ASM8 Extended Instruction Set
 =============================
@@ -1622,7 +1622,7 @@ enabled (-X+ command line option or #EXTRAON processing directive), and are
 used just like normal instructions, but NOT like user-defined macros.
 
 |Mnemonic/Syntax    |Description|
-|-------------------|----------------------------------------------------------|
+|:------------------|:---------------------------------------------------------|
 |`[!]...`           |A placeholder `NOP` instruction. If the `!...` format is used and symbol `...` is defined, then this instruction will produce a `#HINT` followed by whatever text follows, or if no text follows some default message. If the symbol `...` is undefined, this instruction will be treated as a regular `NOP` but without causing `#MEMORY` violation warnings when `#MEMORY` is active. The `...` format will always produce a `#HINT` regardless of symbol `...` being defined or not. By placing `...` (optionally followed by an appropriate message) where the code needs your attention for further work, you can easily locate those places simply by assembling; with the `-D...` option (if `!...` is used).
 |`AAX`              |Add A to H:X<br><br>Same as:<br><br>`PSHA` / `TXA` / `ADD 1,SP` / `TAX` / `THA` / `ADC #0` / `TAH` / `PULA`<br><br>_(Last updated in v8.31 for one byte smaller size and fewer cycles)_
 |`ABS`              |Absolute value of A (note: value `$80` does not change)<br><br>Same as: `TSTA` / `BPL ?` / `NEGA` / `?`
@@ -1713,7 +1713,7 @@ ERRORS
 ======
 
 |Error              |Meaning|
-|-------------------|----------------------------------------------------------|
+|:------------------|:---------------------------------------------------------|
 |`Invalid binary number`|The string following the % sign is not made up of zeros and/or ones.
 |`Binary number is longer than NN bits`|A binary number may have no more than so many significant digits. Leading zeros are ignored.
 |`"<SYMBOL>" not yet defined, forward refs not allowed`|`RMB` and `DS` directives may not refer to forward-defined symbols. You must define the symbol(s) used in advance.
@@ -1765,7 +1765,7 @@ WARNINGS
 ========
 
 |Warning            |Meaning|
-|-------------------|----------------------------------------------------------|
+|:------------------|:---------------------------------------------------------|
 |`Direct mode wasn't used (forward reference?)`|Automatic Direct Mode detection requires that symbol(s) used be defined in advance. You should either define the referenced symbol(s) earlier in your code, or use the Direct Mode Override (`<`) to force the assembler to use Direct Addressing Mode.
 |`Label on left side of END line ignored`|The `END` directive does not take a label. If one is used it will be ignored (it will not be defined).
 |`Label on left side of ORG line ignored`|The `ORG` directive does not take a label. If one is used it will be ignored (it will not be defined).
@@ -1974,7 +1974,7 @@ Start               proc                          ;the program begins here
 `.my_pointers` are variables beginning with a point (i.e., they point to
 something)
 
-`MyRoutines` are camelcase names. They may also use underscores mostly to
+`MyRoutines` are camel case names. They may also use underscores mostly to
 separate module from function name, as in `InitializeSCI` which could also be
 written as `Initialize_SCI` or `SCI_Initialize`
 
@@ -1988,12 +1988,12 @@ Macro local symbols follow the above rules but always end with `$$$`, example
 `Loop$$$`
 
 Comments always start with a semicolon. Macro comments that do not need
-expansion always start with a double semicolon.
+expansion start with a double semicolon.
 
 Labels are defined starting in column 1 and use the default maximum label length
 of 19 so they remain compatible with P&E map files.
 
-Opcodes, pseudo opcodes (e.g., ORG) start in column 21.
+Opcodes, pseudo opcodes (e.g., `ORG`) start in column 21.
 
 Operands start in column 31.
 
@@ -2003,16 +2003,16 @@ right, separated by at least one (preferrably two) space character(s).
 Procs are separated with an 80-char comment line full of asterisks that always
 begins with a semicolon.
 
-A non-trivial proc uses a header with Purpose, Inputs, Outputs, and Note(s) that
-describe the purpose of the proc and the calling interface.
+A non-trivial proc uses a header with `Purpose`, `Input`, `Output`, and
+`Note(s)` that describe the purpose of the proc and the calling interface.
 
 All procs use automatic SP adjustment with the `#spauto` assembler directive.
 
 Procs that refer to caller stack follow `#spauto` with an appropriate offset. If
 the proc is near (i.e., ends with an `RTS` instruction) it normally uses the
 offset `2`. If the proc is far (i.e., ends with an `RTC` instruction) it
-normally uses the offset `:ab` which adjusts automatically based on whether the
-MMU is used or not.
+normally uses the offset `:ab` which adjusts automatically based on whether MMU
+is used or not.
 
 Each proc begins with the proc name and the assembler directive `proc`. An
 `endp` directive is normally not used, unless we need to embed a proc inside
