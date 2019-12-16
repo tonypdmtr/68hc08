@@ -1862,7 +1862,10 @@ making only the global variables and subroutine entry labels visible to the
 outside.
 
 _Note_: You can also have procedure-local symbols. See the `#PROC` and `PROC`
-directives for details. Marking big blocks as comments
+directives for details.
+
+<br>__Marking big blocks as comments__<br>
+--------------------------------------------------------------------------------
 
 `#IFDEF` without any expression following will always evaluate to False. This
 can be used to mark out a large portion of defunct code or comments. Simply
