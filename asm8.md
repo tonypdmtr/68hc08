@@ -41,7 +41,7 @@ Reference Guide
     withstanding), the ability to have 32-bit labels allows keeping constants
     that are larger than 16-bit for use in later constant calculations. Decimal
     numbers are signed; the largest number is +/-2147483647. Hex or binary
-    numbers are unsigned and can go up to the full 32-bit value (232-1). For
+    numbers are unsigned and can go up to the full 32-bit value (2^32^-1). For
     example, a symbol holding the crystal frequency of operation can be
     expressed with Hz detail to be used later to derive other constant values
     (such as bps rates or cycle-based delays).
