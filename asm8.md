@@ -1977,7 +1977,7 @@ Start               proc                          ;the program begins here
 `.my_pointers` are variables beginning with a point (i.e., they point to
 something)
 
-`MyRoutines` are camel case names. They may also use underscores mostly to
+`MyRoutines` are CamelCase names. They may also use underscores mostly to
 separate module from function name, as in `InitializeSCI` which could also be
 written as `Initialize_SCI` or `SCI_Initialize`
 
@@ -2149,7 +2149,8 @@ These are pretty much the only differences in behavior.
 Assembly language source code syntax is identical for all platform versions,
 except where noted otherwise.
 
-Setting up FreeMASTER (from Freescale/NXP) for use with ASM8
+<br>__Setting up FreeMASTER (from Freescale/NXP) for use with ASM8__<br>
+--------------------------------------------------------------------------------
 
 IMPORTANT: You must use the `-MTA` option for generation of ASM8 map files.
 This will create ASCII map files that can be parsed by a regular expression text
