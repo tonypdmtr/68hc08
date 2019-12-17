@@ -51,10 +51,10 @@ self-contained, and include the following:
 
 The above can be used as is, or become inspiration for even better ones.
 
-My plans are to continually enrich this library not only with my own code by
-also, _hopefully_, code donated by others.  _I urge anyone interested to donate
+My plans are to continually enrich this library not only with my own code but
+also code donated by others, _hopefully_.  I urge anyone interested to donate
 any non-proprietary, well crafted, and tested libraries and/or applications.
-Please contact me if you have something to offer._
+Please contact me if you have something to offer.
 
 I happen to use ASM8 on a daily basis on a great number of applications and
 libraries written 100% in assembly language (_well over one million lines of
