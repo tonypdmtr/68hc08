@@ -1,15 +1,80 @@
-ASM8
-====
+ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
+================================================================================
 
-A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
-===================================================================
+ASM8 is a two-pass absolute macro cross-assembler for the 68HC08 or HCS08 or
+9S08 MCU by NXP (originally by Motorola, and later by Freescale).
+
+This tool has been evolving for almost 20 years with new features, and
+occasional bug fixes, with very few and trivial backward compatibility issues.
+It is mature enough to cope with the most demanding applications both in terms
+of size and coding complexity.
+
+There are many _sometimes unique_ features that make writing clean, self-adjusting
+source code easy.  Those make working with assembly language so much more fun
+_for me, at least_, than with certain higher level languages.
+
+Most higher level language tools usually come with an ecosystem, a set of
+built-in libraries for the most mundane tasks a programmer needs.  This is
+something most assembler writers unfortunately do not bother to include with
+their tools making it harder for newcomers to start using the language,
+successfully.  And, eventually, they escape frustrated into other languages.
+
+Although there's a lot of code floating on the Net, this is often unreliable,
+untested, incomplete (fails to assemble out of the box), of little or no
+practical value, badly formatted and/or unreadable, and written for diverse
+_sometimes unspecified_ assemblers whose details are not always clear making
+porting to your own assembler difficult and error prone. Most importantly, all
+this code, collectively, lacks consistency in coding style, naming and calling
+conventions, making it that much harder to integrate into your own application
+without significant rewrites.
+
+I have been trying to change this trend.  ASM8 comes with a significant royalty
+free code base, most of which has been in use in real life applications and
+proven over time.  These libraries _(found under the `code` subdirectory)_ in
+ASM8 distribution (**freeasm8.zip**) are _wherever possible_ re-entrant,
+self-contained, and include the following:
+
+- A rich set of general-purpose macros
+- String functions
+- Copy functions
+- Internal Flash functions (_for the most common MCU variants_)
+- Self-timed delays _(based on user defined bus frequency)_
+- A special math library that can be used _via a single `Eval` macro_ with the
+  same ease as when writing math expressions in higher level languages _(taking
+  care of all lower level details such as operand precedence, and mixing
+  variables of different sizes)_
+- A general-purpose `print` macro that can print a mix of constants, constant
+  or variable strings, math expressions, and pointed strings. Using unified I/O,
+  you only have to define `putc` macro to tell it where you want its output to go.
+- A standalone tiny bootloader that accepts S19 records directly from an SCI
+  (RS-232 or USB) attached terminal, such as PuTTY.
+
+The above can be used as is, or become inspiration for even better ones.
+
+My plans are to continually enrich this library not only with my own code by
+also, _hopefully_, code donated by others.  _I urge anyone interested to donate
+any non-proprietary, well crafted, and tested libraries and/or applications.
+Please contact me if you have something to offer._
+
+I happen to use ASM8 on a daily basis on a great number of applications and
+libraries written 100% in assembly language (_well over one million lines of
+code by now_).
+
+Three versions are currently available:
+
+- 32-bit Windows _(also runs under 64-bit Windows)_
+- i386 Linux
+- DOS _with the GO32V2 memory manager extension built-in_.
+  It has also been tested under DOSBox v0.73-2 and performs with problems.
+
+See [Linux/Win32 version addendum] for behavioral differences related to the OS.
 
 Reference Guide
 ===============
 
 *ASM8 - Copyright (c) 2001-2019 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Update: December 16, 2019 for ASM8 v9.88*
+*Latest Update: December 17, 2019 for ASM8 v9.88*
 
 <br>__Command-Line Syntax and Options__<br>
 --------------------------------------------------------------------------------
@@ -153,7 +218,7 @@ Reference Guide
 |`label SET expr[,size]`     |Assigns the value of expr to label even if label is already defined with a different value.<br><br>This is similar to`EQU`but allows making multiple re-definitions.  The value set will be used until another`SET`pseudo-instruction or to the end of the assembly process.<br><br>Warning: Careless, or simply wrong use of this directive can lead to multiple side errors or warnings (please note this is a two-pass assembler).  Using a forward`SET`defined symbol may lead to problems, as the value used will be the one from the last`SET`definition, which is not necessarily the one we want.<br><br>Correct behavior is guaranteed if any symbols re-defined with `SET` are used only after each new re-definition, otherwise, the first reference in Pass 2 will use the value from the last re-definition in Pass 1.<br><br>_Example of wrong use:_<br><br>1.` lda #Value ;we expect 123, actual is 234`<br><br>2.`Value equ 123`<br><br>` ...`<br><br>3.` lda #Value ;we expect 234, actual is 123`<br><br>4.`Value set 234`<br><br>Value in line 1 will be 234 (the last known value from Pass 1) while Value in line 3 will be 123 (most recent value in current Pass 2).<br><br>_Example of correct use:_<br><br>1. `Value equ 123`<br><br>2. `lda #Value ;we expect 123, actual is 123`<br><br>`...`<br><br>3. `Value set 234`<br><br>4. `lda #Value ;we expect 234, actual is 234`<br><br>_See also_ `EXP` and `EQU`
 |`label SETN symbol[,expr]`  |Assigns the current value of symbol to label as if with `SET`.  Then, it increments the value of symbol by one (as if with `SET`) or, if the optional expression is present, by the value of that expression.  Useful for (re-)defining a series of symbols based on a common starting value.  Note: symbol is a single label and not an expression.  _See also_ `NEXP`,`NEXT`
 
-<br>__Source File Processing Directives__<br>
+<br>__Assembler Directives__<br>
 --------------------------------------------------------------------------------
 
 -   All processing directives must be prefixed with a `$` or `#` character. ASM8
@@ -323,7 +388,7 @@ a                   remacro
 |`#XRAM`            |Activation of the XRAM segment. Default starting value is `$0100`.
 |`#XROM`            |Activation of the XROM segment. Default starting value is `$8000`.
 
-<br>__Macros - Definition and Use__<br>
+<br>__Macros__<br>
 --------------------------------------------------------------------------------
 
 -   Macros must be defined anytime before they are invoked, and they can be
@@ -688,7 +753,7 @@ CountLines          macro     [Limit][,Description]
                     mresume
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<br>__Miscellaneous__<br>
+<br>__String Expressions and Formatting__<br>
 --------------------------------------------------------------------------------
 
 Note: [text] in directives and all strings may contain nested expressions
@@ -781,7 +846,7 @@ that both curly brackets are not part of the same string, e.g.:
 instead of `fcc '{Hello}'` which tries to evaluate the symbol Hello use: `fcc
 '{','Hello}'`.
 
-<br>__Internally defined symbols__<br>
+<br>__Internal symbols__<br>
 --------------------------------------------------------------------------------
 
 Some special internal symbols are defined by the assembler. All such symbols
@@ -1576,7 +1641,7 @@ Example coding for skipping CRC calculation for volatile sections:
                     #CRC      ?crc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Expression Operators and Other Special Characters Recognized by ASM8<br>
+Expression Operators and Other Special Characters<br>
 ================================================================================
 
 
@@ -1684,7 +1749,7 @@ used just like normal instructions, but NOT like user-defined macros.
 |`XGAH`             |Same as: `PSHA` / `THA` / `PULH`
 |`XGHX`             |Same as: `PSHH` / `TXH` / `PULX`
 
-ASM8-generated Error and Warning Messages
+Error and Warning Messages
 =========================================
 
 This section provides the lists of error and warning messages.
@@ -1710,7 +1775,7 @@ The order the messages appear below is random. Some messages have similar
 meanings; they simply result from different checks of the assembler.
 
 Errors
-======
+------
 
 |Error              |Meaning|
 |:------------------|:---------------------------------------------------------|
@@ -1762,7 +1827,7 @@ Errors
 |`MMU is disabled`                                      |The MMU extensions are disabled (`-MMU-` or `#NOMMU` in effect). The instructions `CALL` and `RTC` will produce error(s), as the target MCU may not support the MMU extensions (if the current MMU switch state was intentional).
 
 Warnings
-========
+--------
 
 |Warning            |Meaning|
 |:------------------|:---------------------------------------------------------|
@@ -2163,5 +2228,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.88, December 16, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
+ASM8 v9.88, December 17, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
