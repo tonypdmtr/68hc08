@@ -148,6 +148,7 @@
 ;*           : 17.10.13 v2.22 MarkModuleVars adds #push-#pull to protect user segment use
 ;*           : 19.04.13 v2.23 Pullup macro forces BSET to avoid macro invocation
 ;*           : 19.04.25 v2.24 EndStats macro now always shows 'Module size'
+;*           : 19.11.26 v2.25 EndStats macro now adds ?HANDLER_CYCLES display
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -2439,6 +2440,9 @@ EndStats            macro     [Module Start Label]
                     #Hint     | Macros called : {:totalmacrocalls}
                     #Hint     | [#]PROCs used : {:proc}
                     #Hint     | Max stack used: {:spmax}
+          #ifdef ?HANDLER_CYCLES
+                    #Hint     | Handler cycles: {?HANDLER_CYCLES}
+          #endif
                     #Hint     +-------------------------------------------------
           #ifdef TASK_STACK_SIZE
             #if :spmax > TASK_STACK_SIZE

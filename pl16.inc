@@ -245,7 +245,7 @@ SYS_SOPT3           equ       $3006,1             ;System Options Register 3
                     @bitnum   FTM0PS,6            ;FTM0 Pin Select
                     @bitnum   DLYACT,7            ;FTM2 Trigger Delay Active
 
-SYS_SOPT4           equ       $3007,1             ;System Options Register 4
+;SYS_SOPT4          equ       $3007,1             ;System Options Register 4
 
 SCG_C1              equ       $300C,1             ;System Clock Gating Control 1 Register
 
@@ -504,8 +504,19 @@ IPC_ILRS9           equ       $3059,1             ;Interrupt Level Setting Regis
                     @bitnum   ILRn30,6            ;Interrupt Level Register for Source n+3, bit 0
                     @bitnum   ILRn31,7            ;Interrupt Level Register for Source n+3, bit 1
 
+CRC_D0              equ       $3060,1             ;CRC_D0 CRC Data 0 Register
+CRC_D1              equ       $3061,1             ;CRC_D1 CRC Data 1 Register
+CRC_D2              equ       $3062,1             ;CRC_D2 CRC Data 2 Register
+CRC_D3              equ       $3063,1             ;CRC_D3 CRC Data 3 Register
+
+CRC_P0              equ       $3064,1             ;CRC_P0 CRC Polynomial 0 Register
+CRC_P1              equ       $3065,1             ;CRC_P1 CRC Polynomial 1 Register
+CRC_P2              equ       $3066,1             ;CRC_P2 CRC Polynomial 2 Register
+CRC_P3              equ       $3067,1             ;CRC_P3 CRC Polynomial 3 Register
+
 RTC_SC1             equ       $306A,1             ;RTC Status and Control Register 1
 
+                    @bitnum   RTCO,4
                     @bitnum   RTIE,6              ;Real-Time Interrupt Enable
                     @bitnum   RTIF,7              ;Real-Time Interrupt Flag
 
