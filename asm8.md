@@ -1,6 +1,10 @@
 ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 ================================================================================
 
+*ASM8 - Copyright (c) 2001-2019 by Tony Papadimitriou (email: <tonyp@acm.org>)*
+
+*Latest Manual Update: December 19, 2019 for ASM8 v9.88*
+
 ASM8 is a two-pass absolute macro cross-assembler for the 68HC08 or HCS08 or
 9S08 MCU by NXP (originally by Motorola, and later by Freescale).
 
@@ -65,16 +69,12 @@ Three versions are currently available:
 - 32-bit Windows _(also runs under 64-bit Windows)_
 - i386 Linux
 - DOS _with the GO32V2 memory manager extension built-in_.
-  It has also been tested under DOSBox v0.73-2 and performs with problems.
+  It has also been tested under DOSBox v0.73-2 and performs without problems.
 
 See [Linux/Win32 version addendum] for behavioral differences related to the OS.
 
 Reference Guide
 ===============
-
-*ASM8 - Copyright (c) 2001-2019 by Tony Papadimitriou (email: <tonyp@acm.org>)*
-
-*Latest Update: December 17, 2019 for ASM8 v9.88*
 
 <br>__Command-Line Syntax and Options__<br>
 --------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ Reference Guide
     naming the text file on the command line, prefixed with a `@` character.
     These text files may not contain command line options.
 
--   filespec(s) may include wildcard characters (?,\*). Wildcards are not
+-   filespec(s) may include wildcard characters (`?`,`*`). Wildcards are not
     allowed in filespec(s) that are prefixed with a `@` but are allowed in
     filespecs inside @files.
 
@@ -119,56 +119,56 @@ Reference Guide
     + 3 - Warning(s) generated during assembly of last file
     + 4 - Assembler was not started (help screen displayed, -W option used with success)<br><br>
 
-| Option   | Default  | Description|
-|:---------|:--------:|:-------------------------------------------------------|
-| -C[±]    | -C-      |Label case sensitivity: + = case sensitive<br>_See also_ `#CASEON` and `#CASEOFF`
-| -Dlabel  | [:expr]  |Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbols are always uppercase (regardless of -C option). If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase.<br>Cannot be saved with -W.
-| -E[±]    | -E-      |Generate *.ERR file (one for each file assembled).* .ERR files are not generated for file(s) that do not contain errors.
-| -EH[±]   | -EH+     |If -E+ is in effect, hide (do not display) error messages on screen.
-| -EXP[±]  | -EXP-    |When on, an .EXP file is created containing all symbols defined with an EXP rather than an EQU pseudo-opcode. The resulting file can be used as an `#INCLUDE` file for other programs. This allows for automatic creation of include files with global exported symbols.
-| -F:symb  |          |During assembly, if it finds the given symbol (or part of it when the special character `*` is present anywhere in the search string), it prints a 'Hint' message showing the file and line number where that symbol defines or redefines its value. This is very useful for debugging hard to locate errors of where exactly in the source code a symbol acquired its value. You may use either : or = with this option after the -F. You may use this option up to 100 times. This option cannot be saved with the -W switch
-| -F:num   |          |During assembly, if it finds the given address (in decimal or hex format the way the assembler understands numbers), it prints a 'Hint' message with the file and line number where that memory address was occupied by either data or code. This is very useful to help you resolve overlap type errors. You may use either : or = with this option after the -F. You may use this option up to 100 times. This option cannot be saved with the -W switch
-| -F2[±]   | -F2-     |Forces a P&E 16-bit map when in MMU mode. Useful to overcome bugs in certain P&E products that do not handle MMU addresses correctly. This option cannot be saved with the -W switch
-| -FD[±]   | -FD-     |When on, the assembler uses a fake/fixed date (specifically, Jan 1, 2011) for the internal symbols :YEAR, :MONTH, and :DATE. It does not falsify the date shown on the listing header, however. This option is useful to let you always get the same S19 CRC value (shown both at the end of the listing file, and on the command-line next to each successfully assembled file), even if you use the :YEAR, :MONTH, and :DATE internal symbols in your source code, which based on the assembly date of your program would normally alter the resulting S19 CRC. This would, in turn, make it more difficult to quickly check if your program produces the same, or a different binary, since last time you checked. Keeping a record of the most recent S19 CRC produced with the `-FD` option, let's you know if something has _perhaps, inadvertently_ changed. Without the `-FD` option, you can't be sure if it's just the date that changed, or something else. **WARNING:** Do NOT include this option in batch or makefiles that compile your programs automatically, or you risk producing consistently misdated firmware. It should only be used for manual verification purposes. It's not by accident this option cannot be saved with the -W switch.
-| -FE[±]   | -FE-     |Converts warnings to error messages. This option cannot be saved with the -W switch
-| -FH[±]   | -FH-     |Forces hidden macros in listings (`#HIDEMACROS`) and ignores all `#SHOWMACROS` directives. This option cannot be saved with the -W switch
-| -FI[±]   | -FI-     |Forces display of included filenames as hints. This is useful to let you see not only the actually included files but also the order of inclusion together with the respective file count. This option cannot be saved with the -W switch
-| -FL[±]   | -FL-     |Ignores all `#LISTOFF` or `#NOLIST` directives. This option cannot be saved with the -W switch
-| -FM[±]   | -FM-     |Ignores all `#MAPOFF` directives. This option cannot be saved with the -W switch
-| -FQ[±]   | -FQ-     |Does not show the assembly progress. Slightly better speed. For use with IDEs and makefiles. This option cannot be saved with the -W switch
-| -FW[±]   | -FW-     |Converts warnings to harmless messages. No error code is returned and warnings are not counted. This option cannot be saved with the -W switch
-| -FX[±]   | -FX-     |Enable macro line number display in FATAL, ERROR, WARNING, MESSAGE, and HINT directives. The default is off for less cluttered display. This option cannot be saved with the -W switch
-| -HCS[±]  | -HCS-    |When on, the assembler understands the extended HCS08 instruction set. The cycle counts in the listing also reflect the HCS08 core. To check the current status of this switch look at the help screen's second line from top. The software will say it's either a MC68HC08 or a MC68HCS08 assembler based on this setting. _See also the directives_ `#HCSON`, `#HCSOFF`, `#IFHCS`, and `#IFNHCS`
-| -Ix      | ?2;?1;?a |Define default INCLUDE directory root(s). Relative path files will be tried relative to this directory (or each directory in the given directory list, searched from left to right). Multiple directory roots may be specified in the form of a list. A directory root list is separated by semi-colons when on Windows, or colons when on Linux. The \* character can be used as a placeholder for the current text of this option (e.g., when you want to add extra directories either before or after the current ones without having to specify the whole thing again.) _Since v9.56_ two special placeholders may be used in the directory list specification: `?1` which refers to the path of the main file, and `?2` which refers to the path of the current file. Since the main file is now searched last, and the current file's path is no longer searched by default, to get the same behavior as was the default in previous versions, you should run this to convert the current path to the new format but with compatible behavior: `-i.;?1;?2;* -w` (for Linux, use `-i.:?1:?2:* -w`). _Since v9.58_, FOSSIL source control management users can use the ?F (case-insensitive) placeholder to specify the root directory of the repository. This allows for truly portable installations of your code base. _Since v9.61_, users can use the ?A (case-insensitive) placeholder to specify the assumed root directory, which must contain a filename named `_asm_` (lowercase in Linux) of zero length, even. This allows for truly portable installations of your code base. This switch does not affect absolute path file definitions. Both the INCLUDE and the IF(N)EXISTS directives are affected by this switch.
-| -J[±]    | -J+      |Effective only while the MMU is disabled: When on, `CALL`/`RTC` instructions are treated as if they were `JSR`/`RTS` instructions, respectively. When off, `CALL`/`RTC` instructions produce errors. Makes it possible to write common library functions using CALL/RTC instead of JSR/RTS and have them used in all MCUs, regardless if they have an MMU or not. _See also the directives_ `#JUMP`, and `#CALL`
-| -L[±]    | -L+      |Create a \*.LST file (one for each file assembled).
-| -LC[±]   | -LC+     |List any conditional directives fully (the directives only, not the contents in between), even when they are False.
-| -LLnum   | -LL19    |Define the maximum recognizable Label Length from the legacy 19 characters up to an absolute maximum of 50 characters. _See also the directive_ `#MAXLABEL`.
-| -LS[±]   | -LS-     |Create a \*.SYM symbol list (one for each file assembled). May be useful for debuggers that do not support the P&E map file format.
-| -LSx     | -LSS     |x may be either S (default) for simple SYM file, E for EM11/Shadow11 SYM compatible format (possibly not useful for HC08), or N for NoICE SYM format.
-| -M[±]    | -M+      |Create a *.MAP (one for each file assembled).* .MAP files created may be used with debuggers that support the P&E source-level map file format.
-| -MMU[±]  | -MMU-    |Enable the MMU features (e.g., `CALL`/`RTC` instructions, 24-bit addresses and expressions). _See also the directives_ `#MMU`, `#NOMMU`, `#IFMMU`, and `#IFNOMMU`
-| -MTx     | -MTP     |Specifies type of MAP file to be generated (if `-M+` in effect):<br>`-MTA`: Generate parsable ASCII map file (my own public domain format)<br>`-MTP`: Generate proprietary P&E-style map file
-| -O[±]    | -O+      |Enables these four warnings: `S19 overlap`, `RMB overlap`, `Violation of MEMORY directive`, and `Violation of VARIABLE directive`.
-| -P[±]    | -P+      |When on it tells the assembler to stop after Pass 1 if there were any errors. Provides for faster overall assembly process and less confusion by irrelevant side errors of Pass 2. Warnings do not affect this.
-| -Q[±]    | -Q-      |Specifies quiet run (no output) when redirecting to an error file. Useful for IDEs that call ASM8 and don't want to have their display messed up. Beginning with v1.29, this option can also be used to suppress all output from #Message directives.
-| -Rn      | -R74     |Specifies maximum length of S-record files. The length count n includes all characters in an S-record, including the leading `S` and record type, but not the CR/LF line terminator. Minimum value is 12 while maximum is 250.
-| -R.ext   | -R.ASM   |Specifies the default extension to assume for source files specified on the command line, which do not directly specify an extension.
-| -REL[±]  | -REL+    |Allows generation of `BRA/BSR instead of JMP/JSR` optimization warnings when enabled. _See also_ `OPTRELON`/`OPTRELOFF`
-| -RTS[±]  | -RTS-    |Allows generation of `JSR followed by RTS` subroutine call optimization warnings when enabled. _See also_ `OPTRTSON`/`OPTRTSOFF`
-| -S[±]    | -S+      |Generate \*.S19 object file (one for each file assembled).
-| -S2[±]   | -S2-     |Force the generation of S2 records (24-bit addresses) even for 16-bit addresses. Although 24-bit addresses are enabled, no MMU features are enabled. Useful mostly for forcing 16-bit addresses to appear as 24-bit (with leading byte as `$00`) so that S19 loaders can use that as the PPAGE value. _See also_ `#S1` and `#S2`
-| -S9[±]   | -S9+     |This option can be used to turn off generation of the final S9 (or S8) record found by default in all S19 files. This may be useful when assembling code in parts that will be combined with other S19 files. Since you only need a single S9 record in the final S19 file, you can use this option to not produce S9 records for all but one of the files that will be merged together to produce a single object file with a single S9 record. This option cannot be saved with the -W switch.<br>_Example_: Application and bootloader merging.<br>Assuming you merge the first with the second (in that order), the bootloader should be assembled as usual, and the application with the `-S9` option in effect.
-| -SH[±]   | -SH-     |Include dummy `S0` record (header) in object file (only if `-S+`).
-| -SP[±]   | -SP-     |When enabled, the operand part of an instruction is stripped of spaces before parsing. In this case, possible comments must begin with semi-colon. _See also_ `SPACESON`/`SPACESOFF`
-| -T[±]    | -T-      |Makes all errors look like Borland errors (useful to fool certain IDEs).
-| -Tn      | -T8      |Specifies tab field width to use in *.LST files. Tab characters embedded in the source file are converted to spaces in the listing file such that columns are aligned to 1 + every n^th^ character.
-| -Ux      |          |Define default OUTPUT directory. If this option is defined, all produced files will end up in this directory, regardless of where the source file is located. When this option is undefined (no path given), produced files will end up in the same directory as the primary source file.
-| -X[±]    | -X+      |Allow recognition of extra, non-68HC08-standard mnemonics and simulated index modes in source files. _See also_ `EXTRAON`/`EXTRAOFF`
-| -Z[±]    | -Z-      |Convert the paged addresses (PAGE:ADDR16) to linear (extended) address in the produced S19 file(s). In effect, all addresses within the ranges `$xx8000-$xxBFFF `are converted to their linear format.  The code or listing is not affected at all. This is useful for S19 loaders that expect addresses in linear format, instead of paged format. Warning: The ambiguous case of `$8000-$BFFF` is treated as PAGE0, which is converted to linear addresses: `$000000-$003FFF`.  If you want to place something at PAGE2, position it (`ORG`) at `$028000`, which will convert to linear address $008000.
-| -WRN[±]  | -WRN+    |Enables or disables the display of all warnings.  When enabled, only warnings that aren't disabled individually will be generated. When disabled, it overrides local warning options (such as`-REL`and`-RTS`).
-| -W       | (none)   |Write options specified on command line to the`asm8.cfg\` file. The user-specified options become the default values used by ASM8 in subsequent invocations. Filespec(s) on the command line are ignored. Assembly of source files does not take place if this option is specified.
-| -WW      | (none)   |Same as -W but removes licensing information from the configuration file (e.g., for public distribution).
+| Option   | Default   | Description|
+|:---------|:---------:|:-------------------------------------------------------|
+| `-C[±]  `| `-C-     `|Label case sensitivity: + = case sensitive<br>_See also_ `#CASEON` and `#CASEOFF`
+| `-Dlabel`| `[:expr] `|Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbols are always uppercase (regardless of -C option). If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase.<br>Cannot be saved with -W.
+| `-E[±]  `| `-E-     `|Generate *.ERR file (one for each file assembled).* .ERR files are not generated for file(s) that do not contain errors.
+| `-EH[±] `| `-EH+    `|If -E+ is in effect, hide (do not display) error messages on screen.
+| `-EXP[±]`| `-EXP-   `|When on, an .EXP file is created containing all symbols defined with an EXP rather than an EQU pseudo-opcode. The resulting file can be used as an `#INCLUDE` file for other programs. This allows for automatic creation of include files with global exported symbols.
+| `-F:symb`|           |During assembly, if it finds the given symbol (or part of it when the special character `*` is present anywhere in the search string), it prints a 'Hint' message showing the file and line number where that symbol defines or redefines its value. This is very useful for debugging hard to locate errors of where exactly in the source code a symbol acquired its value. You may use either : or = with this option after the -F. You may use this option up to 100 times. This option cannot be saved with the -W switch
+| `-F:num `|           |During assembly, if it finds the given address (in decimal or hex format the way the assembler understands numbers), it prints a 'Hint' message with the file and line number where that memory address was occupied by either data or code. This is very useful to help you resolve overlap type errors. You may use either : or = with this option after the -F. You may use this option up to 100 times. This option cannot be saved with the -W switch
+| `-F2[±] `| `-F2-    `|Forces a _P&E Micro_ 16-bit map when in MMU mode. Useful to overcome bugs in certain _P&E Micro_ products that do not handle MMU addresses correctly. This option cannot be saved with the -W switch
+| `-FD[±] `| `-FD-    `|When on, the assembler uses a fake/fixed date (specifically, Jan 1, 2011) for the internal symbols :YEAR, :MONTH, and :DATE. It does not falsify the date shown on the listing header, however. This option is useful to let you always get the same S19 CRC value (shown both at the end of the listing file, and on the command-line next to each successfully assembled file), even if you use the :YEAR, :MONTH, and :DATE internal symbols in your source code, which based on the assembly date of your program would normally alter the resulting S19 CRC. This would, in turn, make it more difficult to quickly check if your program produces the same, or a different binary, since last time you checked. Keeping a record of the most recent S19 CRC produced with the `-FD` option, let's you know if something has _perhaps, inadvertently_ changed. Without the `-FD` option, you can't be sure if it's just the date that changed, or something else. **WARNING:** Do NOT include this option in batch or makefiles that compile your programs automatically, or you risk producing consistently misdated firmware. It should only be used for manual verification purposes. It's not by accident this option cannot be saved with the -W switch.
+| `-FE[±] `| `-FE-    `|Converts warnings to error messages. This option cannot be saved with the -W switch
+| `-FH[±] `| `-FH-    `|Forces hidden macros in listings (`#HIDEMACROS`) and ignores all `#SHOWMACROS` directives. This option cannot be saved with the -W switch
+| `-FI[±] `| `-FI-    `|Forces display of included filenames as hints. This is useful to let you see not only the actually included files but also the order of inclusion together with the respective file count. This option cannot be saved with the -W switch
+| `-FL[±] `| `-FL-    `|Ignores all `#LISTOFF` or `#NOLIST` directives. This option cannot be saved with the -W switch
+| `-FM[±] `| `-FM-    `|Ignores all `#MAPOFF` directives. This option cannot be saved with the -W switch
+| `-FQ[±] `| `-FQ-    `|Does not show the assembly progress. Slightly better speed. For use with IDEs and makefiles. This option cannot be saved with the -W switch
+| `-FW[±] `| `-FW-    `|Converts warnings to harmless messages. No error code is returned and warnings are not counted. This option cannot be saved with the -W switch
+| `-FX[±] `| `-FX-    `|Enable macro line number display in FATAL, ERROR, WARNING, MESSAGE, and HINT directives. The default is off for less cluttered display. This option cannot be saved with the -W switch
+| `-HCS[±]`| `-HCS-   `|When on, the assembler understands the extended HCS08 instruction set. The cycle counts in the listing also reflect the HCS08 core. To check the current status of this switch look at the help screen's second line from top. The software will say it's either a MC68HC08 or a MC68HCS08 assembler based on this setting. _See also the directives_ `#HCSON`, `#HCSOFF`, `#IFHCS`, and `#IFNHCS`
+| `-Ix    `| `?2;?1;?a`|Define default INCLUDE directory root(s). Relative path files will be tried relative to this directory (or each directory in the given directory list, searched from left to right). Multiple directory roots may be specified in the form of a list. A directory root list is separated by semi-colons when on Windows, or colons when on Linux. The `*` character can be used as a placeholder for the current text of this option (e.g., when you want to add extra directories either before or after the current ones without having to specify the whole thing again.) _Since v9.56_ two special placeholders may be used in the directory list specification: `?1` which refers to the path of the main file, and `?2` which refers to the path of the current file. Since the main file is now searched last, and the current file's path is no longer searched by default, to get the same behavior as was the default in previous versions, you should run this to convert the current path to the new format but with compatible behavior: `-i.;?1;?2;* -w` (for Linux, use `-i.:?1:?2:* -w`). _Since v9.58_, FOSSIL source control management users can use the ?F (case-insensitive) placeholder to specify the root directory of the repository. This allows for truly portable installations of your code base. _Since v9.61_, users can use the ?A (case-insensitive) placeholder to specify the assumed root directory, which must contain a filename named `_asm_` (lowercase in Linux) of zero length, even. This allows for truly portable installations of your code base. This switch does not affect absolute path file definitions. Both the INCLUDE and the IF(N)EXISTS directives are affected by this switch.
+| `-J[±]  `| `-J+     `|Effective only while the MMU is disabled: When on, `CALL`/`RTC` instructions are treated as if they were `JSR`/`RTS` instructions, respectively. When off, `CALL`/`RTC` instructions produce errors. Makes it possible to write common library functions using CALL/RTC instead of JSR/RTS and have them used in all MCUs, regardless if they have an MMU or not. _See also the directives_ `#JUMP`, and `#CALL`
+| `-L[±]  `| `-L+     `|Create a \*.LST file (one for each file assembled).
+| `-LC[±] `| `-LC+    `|List any conditional directives fully (the directives only, not the contents in between), even when they are False.
+| `-LLnum `| `-LL19   `|Define the maximum recognizable Label Length from the legacy 19 characters up to an absolute maximum of 50 characters. _See also the directive_ `#MAXLABEL`.
+| `-LS[±] `| `-LS-    `|Create a \*.SYM symbol list (one for each file assembled). May be useful for debuggers that do not support the _P&E Micro_ map file format.
+| `-LSx   `| `-LSS    `|x may be either S (default) for simple SYM file, E for EM11/Shadow11 SYM compatible format (possibly not useful for HC08), or N for NoICE SYM format.
+| `-M[±]  `| `-M+     `|Create a *.MAP (one for each file assembled).* .MAP files created may be used with debuggers that support the _P&E Micro_ source-level map file format.
+| `-MMU[±]`| `-MMU-   `|Enable the MMU features (e.g., `CALL`/`RTC` instructions, 24-bit addresses and expressions). _See also the directives_ `#MMU`, `#NOMMU`, `#IFMMU`, and `#IFNOMMU`
+| `-MTx   `| `-MTP    `|Specifies type of MAP file to be generated (if `-M+` in effect):<br>`-MTA`: Generate parsable ASCII map file (my own public domain format)<br>`-MTP`: Generate proprietary _P&E Micro_-style map file
+| `-O[±]  `| `-O+     `|Enables these four warnings: `S19 overlap`, `RMB overlap`, `Violation of MEMORY directive`, and `Violation of VARIABLE directive`.
+| `-P[±]  `| `-P+     `|When on it tells the assembler to stop after Pass 1 if there were any errors. Provides for faster overall assembly process and less confusion by irrelevant side errors of Pass 2. Warnings do not affect this.
+| `-Q[±]  `| `-Q-     `|Specifies quiet run (no output) when redirecting to an error file. Useful for IDEs that call ASM8 and don't want to have their display messed up. Beginning with v1.29, this option can also be used to suppress all output from #Message directives.
+| `-Rn    `| `-R74    `|Specifies maximum length of S-record files. The length count n includes all characters in an S-record, including the leading `S` and record type, but not the CR/LF line terminator. Minimum value is 12 while maximum is 250.
+| `-R.ext `| `-R.ASM  `|Specifies the default extension to assume for source files specified on the command line, which do not directly specify an extension.
+| `-REL[±]`| `-REL+   `|Allows generation of `BRA/BSR instead of JMP/JSR` optimization warnings when enabled. _See also_ `OPTRELON`/`OPTRELOFF`
+| `-RTS[±]`| `-RTS-   `|Allows generation of `JSR followed by RTS` subroutine call optimization warnings when enabled. _See also_ `OPTRTSON`/`OPTRTSOFF`
+| `-S[±]  `| `-S+     `|Generate \*.S19 object file (one for each file assembled).
+| `-S2[±] `| `-S2-    `|Force the generation of S2 records (24-bit addresses) even for 16-bit addresses. Although 24-bit addresses are enabled, no MMU features are enabled. Useful mostly for forcing 16-bit addresses to appear as 24-bit (with leading byte as `$00`) so that S19 loaders can use that as the PPAGE value. _See also_ `#S1` and `#S2`
+| `-S9[±] `| `-S9+    `|This option can be used to turn off generation of the final S9 (or S8) record found by default in all S19 files. This may be useful when assembling code in parts that will be combined with other S19 files. Since you only need a single S9 record in the final S19 file, you can use this option to not produce S9 records for all but one of the files that will be merged together to produce a single object file with a single S9 record. This option cannot be saved with the -W switch.<br>_Example_: Application and bootloader merging.<br>Assuming you merge the first with the second (in that order), the bootloader should be assembled as usual, and the application with the `-S9` option in effect.
+| `-SH[±] `| `-SH-    `|Include dummy `S0` record (header) in object file (only if `-S+`).
+| `-SP[±] `| `-SP-    `|When enabled, the operand part of an instruction is stripped of spaces before parsing. In this case, possible comments must begin with semi-colon. _See also_ `SPACESON`/`SPACESOFF`
+| `-T[±]  `| `-T-     `|Makes all errors look like Borland errors (useful to fool certain IDEs).
+| `-Tn    `| `-T8     `|Specifies tab field width to use in *.LST files. Tab characters embedded in the source file are converted to spaces in the listing file such that columns are aligned to 1 + every n^th^ character.
+| `-Ux    `| _(none)_  |Define default OUTPUT directory. If this option is defined, all produced files will end up in this directory, regardless of where the source file is located. When this option is undefined (no path given), produced files will end up in the same directory as the primary source file.
+| `-X[±]  `| `-X+     `|Allow recognition of extra, non-68HC08-standard mnemonics and simulated index modes in source files. _See also_ `EXTRAON`/`EXTRAOFF`
+| `-Z[±]  `| `-Z-     `|Convert the paged addresses (PAGE:ADDR16) to linear (extended) address in the produced S19 file(s). In effect, all addresses within the ranges `$xx8000-$xxBFFF `are converted to their linear format.  The code or listing is not affected at all. This is useful for S19 loaders that expect addresses in linear format, instead of paged format. Warning: The ambiguous case of `$8000-$BFFF` is treated as PAGE0, which is converted to linear addresses: `$000000-$003FFF`.  If you want to place something at PAGE2, position it (`ORG`) at `$028000`, which will convert to linear address $008000.
+| `-WRN[±]`| `-WRN+   `|Enables or disables the display of all warnings.  When enabled, only warnings that aren't disabled individually will be generated. When disabled, it overrides local warning options (such as`-REL`and`-RTS`).
+| `-W     `| _(none)_  |Write options specified on command line to the `asm8.cfg` file. The user-specified options become the default values used by ASM8 in subsequent invocations. Filespec(s) on the command line are ignored. Assembly of source files does not take place if this option is specified.
+| `-WW    `| _(none)_  |Same as -W but removes licensing information from the configuration file (e.g., for public distribution).
 
 <br>__Source File Pseudo-Opcodes (Pseudo-Instructions)__<br>
 --------------------------------------------------------------------------------
@@ -176,7 +176,7 @@ Reference Guide
 | Pseudo-Op                  | Description|
 |:---------------------------|:------------------------------------------------|
 |`[label] ALIGN expr`        |*Case 1*. If no label is present, it aligns the current location counter to be a multiple of the given expression.<br>*Case 2*. If a label is present it aligns the value of that label to be a multiple of the given expression.  (In this case, however, it does nothing to the current location counter.)  It issues an error if the label is not already defined.<br>**COMPATIBILITY ISSUE WITH VERSIONS PRIOR TO 8.30:**<br>Prior to version 8.30, the optional label would be assigned the current location counter value after the alignment.  The label could not be defined earlier, or you would get an error.<br>With v8.30 and later, you get an error if the label is not already defined by the time ALIGN is reached because the new behavior requires a previous definition so it can align the existing value of the label.   This makes it easy to catch all incompatible ALIGN statements written for the previous version(s).  If you get an error, simply move the label after the ALIGN statement.
-|`DB string`\|`expr[,...]`   |Define Byte(s). expr may be a constant numeric, a label reference, an expression, or a string. DB encodes a single byte in the object file at the current location counter for each expr encountered (using the LSB of the result) or one byte for each character in strings.
+|`DB string|expr[,...]`      |Define Byte(s). expr may be a constant numeric, a label reference, an expression, or a string. DB encodes a single byte in the object file at the current location counter for each expr encountered (using the LSB of the result) or one byte for each character in strings.
 |`DS blocksize`              |Define Storage. The assembler's location counter is incremented by blocksize. Forward references not allowed. No code is generated.
 |`DW expr[,...]`             |Define Word(s). expr may be a constant numeric, a label or an expression. expr is always interpreted as a word (16-bit) quantity, and is stored in the object file at the current location counter, high byte followed by low byte.
 |`END [expr]`                |Provided for compatibility. The END directive cannot be used to terminate assembly; ASM8 always processes the source file to the end of file. If expr is specified, the word result of the final END directive is encoded in the S9 record of the object file.<br><br>If the expr specified is 24-bit (bits 23-16, collectively, are non-zero), which is possible only when the MMU option is enabled, the 24-bit result is encoded in the S8 record of the object file (no S9 record is produced in that case).
@@ -185,9 +185,9 @@ Reference Guide
 |`label EQU expr[,size]`     |Assigns the value of expr to label. _See also_ `EXP` and `SET`
 |`label EXP expr[,size]`     |Assigns the value of expr to label. This is similar to `EQU` but with the following difference: Labels defined thus will be included in the .EXP file as regular SETs. This effectively allows exporting symbols for use from other source files. It makes it possible to give only object code to others along with the produced .EXP file so that they can 'link' the object to their source.
 |`FAR expr[,...]`            |Define 24-bit word(s) when the MMU is enabled. expr may be a constant numeric, a label or an expression. expr is always interpreted as a 24-bit quantity, and is stored in the object file at the current location counter in big-endian order.<br>If, however, the MMU option is disabled, `FAR` is treated as `DW`.
-|`FCB string`\|`expr[,...]`  |Form Constant Byte(s). Same as DB.
-|`FCC string`\|`expr[,...]`  |Form Constant Character(s). Same as DB.
-|`FCS string`\|`expr[,...]`  |Form Constant String. Similar to FCC, but automatically appends a terminating null (0) byte to the end of the string defined (for ASCIZ strings). If an empty string is given, only the ASCIZ terminator is inserted.
+|`FCB string|expr[,...]`     |Form Constant Byte(s). Same as DB.
+|`FCC string|expr[,...]`     |Form Constant Character(s). Same as DB.
+|`FCS string|expr[,...]`     |Form Constant String. Similar to FCC, but automatically appends a terminating null (0) byte to the end of the string defined (for ASCIZ strings). If an empty string is given, only the ASCIZ terminator is inserted.
 |`FDB expr[,...]`            |Form Double Byte(s). Same as DW.
 |`LONG expr[,...]`           |Form 32-bit long word(s). expr may be a constant numeric, a label or an expression. expr is always interpreted as a 32-bit quantity, and is stored in the object file at the current location counter in big-endian order.
 |`MacroName MACRO comments`  |`MACRO` begins the definition of a new macro.
@@ -300,7 +300,7 @@ Subroutine          ais       #-4                 ;local data
 |`#MACRO [@@]`      |`#MACRO` tells the assembler to treat unknown assembly language operations as possible macros. Normal instructions (including the built-in macro instructions) have priority over macros, so macros named the same as active built-in operations can only be called with the `@` prefix.<br><br>In effect, when in this mode, the assembler automatically adds the `@` symbol if an unknown operation is found to be a macro name. In this mode, one can invoke macros either way, with or without the `@` prefix, but instructions have priority over same name macros.<br><br>_Note_: To avoid problems, all macros should internally use the `@macro` syntax so they can be properly expanded regardless of mode.
 |`#MCF [@@]`        |`#MCF` ("Macros Come First") is similar to `#MACRO` (i.e., no `@` prefix is required for calling macros) but in this case macros have priority over same-name instructions but only when called from outside any macros. Macro chaining (i.e., jumping to a macro from inside a macro) is still only possible using the `@` prefix when a macro name collides with an active instruction name. So, using this mode is 100% compatible with macros written before this mode was introduced and does not require editing macros to use the `!instruction` format mentioned next.<br><br>If you're in `#MCF` mode, and you want to temporarily give priority to a real instruction (without changing to `#Macro` or `#@Macro` mode), you must prefix it with a `!` (exclamation point.)<br><br>The `#MCF` mode is most useful when you want to override the functionality of any internal instruction with something more involved (a macro), as for example, when porting code from another CPU with similar instructions but different functionality (e.g. `LDX` in 68HC11 is a word operation, and it may compile without errors in the 68HC[S]08 but with incorrect operation as it will not affect the full HX register).<br><br>I do not recommend casual use of this mode as it may make the source code totally misleading (if instructions which are now possibly macros aren't what they seem but something completely different.)
 |`#MCF2 [@@]`       |`#MCF2` is almost the same as `#MCF` but it doesn't have the restriction where macros named the same as instructions require the `@macro` format from within macros. This is the most 'dangerous' of all available modes, since it is always the macro which has precedence. If you need to be certain you use a real instruction and not a possible macro with the same name, you MUST use the !instruction format.
-|`#@MACRO [@@]`     |`#@MACRO` turns off this option. This is the default setting when a new assembly begins. In this mode, you can only invoke macros with the `@` prefix. This is the recommended mode for most normal applications.<br><br>Hint: The macro is normally invoked as an instruction, which means its name must appear after column one. Regardless of the current macro mode, when a macro call is made using the default `@macro` (or `%macro`) format, its invocation can start even in column one, since it can't ever be a symbol that starts with one of these two characters [`@` and `%`].<br><br>_Note_: If the optional `@@` parameter is provided to any of the four directives mentioned above, macro chaining is effectively disabled, and any otherwise 'chained' calls now become truly nested calls (as if the \@@macro format is used at all times a macro is called).<br><br>*WARNING*: Macros written based on the default 'chain' behavior may no longer operate the same (since non-\@\@ macro calls include an implied following `mexit`). To simulate the same behavior, when the `@@` option is active, make sure you add an `MEXIT` command after each otherwise 'chained' macro call. By the way, this will make the macro work the same way regardless of the `@@` sub-mode being in effect or not.<br><br>When the `@@` sub-mode is in effect, you still need to observe the various calling methods based on which of the three macro modes you're in. To cancel the `@@` sub-mode, simply give any of these directives without it.
+|`#@MACRO [@@]`     |`#@MACRO` turns off this option. This is the default setting when a new assembly begins. In this mode, you can only invoke macros with the `@` prefix. This is the recommended mode for most normal applications.<br><br>Hint: The macro is normally invoked as an instruction, which means its name must appear after column one. Regardless of the current macro mode, when a macro call is made using the default `@macro` (or `%macro`) format, its invocation can start even in column one, since it can't ever be a symbol that starts with one of these two characters [`@` and `%`].<br><br>_Note_: If the optional `@@` parameter is provided to any of the four directives mentioned above, macro chaining is effectively disabled, and any otherwise 'chained' calls now become truly nested calls (as if the `@@macro` format is used at all times a macro is called).<br><br>*WARNING*: Macros written based on the default 'chain' behavior may no longer operate the same (since non-`@@ macro` calls include an implied following `mexit`). To simulate the same behavior, when the `@@` option is active, make sure you add an `MEXIT` command after each otherwise 'chained' macro call. By the way, this will make the macro work the same way regardless of the `@@` sub-mode being in effect or not.<br><br>When the `@@` sub-mode is in effect, you still need to observe the various calling methods based on which of the three macro modes you're in. To cancel the `@@` sub-mode, simply give any of these directives without it.
 |`#MAXLABEL number` |Define the maximum recognizable Label Length from the legacy 19 characters up to an absolute maximum of 50 characters.<br><br>_See also the command-line option_ `-LL`.<br><br>`#PUSH` and `#PULL` will save/restore the value of this setting.
 |`#MEXPORT macro[,macro]*`|Export one or more macros in the EXP file (if one is produced). File-local macros cannot be exported. If a macro is not currently defined, a warning will be issued.<br><br>The `#!MEXPORT` variant will suppress warnings for undefined symbols.
 |`#MLIMIT [expr]`   |Sets the maximum macro nesting limit to the value of the optional expression.<br><br>If no expression follows the default value of 100 is used. This value should be more than adequate for nearly all cases.<br><br>Minimum value is zero (which practically disables macro call nesting). Maximum is 10000 (ten thousand).<br><br>_Note_: Macro nesting uses extra memory during assembly. You should avoid using macro nesting if the same functionality can be achieved by using macro chaining, or even the most efficient simple looping (`MTOP` pseudo-instruction).
@@ -320,13 +320,13 @@ Subroutine          ais       #-4                 ;local data
 |`#OPTRELON`        |Enable warning generation when an absolute branch or subroutine call (`JMP` or `JSR`) is encountered that could be successfully implemented using the relative form of the same instruction (`BRA` or `BSR`). This option is on by default.<br><br>Equivalent to the `-REL+` command line option.
 |`#OPTRTSOFF`       |Disable RTS-after-JSR/BSR optimization warning (default).<br><br>Equivalent to the `-RTS-` command line option.
 |`#OPTRTSON`        |Enable warning generation when a subroutine call (`JSR` or `BSR`) is immediately followed by a `RTS`. This option is off by default. Command-line option `-RTS+` does the same thing.
-|`#PARMS [ch\|SPC]` |Allows changing the delimiter used to separate macro parameters when invoking the macro. If char is defined the new delimiter will be the same as char. If there is no character following the directive, the default parameter delimiter (a comma) will be used.<br><br>To use a regular space as a parameter separator, the [char] part of the command should be the special keyword `SPACE` (case-insensitive).<br><br>`#PUSH` and `#PULL` will save/restore the value of this setting.
+|`#PARMS [ch|SPC]`  |Allows changing the delimiter used to separate macro parameters when invoking the macro. If char is defined the new delimiter will be the same as char. If there is no character following the directive, the default parameter delimiter (a comma) will be used.<br><br>To use a regular space as a parameter separator, the [char] part of the command should be the special keyword `SPACE` (case-insensitive).<br><br>`#PUSH` and `#PULL` will save/restore the value of this setting.
 |`#PPC`             |`#PPC` (stands for Preserve PC) simply keeps a copy of the current `:PC` value to be used later by the `:PPC` internal symbol.<br><br>`#PUSH` and `#PULL` will save/restore the value of this setting.
 |`#PROC`            |Advances the `@@` local label counter. Nullifies the contents of the `~procname~` macro placeholder. _See also_ `PROC` and `#ENDP`
 |`#ENDP`            |Closes the corresponding `PROC` section. _See also_ `PROC` and `ENDP`
 |`#PSP`             |`#PSP` (stands for Preserve SP) simply keeps a copy of the current `:SP` value to be used later by the `:PSP` internal symbol.<br><br>The `:PSP` symbol returns the difference between the then current `:SP` and the value saved with this directive. This can be used to de-allocate just the number of stack bytes that were pushed in between. This is only meant for use in `#SPAUTO` mode, which automatically adjusts the current value of the `:SP` internal symbol.<br><br>`#PUSH` and `#PULL` will save/restore the value of this setting.
 |`#RENAME oldname,newname`|Renames a macro from its current (old) name to a new name.<br><br>An error message is issued if the old name is not a defined macro, the new name is a defined macro, or either name is an invalid symbol name.
-|`#REMACRO oldname,newname`|`#REMACRO` is the same as `#RENAME` except that it does NOT check if the new name exists. If it exists, there will now be one extra instance of that macro name. _Note_: Only the most recently defined macro of the same name is visible when more than one macro share the same name.<br><br>`#DROP`-ping the macro always drops the visible instance, making a possible previous instance now visible.<br><br>_Tip_: An example of where `#RENAME` might be useful:<br><br>Say, you have a library (or OS system) macro that is called many times in your application, but you want to modify that macro's behavior just for this one application. Your options are:<br><br>[1] Write a new (differently named) macro, and change all calls from the old macro to new macro.<br><br>Problem: If some of these calls are inside shared library code, you can't change those calls, as it will affect other applications using those macros, as well. Too much work, and error prone.<br><br>[2] Alter the library macro to include the new behavior. Problem: Other applications may not like the new behavior.<br><br>[3] Use `#RENAME` in your application to have the old library macro change name just for this application's sake. Then, use the original name to write a brand new compatible macro but with the new behavior. It is also now possible for the new macro to 'borrow' the functionality of the old macro (by calling it internally as needed), so the new macro doesn't necessarily have to repeat the whole original macro body. This allows for an easy way to extend or replace any general-purpose library macros for each application, separately.<br><br>Example for `#REMACRO` that allows front-ending a previous macro to add code before and after the macro call.
+|`#REMACRO oldname,newname`|`#REMACRO` is similar to `#RENAME` but it does NOT check if the new name exists. If it exists, there will now be one extra instance of that macro name. _Note_: Only the most recently defined macro of the same name is visible when more than one macro definitions share the same name.<br><br>`#DROP`-ping the macro always drops the visible instance, making a possible previous instance now visible.<br><br>_Tip_: An example of where `#RENAME` might be useful:<br><br>Say, you have a library (or OS system) macro that is called many times in your application, but you want to modify that macro's behavior just for this one application. Your options are:<br><br>[1] Write a new (differently named) macro, and change all calls from the old macro to new macro.<br><br>Problem: If some of these calls are inside shared library code, you can't change those calls, as it will affect other applications using those macros, as well. Too much work, and error prone.<br><br>[2] Alter the library macro to include the new behavior. Problem: Other applications may not like the new behavior.<br><br>[3] Use `#RENAME` in your application to have the old library macro change name just for this application's sake. Then, use the original name to write a brand new compatible macro but with the new behavior. It is also now possible for the new macro to 'borrow' the functionality of the old macro (by calling it internally as needed), so the new macro doesn't necessarily have to repeat the whole original macro body. This allows for an easy way to extend or replace any general-purpose library macros for each application, separately.<br><br>Example for `#REMACRO` that allows front-ending a previous macro to add code before and after the original macro call.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 a                   macro
                     #Message  Inside original ~0~
@@ -405,10 +405,10 @@ a                   remacro
 
 -   By default, macros are invoked using the `@MacroName[,parm separator]`
     syntax (see `#MACRO`, `#@MACRO`, `#MCF`, and `#MCF2` directives). Note: You
-    can also use the %macro call syntax (i.e., % prefix, instead of \@) to force
-    all macro counters (`:MINDEX`, `:INDEX`, `:LOOP`), except for `:MACRONEST`,
-    for the specific macro to reset, as if you had dropped and recreated the
-    macro.
+    can also use the %macro call syntax (i.e., `%` prefix, instead of `@`) to
+    force all macro counters (`:MINDEX`, `:INDEX`, `:LOOP`), except for
+    `:MACRONEST`, for the specific macro to reset, as if you had dropped and
+    recreated the macro.
 
 -   During invocation, the macro name may be followed by a comma and any
     non-alphanumeric single character (if more characters found, only the first
@@ -423,7 +423,7 @@ a                   remacro
     if at all.
 
 -   The macro is expanded on a line-by-line basis. Each line in the macro body
-    (the text between the macro and endm keywords), is expanded and then
+    (the text between the `MACRO` and `ENDM` keywords), is expanded and then
     assembled, before the next line of the macro body is fetched.
 
 -   Conditionals used inside macros are always local to the current macro
@@ -431,7 +431,7 @@ a                   remacro
     and then close it (`#ENDIF`) outside the macro.
 
 -   Local macro names start with the `?` symbol (like it is done with normal
-    local labels).
+    file-local labels).
 
 -   The special local macro named `?` (just a single question-mark) is to be
     used ad-hoc. This one special macro name is automatically dropped (without
@@ -444,7 +444,8 @@ a                   remacro
 
 -   Parameters are passed during invocation in the operand field separated by
     commas (or whatever delimiter you have defined with the #PARMS directive,
-    or the special one-time parameter separator override.)
+    or the special one-time parameter separator override.)  You can also have
+    the macro decide how parameters are separated (_see `MSET`_).
 
 -   To use a null parameter, just put two delimiters next to each other (e.g.,
     `@MACRO PARM1,,PARM3`). Note: This will work for any delimiter except for
@@ -473,6 +474,9 @@ a                   remacro
     (label, operation, operand, comment fields) without regard to context.
     Parameter placeholders are `~0~` thru `~9~` (where `~0~` is reserved for the
     macro name itself, and `~1~` thru `~9~` for actual parameters.)
+    You can have more than nine parameters but to access them you'll have to use
+    the `~n.s.l~` form _with default `s` and `l` parts_, e.g., `~10.~` accesses
+    the 10^th^ parameter.
 
 -   `~Cn~` where n is a number from 0 thru 9 is equivalent to `~{n}.{:loop}.1~`
 
@@ -485,10 +489,11 @@ a                   remacro
     `~{n}.{:{n}-:mloop+}.1~`
 
 -   The body of a macro may contain nested embedded expressions (in any field,
-    even comments) of the form {}, like one can do with strings, where  is any
-    valid expression, normally including some parameter placeholder(s).
-    Expressions are evaluated last, after expansion of parameter placeholders
-    but before the `~n.s.l~` type placeholder (described later).
+    even comments) of the form `{expr}`, like one can do with strings, where
+    `expr` is any valid expression, normally including some parameter
+    placeholder(s).  Expressions are evaluated last, after expansion of
+    parameter placeholders but before the `~n.s.l~` type placeholder (described
+    later).
 
 -   To accommodate indexed mode instruction operands within any one parameter
     (provided the macro is called with a non-comma parameter separator), you can
@@ -521,25 +526,26 @@ a                   remacro
 -   Since one may often call a macro with a non-comma delimiter (such as when a
     parameter contains a comma in an indexed operand, e.g. `1,x`), a possible
     chained macro call passing this parameter to another macro, or to self while
-    looping, must use the same parameter delimiter that was used to call the
-    original macro, or else the parameter may not be passed on correctly, or not
-    even as a single parameter. Using the default parameter separator (a comma)
-    from within a macro to call another macro (or self) is problematic in those
-    cases. To solve this problem, two equivalent special placeholders have been
-    introduced. One is the ASCII code 149 [•] (e.g., use the ALT-7 method in the
-    numeric keypad for entry in Win-PCs), and the other is the two-character
-    sequence `\,` (a backslash followed by a comma) which should be possible to
-    type in any editor. Either of these placeholders will be replaced by the
-    same delimiter as the one used for the most recent macro call (either by
-    default or by override), unless there is a new explicit one-time delimiter
-    override (`@macro,char` call format).
+    looping _by chaining to itself_, must use the exact same parameter delimiter
+    that was used to call the original macro, or else the parameter may not be
+    passed on correctly, or not even as a single parameter. Using the default
+    parameter separator (a comma) from within a macro to call another macro (or
+    self) is problematic in those cases. To solve this problem, two equivalent
+    special placeholders have been introduced. One is the ASCII code 149 [•]
+    (e.g., use the ALT-7 method in the numeric keypad for entry in Win-PCs), and
+    the other is the two-character sequence `\,` (a backslash followed by a
+    comma) which should be possible to type in any editor. Either of these
+    placeholders will be replaced by the same delimiter as the one used for the
+    most recent macro call (either by default or by override), unless there is a
+    new explicit one-time delimiter override (`@macro,char` call format).
 
 -   The special placeholder `~label~` (case-insensitive) returns the actual text
     of a label appearing in the label column of the last macro invocation (after
-    expanding possible label embedded {}). This can be used with 'function-like'
-    macros that need to set a label to a specific value (without having to pass
-    the name of the label as a regular parameter). If no label is used in the
-    same line as the macro invocation, then it returns a null (empty) string.
+    expanding possible label embedded `{expr}`). This can be used with
+    'function-like' macros that need to set a label to a specific value (without
+    having to pass the name of the label as a regular parameter). If no label is
+    used in the same line as the macro invocation, then it returns a null
+    (empty) string.
     If, however, no label is used with a chained (or nested) macro invocation (a
     macro invocation occurring from inside a macro) then the text value of
     `~label~` is not changed from the original macro's. This way, a macro can
@@ -552,24 +558,25 @@ a                   remacro
     example, if macro A calls macro B, which then calls macro C, then `~macro~`
     equals A inside all three macros.
 
--   The placeholder `~00~` returns the name of the macro calling this macro
-    (i.e. the macro one-level above, or the same macro if calling itself). If at
-    the top-level, `~00~` is the same as `~0~`. Useful when combining common
+-   Similarly, the placeholder `~00~` returns the name of the macro calling this
+    macro (i.e. the macro one-level above, or the same macro if calling itself).
+    If at the top-level, `~00~` is the same as `~0~`. Useful when combining common
     functionality macros but need the name of the previous macro calling this
     one. For example, if macro A calls macro B, which then calls macro C, then
     `~00~` equals A (when inside A or B) but `~00~` equals B (when inside C).
 
 -   The special placeholder `~self~` (case-insensitive) returns the original
-    name of the current macro (useful if you use `#RENAME` from within the macro
+    name of the current macro (useful if you `#RENAME` a macro from within it
     and then need to restore the actual name the macro had when entered, using
-    `#REMACRO`).
+    `#REMACRO`).  This allows front-ending any macro with additional
+    functionality.
 
 -   The special placeholder `~text~` (case-insensitive) returns the current
-    temporary text parameter of the current macro. This is an temporary
+    temporary text parameter of the current macro. This is a temporary
     placeholder that remembers its macro-unique value across different macro
     calls, adding extreme flexibility. You can also use it as temporary text
     workspace when manipulating regular macro parameters. `~text~` can be
-    changed with `MSET`, `MSWAP`, `MDEF` using zero for the parameter index. The
+    changed with `MSET`, `MSWAP`, `MDEF` using zero as parameter index. The
     current length of `~text~` can be found in the internal variable `:TEXT`
 
 -   Similarly, the placeholder `~#text~` (case-insensitive) returns the part
@@ -578,20 +585,27 @@ a                   remacro
 -   The case-insensitive placeholder `~filename~` returns the current file's
     filename including the file extension, while `~basename~` returns the
     filename without extension, and `~path~` returns the full path with filename
-    and extension. The variant starting with `m` (for macro) shows the
+    and extension. The variant starting with `m` (for `macro`) shows the
     corresponding filename for where the macro definition is located
     (`~mfilename~` etc.), which is not necessarily in the current file.
 
 -   The placeholder `~@~` is an alias for the full list of placeholders
     separated by `•` (starting from 1). Useful if you want to pass all
-    parameters to another macro. The sequence produced by `~@~` is:
-    `~1~•~2~•~3~•~4~•~5~•~6~•~7~•~8~•~9~`
+    parameters to another macro without explicitly rewriting them. The sequence
+    produced by `~@~` is: `~1~•~2~•~3~•~4~•~5~•~6~•~7~•~8~•~9~`
 
 -   The placeholder `~@@~` is an alias for the full list of placeholders
     separated by `•` but starting from `~2~`. Useful if you want to pass the
     remaining parameters to the same macro when looping (assuming each loop only
     processes the first parameter, until that becomes null). The sequence
     produced by `~@@~` is: `~2~•~3~•~4~•~5~•~6~•~7~•~8~•~9~`
+
+-   An alternative to the above technique, or if you need to pass more than nine
+    parameters is to first use `MSET #` from within the calling macro to unite
+    all parameter under `~1~`, then call the other macro with just `~1~` as
+    parameter, and finally have the receiving macro split the received parameters
+    to as many places as needed by again using `MSET #c` where `c` is the assumed
+    parameter separator.
 
 -   Trailing parameter separators (commas by default) and trailing commas due to
     macro expansion of null parameters are automatically removed. This is
@@ -606,21 +620,21 @@ a                   remacro
     parm 1, parm 2, or at all.
 
 -   An alternative to the above method can be achieved (in most cases) by using
-    the `~[n.p]~` format of the parameter placeholder (where n is the parameter
-    number, or the case-insensitive keyword text) to extract the pth byte of the
-    argument (e.g., if `~1~` contains `my_var,sp` then `~[1.1]~` will return
+    the `~[n.p]~` format of the parameter placeholder (where `n` is the parameter
+    number, or the case-insensitive keyword `text`) to extract the p^th^ byte of
+    the argument (e.g., if `~1~` contains `my_var,sp` then `~[1.1]~` will return
     `my_var,sp` while `~[1.2]~` will return `my_var+1,sp` but if `~1~` contains
     an immediate value such as `#$1234` then `~[1.-1]~` will return `#$12` while
     `~[1.-2]~` will return `#$34` etc. For a 32-bit example, for parm
     `#$12345678 ~[1.1]~` will return `#$12` while `~[1.-1]~` will return `#$56`.
-    The p number can be any integer (positive or negative) but for immediate
+    The `p` number can be any integer (positive or negative) but for immediate
     mode parameters the sign matters, and it only works up to 32-bit if positive
     (i.e., 1..4), or up to 16-bit if negative (i.e., -1..-2). For immediate mode
     only, a number above 4 or below -2 will return `#0` since that is the
     effective value. This `~[n.p]~` placeholder makes it particularly easy to
     deal in a unified way with any parameter, be it immediate, direct, extended,
     or indexed mode. Care has to be taken to use a negative p if working with
-    16-bit values, however.
+    16-bit immediate mode values, however.
 
 -   You can use the `~n[set]i~` format of the parameter placeholder to extract
     the i^th^ part of the n^th^ parameter using the character set [set]. The
@@ -636,21 +650,21 @@ a                   remacro
     embedded strings will be skipped over, otherwise characters even inside
     strings will be matched by the characters in the set.
 
--   You can use the `~n.s.l~` format of the parameter placeholder (where n is
+-   You can use the `~n.s.l~` format of the parameter placeholder (where `n` is
     the parameter number, or the case-insensitive keyword text or label, or a
-    constant string enclosed in quotes, s is the starting position, or a
-    constant string to search for, and l is the needed length, or a constant
+    constant string enclosed in quotes, `s` is the starting position, or a
+    constant string to search for, and `l` is the needed length, or a constant
     string to search for but past the s position) to extract only a portion of
     the text of the corresponding parameter or constant. The first dot is
     required (to disambiguate from `~n~` type parms) even if nothing follows.
-    The s and l are optional. If s is not entered its value is assumed to be
-    one, so that `~1.~` is the same as `~1~` alone. If l is not entered, its
-    value is the length from s to the end of the parameter (i.e., the remaining
-    string). Note: The assembler forces s and l to always be within the limits
+    The `s` and `l` are optional. If `s` is not entered its value is assumed to
+    be one, so that `~1.~` is the same as `~1~` alone. If `l` is not entered, its
+    value is the length from `s` to the end of the parameter (i.e., the remaining
+    string). Note: The assembler forces `s` and `l` to always be within the limits
     of the text length. So, specifying a position past the end of the parameter
     text will always return the last character. To check for past-of-text, check
     against the `:nnn` length internal symbol for the specific parameter (e.g.,
-    `:1` for parm one). If you need to make n, s, or l the result of an
+    `:1` for parm one). If you need to make `n`, `s`, or `l` the result of an
     expression you can use `{expr}` (for example: `~1.{:loop}.2~`).
 
 >   **SPECIAL CASE:** When inside a string, the expression will be evaluated
@@ -663,18 +677,18 @@ a                   remacro
 >   and the expressions can be calculated during macro expansion. This way all
 >   expressions become simple constants, and the placeholder can be processed.
 >   Finally, the `\@` dummy string delimiters are turned into single, double, or
->   back quotes, depending on which of these three doesn't appear in the string
->   at all, making the whole thing a proper string.
+>   back quotes, depending on which one of these three doesn't appear in the
+>   string at all, making the whole thing a proper string.
 
 >   **IMPORTANT COMPATIBILITY ISSUE:** A couple or so versions compiled prior to
->   2010/09/24 23:00 used `@@` instead of `\@`. The `@@` was an unfortunate
+>   2010-09-24 23:00 used `@@` instead of `\@`. The `@@` was an unfortunate
 >   selection of dummy quote delimiter and it had to be replaced with a better
->   one (`\@`) even though it meant possibly causing problems with existing code
->   (hopefully, not that many macros utilizing this feature were written in the
->   few days the feature had been available with the wrong delimiter) because it
->   caused syntax errors in certain cases, e.g. if single character string
->   contained the `@` char (with or without macro parameter expansion), or
->   labels containing `@@` inside their name.
+>   one (`\@`) even though it meant possibly causing problems with existing code.
+>   _Hopefully, not that many macros utilizing this feature were written in the
+>   few days the feature had been available with the problematic delimiter._
+>   because it caused syntax errors in certain cases, e.g. if single character
+>   string contained the `@` char (with or without macro parameter expansion),
+>   or labels containing `@@` inside their name.
 
 * Order of placeholder expansion is: `~@~`, `~@@~`, `~label~`, `~macro~`, `~00~`,
   `~self~`, `~text~`, `~#~`, `~#n~`, `~n~` (where n = 0..9, in that order), `\,`,
@@ -684,14 +698,15 @@ a                   remacro
   of the form `{<expr>}`, like one can do with strings, where  is any expression,
   possibly including some parameter placeholder(s), if already inside a macro.
   This may be needed in situations where the parameter may be interpreted
-  incorrectly while used inside the macro. For example, if the \* (normally used
+  incorrectly while used inside the macro. For example, if the `*` (normally used
   to indicate 'here', as in `BRA *`) is passed as a parameter to be used inside
   the macro, it may have a different value, depending on where it is used.
   Passing this parameter as `{*}` is first 'expanded' using the current value,
   and then passed in the macro as a simple constant. Note: You can also do the
   same expansion from within the macro, making it worry-free for the user of
-  the macro. For example, one of the first macro lines can change `*` to `{*}`
-  (using `MSET`) if the specific parameter is found to have this text.
+  the macro. For example, one of the first macro lines _(i.e., before any PC
+  incrementing code)_ can change `*` to `{*}` (using `MSET`) if the specific
+  parameter is found to have this text.
 * Macros cannot `#INCLUDE` files, but can 'chain' to one.
 * Macros cannot define other macros.
 * Macro-embedded macros are not supported. (Tip: Simple 'embedded macros' can be
@@ -699,11 +714,11 @@ a                   remacro
   macro'. The `MSET` keyword can be used from within the macro to 'define' the
   'embedded macro' in one or more unused parameters, _each parameter
   representing a single line of the 'embedded macro'_ then use just the relevant
-  placeholders alone wherever you want to expand the 'embedded macro'.)
-* Macros can 'chain' to self or other macros (with no automatic return). This
+  placeholders wherever you want to expand the 'embedded macro'.)
+* Macros can 'chain' to self or other macros _with no automatic return_. This
   allows, among other things, for creating loops, making macros very powerful.
 * Macros can temporarily invoke other macros, and then return back to continue
-  with the original macro. Use the double \@ (`@@` or `%%`) notation when
+  with the original macro. Use the double `@` (`@@` or `%%`) notation when
   calling a macro from within another macro if you want to return back (as
   opposed to chain to another macro), regardless of macro mode. The default
   maximum nesting level is 100 (which should be more than adequate for most
@@ -767,8 +782,9 @@ force the display in the specified format.
 -  `(1)` thru `(4)` (or, thru `(9)` for the 32-bit versions) for the
    corresponding number of decimal places after division by 10^n^ where n is a
    number from 1 to 4 (or 9),
--  `(X)` for expanded,
--  `(Fn)` for space left filled, and
+-  `(X)` for expanded _(i.e., both decimal and hex)_,
+-  `(Fn)` for space left filled, where n is optional (default is 2) and can range
+   from 1 to 0 (0 meaning 10).
 -  `(Zn)` for zero left filled, where n is optional (default is 2) and can range
    from 1 to 0 (0 meaning 10).
 
@@ -828,9 +844,9 @@ is equivalent to:
 MsgVersion          fcs       'Firmware v1.01',LF
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-but it automatically adjusts the MsgVersion string each time the symbol VERSION
-changes value. No need to re-adjust all relevant messages manually. The
-potential uses of this capability are only limited by imagination.
+but it automatically adjusts the `MsgVersion` string each time the symbol
+`VERSION` changes value. No need to re-adjust all relevant messages manually.
+The potential uses of this capability are only limited by imagination.
 
 An expression that cannot be evaluated (due to forward references or undefined
 symbols) will display as three question marks (`???`) when used in directives,
@@ -843,25 +859,25 @@ contains the curly brackets within quotes.
 To prevent an expression evaluation in strings, break the string into two so
 that both curly brackets are not part of the same string, e.g.:
 
-instead of `fcc '{Hello}'` which tries to evaluate the symbol Hello use: `fcc
-'{','Hello}'`.
+instead of `fcc '{Hello}'` which tries to evaluate the symbol `Hello` use:<br>
+`fcc '{','Hello}'`.
 
 <br>__Internal symbols__<br>
 --------------------------------------------------------------------------------
 
-Some special internal symbols are defined by the assembler. All such symbols
-begin with a colon (`:`) character. Currently, the following internal symbols
-are defined:
+Some special internal symbols are always defined by the assembler. All such
+symbols begin with a single colon (`:`) character. Currently, the following
+internal symbols are defined:
 
--   `::` (without a symbol following) returns the current (dynamically assigned)
-     stack offset. Very useful mostly in #SPAUTO mode so that you can assign
+-   `::` (without a symbol following) returns the current _dynamically assigned_
+     stack offset. Very useful mostly in `#SPAUTO` mode so that you can assign
      labels to stack contents as they are created. (Same as `1-:SP` in
-     `#SP[AUTO]` modes, or `0-:SP` if in `#SP1` [sub-]mode.) Note: Beginning with
+     `#SP[AUTO]` modes, or `0-:SP` if in `#SP1` [sub-]mode.) _Note: Beginning with
      v5.70 if any push instruction is followed by a label, that label will be
-     `SET` to the current `::` value (must be in `#ExtraOn` mode).
+     `SET` to the current `::` value (in `#ExtraOn` mode)._
 
--   `::symbol` (where symbol is any previously defined symbol) returns the
-     current 'size' for the given symbol. A symbol's size is determined either
+-   `::symbol` - a double colon followed by any previously defined symbol returns
+     the current 'size' for the given symbol. A symbol's size is determined either
      automatically (e.g., `RMB` pseudo-instruction), or manually via the `#SIZE`
      directive.
 
@@ -873,33 +889,34 @@ are defined:
      directive.) `#PUSH`/`#PULL` save/restore this value.
 
 -   `:SPMAX` returns the maximum used stack depth since the last time `:SPLIMIT`
-     was explicitly set (even if to the same value it had already.) You can use
+     was explicitly set _even if to the same value it already had_. You can use
      this internal variable to find the maximum stack depth for a single routine,
      a collection of routines (e.g., a whole module), or even your whole
      application's. Keep in mind, however, that it only counts stack depth in a
      linear fashion, i.e., without considering possible subroutine calls,
      recursion, or other indirect methods of altering the stack, such as the
-     `LDHX #STACKTOP` / `TXS` sequence.
+     `LDHX #STACKTOP` / `TXS` sequence.  It stills offers significant insight
+     into your code's approximate stack requirements.
 
 -   `:SPX` returns `:SP-1` when in `#SP[AUTO]` modes and `:SP-0` when in `#SP1`
-     [sub-]mode. Useful with `#X` as in `#X :SPX`. Alternatively (and
-     preferably), you may use the `,SPX` simulated indexed mode, which does not
-     depend on the `:SPX` value, and which is actually X-indexed mode but
-     stack-relative to the most recent `TSX` instruction, and possible
-     subsequent `AIX` and `MOV X+` instructions. (Note: there are many ways to
-     alter the contents of the HX index register; the assembler cannot
-     automatically account for all those possibilities; use `#X expr` where
-     needed to manually adjust the offset, and use the plain X-indexed mode).
-     This feature provides a very simple way of optimizing any SP-relative
-     instruction to X-relative (by simply appending an `X` to `,SP` making it
-     `,SPX` and using `TSX` anywhere before these instructions. All offsets are
-     automatically adjusted.)
+     [sub-]mode. Useful with `#X` as in `#X :SPX`. Alternatively _and
+     preferably as it is more readable_, you may use the `,SPX` simulated
+     indexed mode, which does not depend on the `:SPX` value, and which is
+     actually X-indexed mode but stack-relative to the most recent `TSX`
+     instruction, and possible subsequent `AIX` and `MOV X+` instructions.
+     (Note: there are many ways to alter the contents of the HX index register;
+     the assembler does not automatically account for all those possibilities;
+     use `#X expr` where needed to manually adjust the offset, and use the plain
+     X-indexed mode). This feature provides a very simple way of optimizing any
+     SP-relative instruction to X-relative (by simply appending an `X` to `,SP`
+     making it `,SPX` and using `TSX` anywhere before these instructions. All
+     offsets are automatically adjusted.)
 
 -   `:TSX` is similar to `:SPX` but, although relative to the most recent `TSX`
      instruction, and possible subsequent `AIX` and `MOV X+` instructions (like
      `:SPX`), it disregards possible following stack depth changes, unlike
      `:SPX`. (Note: there are many ways to alter the contents of the HX index
-     register; the assembler cannot automatically account for all those
+     register; the assembler will not automatically account for all those
      possibilities; use `#X expr` where needed to manually adjust the offset, and
      use the plain X-indexed mode).
 
@@ -929,20 +946,25 @@ are defined:
      so many bytes of stack. Unlike `:SPFREE` which is related to the
      automatically updated `:SPCHECK` during any `#SPAUTO` directive, `:PSP` is
      only updated manually with the `#PSP` directive, and can be used locally
-     (eg., around a sub-routine call) to free the number of stack bytes for only
-     a specific section of code (eg., whatever parameters were pushed on the
-     stack for use by the sub-routine).
+     (eg., after a subroutine call that passes some parameters on the stack)
+     to free just the number of stack bytes for that specific section of code.
+     Simply, place a `#PSP` directive right before stacking the subroutine
+     parameters, call the function, and follow with `AIS #:PSP` to remove the
+     parms.
 
 -   `:SP1` returns the current offset of the `#SP` or `#SP1` directives (like
     `:SP`), but also adds one only if we're currently in the `#SP1` mode. This
      value is always the true effective offset for both `#SP` and `#SP1` modes.
 
--   `:AB` returns the number of Address Bytes (useful for stack offsets). 2 for
-     normal, 3 for MMU
+-   `:AB` returns the number of Address Bytes (useful for stack offsets). It
+     returns 2 for normal mode, or 3 for MMU mode.  This can be used primarily
+     to correctly and automatically refer to caller stack regardless of the MMU
+     mode being active or not.  It can also be used to allocate storage for
+     pointers and to calculate offsets into a pointer table regardless of mode.
 
 -   `:X` returns the current offset of the `#X` directive.
 
--   `:YEAR` returns the year at assembly time (e.g., 2019) Hint: Use `:YEAR\100`
+-   `:YEAR` returns the year at assembly time (e.g., 2020) Hint: Use `:YEAR\100`
      for two-digit year.
 
 -   `:MONTH` returns the month at assembly time (e.g., 2)
@@ -955,7 +977,7 @@ are defined:
 
 -   `:SEC` returns the second at assembly time (e.g., 0)
 
--   `:CPU` returns a number representing the CPU type (6808 or 908)
+-   `:CPU` returns a number representing the CPU type (`6808` for older 68HC08, or `908` for newer 9S08)
 
 -   `:CRC` returns the current value of the running user CRC
 
@@ -965,8 +987,8 @@ are defined:
 
 -   `:PAGE_END` returns the page window's ending address.
 
--   `:CYCLES` returns the current value of the cycles counter, and then it is
-     reset to zero.
+-   `:CYCLES` returns the current value of the cycles counter, and then it
+     resets it to zero.
 
 -   `:OCYCLES` returns the older value of the cycles counter (but does not
      reset it).
@@ -974,18 +996,17 @@ are defined:
 -   `:TOTALMACROCALLS` returns the current value of the total macro invocations.
      Use it for display, or even to restrict macro use (e.g.,<br><br>
      `#IFNZ :TOTALMACROCALLS`<br>
-     `...`<br>
-     `#ERROR No macros allowed for this application`<br>
-     `...`<br>
-     `#ENDIF`).
+     `#ERROR Macro use not allowed for this application`<br>
+     `#ENDIF`<br>
+     placed at the end of your code).
 
 -   `:MACRONEST` returns the current value of the macro (chain) 'loop level'
      regardless if calling the same, or a different macro (think of it as the
      'nesting level'). A value of zero is returned if used outside any macros.
      First level is number 1. Each time the top-level macro is called, the
      number is reset to 1. Each time the same or a different macro is called
-     from within the current macro, the number is incremented by 1. The macro
-     (chain) can also initialize itself during, say, count one.
+     from within a macro, the number is incremented by 1. The macro (chain) can
+     also initialize itself during, say, count one.
 
 -   `:MACROLOOP` (or simply, `:LOOP`) is similar to `:MACRONEST` but it returns
      the current value of the macro 'loop level' only for the current macro. A
@@ -996,7 +1017,7 @@ are defined:
      incremented by 1. This can be used as an automatic loop counter. The macro
      can also initialize itself during, say, count one. This differs from
      `:MACRONEST` in that chained macro calls will restart this counter for each
-     new macro. This counter is also reset with a `%macro` syntax call.
+     new macro. This counter is also reset with an explicit `%macro` syntax call.
 
 -   `:MEXIT` holds the most recent `MEXIT` defined value. `:MEXIT` is reset to
      zero each time a macro is (re)entered, but its value can be changed by
@@ -1006,11 +1027,11 @@ are defined:
      without using any label definitions.
 
 -   `:MLOOP` is similar to `:LOOP` but it is only affected by the `MDO` and
-     `MLOOP` keywords. First count is number 1. Each time the `MDO` keyword is
-     encountered, the number is reset to 1. Each time the `MLOOP` keyword is
+     `MLOOP` keyword pair. First count is number 1. Each time the `MDO` keyword
+     is encountered, the number is reset to 1. Each time the `MLOOP` keyword is
      encountered, the number is incremented by 1. This can be used as an
-     automatic loop counter. This counter is also reset with a `%macro` syntax
-     call.
+     automatic loop counter. This counter is also reset with an explicit `%macro`
+     syntax call.
 
 -   `:MACROINDEX` (or `:MINDEX`) returns the current value of the current
      macro's number of invocations. A value of zero is returned if used outside
@@ -1024,7 +1045,7 @@ are defined:
      the special ad-hoc macro named "`?`"), etc. This counter is also reset with
      a `%macro` syntax call.
 
--   `:INDEX` returns the next value of the current macro's internal user index.
+-   `:INDEX` returns the next value of the current macro's internal _user_ index.
      A value of zero is returned if used outside any macros. First use in each
      macro is number 1. If the specific macro is dropped and re-created, the
      number is reset (it is, after all, a new macro). Its use is similar to
@@ -1032,18 +1053,18 @@ are defined:
      updated each time it is accessed, regardless of how many times the macro is
      actually called. So, if used inside a conditional block of code, it will
      only be incremented when that part is expanded. Note: Because of the
-     auto-increment on access, if you want to use the same value more than once
+     auto-increment on access, if you need to use the same value more than once
      in the same macro invocation, you must first assign the value to some label
      (or `:TEMP`), and then use the label, instead. This counter is also reset
      with a `%macro` syntax call.
 
--   `:0` to `:9` return the length of the text of the corresponding macro
+-   `:0` to `:999` return the length of the text of the corresponding macro
      parameter. You can use it alone or along with the `~n.s.l~` parameter
      placeholder. This can only be used from within a macro. It is not
      recognized as valid symbol outside a macro.
 
--   `:DOW` returns the day-of-week number at assembly time, from zero (Sunday)
-     to six (Saturday).
+-   `:DOW` returns the assembly time day-of-week number, from zero (Sunday) to
+     six (Saturday).
 
 -   `:PC` returns the current program counter (same as `*`) but can be used
      even in expressions where the use of `*` is ambiguous.
@@ -1053,41 +1074,45 @@ are defined:
      without having to define a symbol just for this. It is also useful inside
      frequently called macros; for example, to avoid the use of a macro local
      label definition for simple loops (helps keep the symbol table smaller in
-     large applications).
+     larger applications).
 
--   `:PROC` returns the current value of the internal local symbol counter (See
-     `PROC` and `#PROC`).
+-   `:PROC` returns the current value of the internal local symbol counter.
+     _See `PROC` and `#PROC`._
 
 -   `:MAXPROC` returns the currently maximum value of the internal local symbol
-     counter (See `PROC` and `#PROC`).
+     counter. _See `PROC` and `#PROC`._
 
 -   `:LABEL` returns the length of the `~label~` placeholder's content used
      inside macros.
 
 -   `:TEMP`, `:TEMP1`, and `:TEMP2` return the current value of each of these
-     internal user-defined assembly-time variables. (See the `#TEMP`, `#TEMP1`,
-     and `#TEMP2` directives for more details.)
+     internal user-defined assembly-time variables.
+     _See the directives `#TEMP`, `#TEMP1`, and `#TEMP2` for more details._
 
 -   `:TEXT` returns the length of the current text of the `~text~` macro
-     parameter (only from within macros.)
+     parameter _only from within macros_.
 
 -   `:LINENO` returns the current file line number.
 
--   `:MAXLABEL` returns the current value of the maximum label length.
+-   `:MAXLABEL` returns the current value of the maximum recognized label length.
+     _See `-LL` command-line option and `#MaxLabel` directive._
 
--   `:MLINENO` returns the current macro line number (only from within macros).
+-   `:MLINENO` returns the current macro line number _only from within macros_.
 
--   `:N` returns the current macro number of contiguous arguments (only from
-     within macros).
+-   `:N` returns the current macro number of contiguous arguments _only from
+     within macros_.
 
--   `:NN` returns the current macro number of all arguments (only from within
-     macros).
+-   `:NN` returns the current macro number of all arguments _only from within
+     macros_.  It equals the maximum parameter index even if previous parameters
+     are null.
 
 -   `:ANRTS` returns the address of the most recent `RTS` instruction (i.e.,
-     always points back).
+     always points back).  It produces an error if an `RTS` hasn't appeared
+     already.
 
 -   `:ANRTC` returns the address of the most recent `RTC` instruction (i.e.,
-     always points back).
+     always points back).  It produces an error if an `RTC` (MMU mode) or either
+     `RTC` or `RTS` (normal mode) hasn't appeared already.
 
 -   `:ROM`, `:RAM`, etc. All segment directives have a corresponding internal
      variable that returns the current value of that segment.
@@ -1103,7 +1128,6 @@ are defined:
 -   `:ERRORS` returns the current number of errors.
 
 ### <br>__Notes about :SP and :SP1:__<br>
-
 
 `:SP` returns the current automatic SP offset (the same for both `#SP` and
 `#SP1` modes). It will NOT account for the extra 'plus one' of the `#SP1` mode,
@@ -1123,30 +1147,30 @@ For example, use `,ASP` (or `-:SP1`) to cancel out all offsets for dealing with
 absolute numbers:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    #sp1      SomeValue
+                    #sp1      SOME_OFFSET
                     ...
 ?_a_                equ       1
                     pshx
                     cmpa      1-:sp1,sp           ;absolute offset
                     cmpa      ?_a_-:sp1,sp        ;absolute offset
-                    cmpa      ?_a_,asp            ;absolute offset
+                    cmpa      ?_a_,asp            ;absolute offset (preferred)
                     pulx
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All three `CMP` instructions above will compare against the stacked value from
+All three `CMPA` instructions above will compare against the stacked value from
 the immediately preceding `PSHX` instruction, regardless if the directive
 earlier is `#SP` or `#SP1`, and regardless of the presence or value of the
-optional parameter SomeValue. It is equivalent to `CMP 1,sp` when `#SP` mode is
-off, and you can use it regardless of the current `#SP` mode and offset, and
-even if the `#SP` directive is never used, use it to lock the offsets (so that
-possible future `#SP/#SP1` automatic offsets in related code will not affect
-these lines).
+optional parameter `SOME_OFFSET`. It is equivalent to `cmpa 1,sp` when `#SP`
+mode is off, and you can use it regardless of the current `#SP` mode and offset,
+and even if the `#SP` directive is never used, use it to lock the offsets (so
+that possible future `#SP` or `#SP1` automatic offsets in related code will not
+affect these lines).
 
 This feature is most useful when a section of code is under `#SP` control (say,
 because most instructions refer to the parent routine's stack frame, and coding
 becomes simpler and more readable under `#SP` control) but you temporarily want
 to access local stack without any automatic offsets. That way, you don't have
-to turn off `#SP`/`#SP1` mode just for one instruction, or so.
+to turn off `#SP` or `#SP1` mode just for one instruction, or so.
 
 To switch from zero-based label [or numeric] offsets to one-based (normal) stack
 offsets, without changing the current stack depth (automatic SP offset), you
@@ -1175,11 +1199,16 @@ MyOffset            equ       0                   ;zero-based offset
                     sta       MyOffset,x          ;save to local stack
                     bsr       Sub
                     ...
+
+;*******************************************************************************
+
                     #sp1      2                   ;account for RTS (zero-based)
 
-Sub                 tsx
+Sub                 proc
+                    tsx
                     lda       MyOffset,sp         ;gets A from parent stack
-                    lda       MyOffset+:sp,x      ;(equivalent to above)
+                    lda       MyOffset+:sp,x      ;(equivalent)
+                    lda       MyOffset,spx        ;(equivalent, preferred)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Examine the following assembler listing to see the corresponding produced
@@ -1235,7 +1264,7 @@ Example usage:
 
                     push                          ;protect all registers
 
-                    ais       #-7                 ;(negative AIS marks the current :SP)
+                    ais       #-7                 ;(negative AIS marks current :SP)
                     ...
                     ais       #2                  ;de-allocate some locals (no marking)
                     ...
@@ -1278,7 +1307,7 @@ The following is an example of code that shows both of the above uses:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now, as an example, if you wanted to add yet another set of parameters to the
-CopyMemory routine (assuming the routine was modified to accept them) you would
+`CopyMemory` routine (assuming the routine was modified to accept them) you would
 add some extra push instructions to the above code (shown in orange in the
 modified code below), but no other code or offsets would need adjusting.
 
@@ -1287,6 +1316,7 @@ The previous example becomes:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     #spauto                       ;auto mode and zero offset
 
+                    #psp
                     ldhx      #SkipTo             ;new instruction added later
                     pshhx                         ;new instruction added later
                     ldhx      #SkipFrom           ;new instruction added later
@@ -1298,7 +1328,7 @@ The previous example becomes:
                     ldhx      FromAddress,sp      ;no need for: FromAddress+4,sp
                     pshhx
                     call      CopyMemory          ;call the action routine
-                    ais       #:spfree            ;deallocate however many bytes
+                    ais       #:psp               ;deallocate however many bytes
                                                   ;were allocated for parameters
                     ...
                     #sp                           ;cancel auto mode and offsets
@@ -1327,47 +1357,49 @@ After a while this can get messy and error-prone.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 With automatic SP offsets, you can't be sure at all times of the actual offset
-used (after all, the idea is to let the assembler decide automatically), so
-certain optimizations that depend on specific stack offsets may no longer work
-if stack ordering is later changed. For example:
+used (after all, the idea is to let the assembler figure it out automatically),
+so certain optimizations that depend on specific stack offsets may no longer
+work if stack ordering is later changed. For example, _divide HX by ten_:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    pshhx                         ;Place number to divide on stack
-                    ldhx      #10                 ;H = 0, X = divisor
-                    pula
-                    div                           ;MSB (assuming it is at TOS)
-                    psha
-                    lda       2,sp
-                    div                           ;LSB (assuming it is at TOS)
-                    sta       2,sp
+                    pshhx                         ;place number to divide on stack
+                    clrh
+                    ldx       #10                 ;divisor
+                    pula                          ;A = MSB (assuming number at TOS)
+                    div                           ;divide it
+                    psha                          ;put it back on stack
+                    lda       2,sp                ;A = LSB (assuming number at TOS)
+                    div                           ;divide it
+                    sta       2,sp                ;save it back to stack
                     pulhx                         ;HX = result
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 will work. But, if it were changed to:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    pshhx                         ;Place number to divide on stack
+                    pshhx                         ;place number to divide on stack
 
                     #spauto                       ;auto mode and zero offset
 
-                    psha                          ;added later to protect A
+                    psha                          ;<<< added later to protect A
 
-                    ldhx      #10
-                    pula
-                    div                           ;MSB (assuming it is at TOS)
-                    psha
-                    lda       2,sp
-                    div                           ;LSB
-                    sta       2,sp
+                    clrh
+                    ldx       #10                 ;divisor
+                    pula                          ;A = MSB (assuming number at TOS)
+                    div                           ;divide it
+                    psha                          ;put it back on stack
+                    lda       2,sp                ;A = LSB (assuming number at TOS)
+                    div                           ;divide it
+                    sta       2,sp                ;save it back to stack
 
-                    pula                          ;added later ...
+                    pula                          ;<<< added later to protect A
                     ...
                     #sp                           ;cancel auto mode and offsets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 it will no longer work because `PULA` / `PSHA` always work on the top-most
-stack element (#SPAUTO cannot alter those instructions), which in this case is
-no longer the number we want to divide (as `PSHA` before `LDHX` has placed its
+stack element (`#SPAUTO` does not alter mnemonics), which in this case is no
+longer the number we want to divide (as `PSHA` before `CLRH` has placed its
 own value on the top-of-stack, as we now decided to protect register A from
 destruction during the division operation) moving the MSB of the number we want
 to divide to the true offset `2,SP`.
@@ -1379,25 +1411,23 @@ the TOS (top-of-stack) has the number:
                     #spauto                       ;auto mode and zero offset
 
 Routine             proc
-                    pshhx                         ;Place number to divide on stack
-number@@            set       ::                  ;Give name to just-stacked number
-
-;;;;;;;;;;;;;;;;;;; pshhx     number@@            ;Equivalent to previous two lines combined (#ExtraOn required)
+                    pshhx     number@@            ;stack & name number to divide
 
                     psha                          ;added later to protect A
 
-                    ldhx      #10
+                    clrh
+                    ldx       #10                 ;divisor
         #iftos number@@
-                    pula
-                    div                           ;MSB (assuming it's at TOS)
+                    pula                          ;A = MSB (assuming number at TOS)
+                    div
                     psha
         #else
-                    lda       number@@,sp
-                    div                           ;MSB
+                    lda       number@@,sp         ;A = MSB
+                    div
                     sta       number@@,sp
         #endif
-                    lda       number@@+1,sp
-                    div                           ;LSB
+                    lda       number@@+1,sp       ;A = LSB
+                    div
                     sta       number@@+1,sp
 
                     pula                          ;added later ...
@@ -1409,12 +1439,8 @@ number@@            set       ::                  ;Give name to just-stacked num
                     #sp                           ;cancel auto mode and offsets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Here, we use `#SPAUTO` outside the whole code block. We then assign a name to
-the stacked number (two methods shown, 2nd one commented out) using the `::`
-internal variable (which always _i.e., regardless of current stack depth and the
-`#SP`/`#SP1` setting of `#SPAUTO` mode_ refers to the top-of-stack item, so it
-must be placed immediately following the stack operation *i.e., before another
-stack altering operation*). Finally, using conditional assembly (`#IFTOS`), we
+Here, we use `#SPAUTO` outside the whole code block. We then stack and assign a
+name to the number. Finally, using conditional assembly (`#IFTOS`), we
 test for the `number@@` sp offset having the effective value 1 (i.e., TOS), and
 if so, we can use the optimization, otherwise we code it as if it were any other
 stack offset. (This is particularly useful in general-purpose macros, where it's
@@ -1425,11 +1451,26 @@ required to any of the remaining code. The `PULA`/`PSHA` optimization will
 automatically be activated, and due to `#SPAUTO`, all offsets will be adjusted
 accordingly.
 
-The above example also introduces the use of the `::` internal symbol.
+Another method to stack and name the number is:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    #spauto                       ;auto mode and zero offset
+
+Routine             proc
+                    pshhx
+number@@            set       ::,2                ;stack & name number to divide
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+using the `::` internal variable (which always _i.e., regardless of current
+stack depth and the `#SP`/`#SP1` setting of `#SPAUTO` mode_ refers to the
+top-of-stack item, so it must be placed immediately following the stack operation
+_i.e., before another stack altering operation_).
+
+The above example introduces the use of the `::` internal symbol.
 
 The special `::` internal symbol (a shortcut for the equivalent expression
 `1-:SP` for `#SP[AUTO]` modes, or `0-:SP` for `#SP1` mode) is a very useful
-dynamic symbol for quickly and easily (i.e., without any mental calculations)
+dynamic symbol for quickly and easily _and without any mental calculations_
 assigning labels to any stacked content, and at the exact time you push anything
 on the stack (no need to have your stack frame organized in advance, just define
 it as you use the stack). Because of the automatic SP adjustment while in the
@@ -1440,30 +1481,30 @@ if used outside of `#SP[AUTO]` modes (or `0,SP` in `#SP1` mode, which is
 practically useless), and a warning will be issued whenever you use a
 stack-related internal symbol outside of a relevant SP-adjusting mode.
 
-To use, always start a sub-routine with `#SPAUTO`. Any stack offsets 'above' the
+To use, always start a subroutine with `#SPAUTO`. Any stack offsets 'above' the
 current routine (normally, that would be in the parent routine's stack) will be
 defined 'before' the `#SPAUTO` directive (not necessarily 'physically before'
 but 'logically before', i.e., based on a fixed starting offset value, usually
 the value one, and NOT the dynamic value of `:SP`), while stack contents within
-the routine will be defined 'after' the #SPAUTO directive using the :: internal
-symbol as a base offset. An `#SP` directive after the end of the sub-routine
-turns all automatic SP adjustments off.
+the routine will be defined _logically_ 'after' the #SPAUTO directive using the
+:: internal symbol as a base offset. An `#SP` directive after the end of the
+subroutine turns all automatic SP adjustments off.
 
-You may even re-define a stack-offset symbol (using the `SET` pseudo-instruction)
-and use it again with an updated stack location to prevent accidentally
-accessing the wrong stack item. For example, copying a parent routine's variable
-to local stack so that you may change the local copy without affecting the
-parent stack's variable is as simple as:
+You may even re-define a stack-offset symbol (either using a 'named push' or the
+`name SET ::` method) and use it again with an updated stack location to prevent
+accidentally accessing the wrong stack item. For example, copying a parent
+routine's variable to local stack so that you may change the local copy without
+affecting the parent stack's variable is as simple as:
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     #spauto                       ;auto mode without any offsets
 
 Parent              proc
-                    pshhx     parm@@              ;Place parm on stack and name it
+                    pshhx     parm@@              ;stack parm and name it
                     ...
                     bsr       Child
                     ...
-                    sthx      parm@@,sp           ;Affects Parent's stack variable
+                    sthx      parm@@,sp           ;affects Parent's stack variable
                     rtc
 
 ;*******************************************************************************
@@ -1471,11 +1512,11 @@ Parent              proc
                     #spauto   2                   ;auto mode plus RTS
 
 Child               proc
-parm@@              equ       1                   ;1 => caller's top-of-stack
-                    ldhx      parm@@,sp           ;Get parm from parent's stack
-                    pshhx     parm@@              ;Place parm on local stack and name it
-                    ...                           ;(Name "parm@@" now refers to Child's copy)
-                    sthx      parm@@,sp           ;Affects Child's stack variable
+parm@@              equ       1                   ;caller TOS before calling Child
+                    ldhx      parm@@,sp           ;get parm from Parent's stack
+                    pshhx     parm@@              ;stack local copy of parm and name it
+                    ...                           ;(name "parm@@" now refers to Child's copy)
+                    sthx      parm@@,sp           ;affects Child's stack variable
                     pulhx
                     rts
 
@@ -1490,9 +1531,8 @@ yourself, however), you may be surprised how you ever managed without it.
 Certainly, I was!
 
 Several coding examples that collectively implement all the features described
-here can be found at http://www.aspisys.com/code followed by the link shown on
-that page, for the corresponding example. (You may have to manually type the
-rest of the URL, as no direct links may be provided for each separate example.)
+here can be found at http://www.aspisys.com/code and in the `code` subdirectory
+of the assembler ZIP archive.
 
 ### <br>__Notes about :X and #X mode__<br>
 
@@ -1534,9 +1574,9 @@ Sub                 tsx
 -   The obvious advantage is that if you alter code as in the example loop below
     (e.g., by adding conditional early escape code inside the loop), it will
     still be timed correctly without requiring a manual adjustment of the delay
-    constant. Another advantage is that you do not have to keep separate cycle
+    constant. A second advantage is that you do not have to keep separate cycle
     counts for 9S08 and HC08 families. A third advantage is that conditionally
-    enabled code will be accounted for correctly in all cases, again without
+    enabled code will be cycle counted correctly in all cases, again without
     requiring a manual recalculation for each conditional case.
 
 -   Example use of :cycles that automatically calculates the appropriate delay
@@ -1653,29 +1693,29 @@ Expression Operators and Other Special Characters<br>
 
 |Operator|Description|
 |:------:|:--------------------------------------------------------------------|
-|+       |Addition
-|-       |Subtraction. When used as a unary operator, the 2's complement of the value to the right is returned.
-|\*      |Multiplication<br><br>Can also be used to represent the current location counter.
-|/       |Integer Division (ignores remainder)
-|\\      |Modulus (remainder of integer division)
-|=       |'Equal' comparison for the `#IF` directive.
-|\<\>    |'Not equal' comparison for the `#IF` directive. \|\>=\|'Greater than or equal' comparison for the `#IF` directive.
-|\>      |Shift right - operand to the left is shifted right by the count to the right.<br><br>Also used to specify extended addressing mode.<br><br>'Greater than' comparison for the `#IF` directive.
-|\<=     |'Less than or equal' comparison for the `#IF` directive.
-|\<      |Shift left - operand to the left is shifted left by the count to the right.<br><br>Also used to specify direct addressing mode.<br><br>'Less than' comparison for the `#IF` directive.
-|\&      |Bitwise AND
-|\|      |Bitwise OR
-|\^      |Bitwise XOR (exclusive OR)
-|\~      |Swap high and low bytes (unary): `~$1234 = $3412`<br><br>Useful for converting word constants from big endian to little endian, or the inverse.
-|[[      |Extract low 16 bits (unary): `[[$123456 = $3456`
-|]]      |Extract high 16 bits (unary): `]]$123456 = $0012`
-|[       |Extract low 8 bits from lower 16-bit word (unary): `[$1234 = $34`
-|]       |Extract high 8 bits from lower 16-bit word (unary): `]$1234 = $12`
-|$       |Interpret numeric constant that follows as a hexadecimal number.<br><br>Can also be used to represent the current location counter.
-|%       |Interpret numeric constant that follows as a binary number
-|'\`"    |Any one of these characters _(single, back, or double-quote)_ may be used to enclose a string or character entity.  The character used at the start of the string must be used to end it.
-|#       |Specifies immediate addressing mode
-|@       |Specifies direct addressing mode (same as`<`)
+|`+`     |Addition
+|`-`     |Subtraction. When used as a unary operator, the 2's complement of the value to the right is returned.
+|`*`     |Multiplication<br><br>Can also be used to represent the current location counter.
+|`/`     |Integer Division (ignores remainder)
+|`\`     |Modulus (remainder of integer division)
+|`=`     |'Equal' comparison for the `#IF` directive.
+|`<>`    |'Not equal' comparison for the `#IF` directive. \|\>=\|'Greater than or equal' comparison for the `#IF` directive.
+|`>`     |Shift right - operand to the left is shifted right by the count to the right.<br><br>Also used to specify extended addressing mode.<br><br>'Greater than' comparison for the `#IF` directive.
+|`<=`    |'Less than or equal' comparison for the `#IF` directive.
+|`<`     |Shift left - operand to the left is shifted left by the count to the right.<br><br>Also used to specify direct addressing mode.<br><br>'Less than' comparison for the `#IF` directive.
+|`&`     |Bitwise AND
+|`|`     |Bitwise OR
+|`^`     |Bitwise XOR (exclusive OR)
+|`~`     |Swap high and low bytes (unary): `~$1234 = $3412`<br><br>Useful for converting word constants from big endian to little endian, or the inverse.
+|`[[`    |Extract low 16 bits (unary): `[[$123456 = $3456`
+|`]]`    |Extract high 16 bits (unary): `]]$123456 = $0012`
+|`[`     |Extract low 8 bits from lower 16-bit word (unary): `[$1234 = $34`
+|`]`     |Extract high 8 bits from lower 16-bit word (unary): `]$1234 = $12`
+|`$`     |Interpret numeric constant that follows as a hexadecimal number.<br><br>Can also be used to represent the current location counter.
+|`%`     |Interpret numeric constant that follows as a binary number
+|```'`"```|Any one of these characters _(single, back, or double-quote)_ may be used to enclose a string or character entity.  The character used at the start of the string must be used to end it.
+|`#`     |Specifies immediate addressing mode
+|`@`     |Specifies direct addressing mode (same as`<`)
 
 ASM8 Extended Instruction Set
 =============================
@@ -1887,9 +1927,9 @@ Segments
 --------
 
 Eight special directives allow you to use segments in your programs. Segments
-are useful mostly in conjunction with the use of INCLUDE files. Since often it
+are useful mostly in conjunction with the use of `INCLUDE` files. Since often it
 is not possible to know the current memory allocation for variables and code
-when inside a general-purpose INCLUDE file, segments help overcome this (and
+when inside a general-purpose `INCLUDE` file, segments help overcome this (and
 other problems) with ease.
 
 Also, we often want to have our code and data (strings, tables, etc.) grouped
@@ -1911,18 +1951,18 @@ optional. If segments aren't used, you are always in the default `#ROM` segment
 --------------------------------------------------------------------------------
 
 All symbols that begin with a question mark [`?`] are considered to be local.
-Local symbols are local on a per-file basis. Each INCLUDE file (as well as the
+Local symbols are local on a per-file basis. Each `INCLUDE` file (as well as the
 main file) can have its own locals that will not interfere with similarly named
 symbols of the remaining participating files.
 
 This has two advantages:
 
-First, symbols can be re-used in another INCLUDE file in a completely different
+First, symbols can be re-used in another `INCLUDE` file in a completely different
 way.
 
 Second, local symbols are not visible outside the file that contains them.
 
-This last benefit makes it possible to write quite complex INCLUDE files while
+This last benefit makes it possible to write quite complex `INCLUDE` files while
 making only the global variables and subroutine entry labels visible to the
 outside.
 
@@ -1997,7 +2037,7 @@ Start               rsp                           ;the program begins here
                     bra       *                   ;the program ends here
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-will be assembled at $F800 with the command `ASM8 SAMPLE` but you could also
+will be assembled at `$F800` with the command `ASM8 SAMPLE` but you could also
 assemble with a command similar to this: `ASM8 SAMPLE -DROM:$8000` to move ROM
 to a different location at assembly time. (You can use either `:` or `=` to
 assign a value.)
@@ -2059,7 +2099,7 @@ Comments always start with a semicolon. Macro comments that do not need
 expansion start with a double semicolon.
 
 Labels are defined starting in column 1 and use the default maximum label length
-of 19 so they remain compatible with P&E map files.
+of 19 so they remain compatible with _P&E Micro_ map files.
 
 Opcodes, pseudo opcodes (e.g., `ORG`) start in column 21.
 
@@ -2144,7 +2184,7 @@ The MEMORY directive is generally very useful for any program. It could help
 you save precious debugging time by alerting you whenever you accidentally put
 code and/or data where there is no real or available memory. The best place to
 use this directive is the same include file that defines the particulars of a
-specific MCU. And, assuming you always INCLUDE one such file in every program
+specific MCU. And, assuming you always `#INCLUDE` one such file in every program
 you write, you can forget about it.
 
 Another use for the memory directive is to help you write a program that does
@@ -2219,7 +2259,7 @@ except where noted otherwise.
 
 IMPORTANT: You must use the `-MTA` option for generation of ASM8 map files.
 This will create ASCII map files that can be parsed by a regular expression text
-parser. (The default P&E map files cannot be used for this purpose.)
+parser. (The default _P&E Micro_ map files cannot be used for this purpose.)
 
 In FreeMASTER application, go to "Project/Options/MAP Files" option and define a
 RegExp text parser as the File Format. Then fill out the screen that appears as
@@ -2228,5 +2268,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.88, December 17, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
+ASM8 v9.88, December 19, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
