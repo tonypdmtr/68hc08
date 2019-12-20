@@ -45,7 +45,7 @@ self-contained, and include the following:
 - Self-timed delays _(based on user defined bus frequency)_
 - A special math library that can be used _via a single `Eval` macro_ with the
   same ease as when writing math expressions in higher level languages _(taking
-  care of all lower level details such as operand precedence, and mixing
+  care of all lower level details such as operator precedence, and mixing
   variables of different sizes)_
 - A general-purpose `print` macro that can print a mix of constants, constant
   or variable strings, math expressions, and pointed strings. Using unified I/O,
@@ -1685,11 +1685,25 @@ Expression Operators and Other Special Characters<br>
 ================================================================================
 
 
--   Expressions are evaluated in the order they are written (left to right).
-    All operators have equal precedence.
+-   Expressions are evaluated in the order they are written: left to right.
+    **All operators have equal precedence.**  Many other assemblers behave the
+    same in this respect. Although at first this may seem like a nuisance, in
+    practice _for assembly language coding in particular_ it turns out that
+    _in most cases_ this allows for less complex, easier to read expressions,
+    and it also makes it easier to use with macro parameters.
+    For example, instead of `lda {~1~}*2,x` one simply writes `lda ~1~*2,x` as
+    `~1~` is already known to evaluate correctly regardless of the operators
+    used in a possible expression inside `~1~`, such as `OffsetB-OffsetA`.
+    Care is needed when porting code from other assemblers that don't use left-
+    to-right operator precedence to transform all expressions, accordingly.
+    This should be straight forward in most cases.  You can use `{ ... }` to
+    change the default precedence, such as `{1+2}*{3+4}`.  The only limitation
+    is no forward references are allowed.
 
--   Avoid inserting spaces between values and operators (unless using -SP+
-    switch and ; comments).
+-   Avoid inserting spaces between values and operators (unless using `-SP+`
+    command-line switch or the `#SpacesOn` directive together with `;` beginning
+    comments).  Otherwise, the expression will evaluate until the first space
+    encounted and you will get unexpected results.
 
 |Operator|Description|
 |:------:|:--------------------------------------------------------------------|
