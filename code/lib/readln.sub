@@ -22,10 +22,19 @@
                     #ListOn
 
 getc                macro
-                    ...
+          #if :index = 1
+                    ...       \@~macro~\@ macro is a stub
+                    mexit
+          #endif
+                    !...
                     endm
+
 putc                macro
-                    ...
+          #if :index = 1
+                    ...       \@~macro~\@ macro is a stub
+                    mexit
+          #endif
+                    !...
                     endm
 #endif ;------------------------------------------------------------------------
 ?_OBJECT_?

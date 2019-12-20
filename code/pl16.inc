@@ -440,9 +440,13 @@ ICS_C2              equ       $3039,1             ;ICS Control Register 2
                     @bitnum   BDIV2,7             ;Bus Frequency Divider, bit 2
 
 ICS_C3              equ       $303A,1             ;ICS Control Register 3
-ICS_C4              equ       $303B,1             ;ICS Control Register 4
+ICSTRM              equ       ICS_C3,1            ;         -//-
 
-                    @bitnum   SCFTRIM,0           ;Slow Internal Reference Clock Fine Trim
+ICS_C4              equ       $303B,1             ;ICS Control Register 4
+ICSFTRM             equ       ICS_C4,1            ;         -//-
+ICSSC               equ       ICS_C4,1            ;         -//-
+
+                    @bitnum   FTRIM,0             ;Slow Internal Reference Clock Fine Trim
                     @bitnum   CME,5               ;Clock Monitor Enable
                     @bitnum   LOLIE,7             ;Loss of Lock Interrupt
 
@@ -762,6 +766,9 @@ SYS_UUID5           equ       $30FC,1             ;Universally Unique Identifier
 SYS_UUID6           equ       $30FD,1             ;Universally Unique Identifier Register 6
 SYS_UUID7           equ       $30FE,1             ;Universally Unique Identifier Register 7
 SYS_UUID8           equ       $30FF,1             ;Universally Unique Identifier Register 8
+
+NVFTRIM             equ       $FF6E,1             ;NV FTRIM
+NVICSTRM            equ       $FF6F,1             ;NV ICS Trim
 
 NVBACKKEY           equ       $FF70,8             ;NV_BACKKEY - Back Door Key Register
 
