@@ -3,10 +3,10 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2019 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: December 19, 2019 for ASM8 v9.88*
+*Latest Manual Update: December 24, 2019 for ASM8 v9.88*
 
-ASM8 is a two-pass absolute macro cross-assembler for the 68HC08 or HCS08 or
-9S08 MCU by NXP (originally by Motorola, and later by Freescale).
+ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
+by NXP (originally by Motorola, and later by Freescale).
 
 This tool has been evolving for almost 20 years with new features, and
 occasional bug fixes, with very few and trivial backward compatibility issues.
@@ -1729,7 +1729,7 @@ Expression Operators and Other Special Characters<br>
 |`%`     |Interpret numeric constant that follows as a binary number
 |```'`"```|Any one of these characters _(single, back, or double-quote)_ may be used to enclose a string or character entity.  The character used at the start of the string must be used to end it.
 |`#`     |Specifies immediate addressing mode
-|`@`     |Specifies direct addressing mode (same as`<`)
+|`@`     |Specifies direct addressing mode (same as `<`)
 
 ASM8 Extended Instruction Set
 =============================
@@ -2034,7 +2034,10 @@ simply try assembling with the `-D?` option and you will get help. (A question
 mark is the smallest possible local symbol you can define. It is a perfect
 candidate for this job as it is easy to remember because it's like asking for
 help, and also because it is only visible in the main file. You could, of
-course, use any other symbol name you like, but be consistent.) Using `-Dx` with specific values
+course, use any other symbol name you like, but be consistent.)
+
+Using `-Dx` with specific values
+--------------------------------
 
 You may also assign a specific value to a symbol defined at the command-line.
 This makes it possible, among other things, to assemble a program at different
@@ -2280,7 +2283,7 @@ RegExp text parser as the File Format. Then fill out the screen that appears as
 follows:
 `([0-9A-F]+) +([0-9]+) +([0-9]+) +([^ ]+) +([1-9][0-9]*)`
 
-![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
+![FreeMASTER](3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.88, December 19, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
+ASM8 v9.88, December 24, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
