@@ -16,7 +16,7 @@
   #ifexists tboot.exp
                     #Uses     tboot.exp
   #else
-                    #Uses     tboot/tboot32.exp
+                    #Uses     tboot/tboot_ac32.exp
   #endif
 
 #endif
@@ -92,233 +92,234 @@ DDRF                equ       $000B,1             ;I/O port F Data Direction Reg
 PORTG               equ       $000C,1             ;I/O port G Data Register
 DDRG                equ       $000D,1             ;I/O port G Data Direction Register
 
-ADC1SC1             equ       $0010,1             ; Status and Control Register 1
-ADCSC1              equ       $0010,1             ; Status and Control Register 1
-ADC1SC2             equ       $0011,1             ; Status and Control Register 2
-ADC1R               equ       $0012,2             ; Data Result Register
-ADCR                equ       $0012,2             ; Data Result Register
-ADC1RH              equ       $0012,1             ; Data Result High Register
-ADC1RL              equ       $0013,1             ; Data Result Low Register
-ADC1CV              equ       $0014,2             ; Compare Value Register
-ADC1CVH             equ       $0014,1             ; Compare Value High Register
-ADC1CVL             equ       $0015,1             ; Compare Value Low Register
-ADC1CFG             equ       $0016,1             ; Configuration Register
-APCTL1              equ       $0017,1             ; Pin Control 1 Register
-APCTL2              equ       $0018,1             ; Pin Control 2 Register
+ADC1SC1             equ       $0010,1             ;Status and Control Register 1
+ADCSC1              equ       $0010,1             ;Status and Control Register 1
+ADC1SC2             equ       $0011,1             ;Status and Control Register 2
+ADC1R               equ       $0012,2             ;Data Result Register
+ADCR                equ       $0012,2             ;Data Result Register
+ADC1RH              equ       $0012,1             ;Data Result High Register
+ADC1RL              equ       $0013,1             ;Data Result Low Register
+ADC1CV              equ       $0014,2             ;Compare Value Register
+ADC1CVH             equ       $0014,1             ;Compare Value High Register
+ADC1CVL             equ       $0015,1             ;Compare Value Low Register
+ADC1CFG             equ       $0016,1             ;Configuration Register
+APCTL1              equ       $0017,1             ;Pin Control 1 Register
+APCTL2              equ       $0018,1             ;Pin Control 2 Register
 
-IRQSC               equ       $001C,1             ; Interrupt request status and control register
+IRQSC               equ       $001C,1             ;Interrupt request status and control register
 
-KBISC               equ       $001E,1             ; KBI Status and Control Register
-KBIPE               equ       $001F,1             ; KBI Pin Enable Register
+KBISC               equ       $001E,1             ;KBI Status and Control Register
+KBIPE               equ       $001F,1             ;KBI Pin Enable Register
 
-TPM1SC              equ       $0020,1             ; TPM1 Status and Control Register
-TPM1CNT             equ       $0021,2             ; TPM1 Timer Counter Register
-TPM1CNTH            equ       $0021,1             ; TPM1 Timer Counter Register High
-TPM1CNTL            equ       $0022,1             ; TPM1 Timer Counter Register Low
-TPM1MOD             equ       $0023,2             ; TPM1 Timer Counter Modulo Register
-TPM1MODH            equ       $0023,1             ; TPM1 Timer Counter Modulo Register High
-TPM1MODL            equ       $0024,1             ; TPM1 Timer Counter Modulo Register Low
-TPM1C0SC            equ       $0025,1             ; TPM1 Timer Channel 0 Status and Control Register
-TPM1C0V             equ       $0026,2             ; TPM1 Timer Channel 0 Value Register
-TPM1C0VH            equ       $0026,1             ; TPM1 Timer Channel 0 Value Register High
-TPM1C0VL            equ       $0027,1             ; TPM1 Timer Channel 0 Value Register Low
-TPM1C1SC            equ       $0028,1             ; TPM1 Timer Channel 1 Status and Control Register
-TPM1C1V             equ       $0029,2             ; TPM1 Timer Channel 1 Value Register
-TPM1C1VH            equ       $0029,1             ; TPM1 Timer Channel 1 Value Register High
-TPM1C1VL            equ       $002A,1             ; TPM1 Timer Channel 1 Value Register Low
-TPM1C2SC            equ       $002B,1             ; TPM1 Timer Channel 2 Status and Control Register
-TPM1C2V             equ       $002C,2             ; TPM1 Timer Channel 2 Value Register
-TPM1C2VH            equ       $002C,1             ; TPM1 Timer Channel 2 Value Register High
-TPM1C2VL            equ       $002D,1             ; TPM1 Timer Channel 2 Value Register Low
-TPM1C3SC            equ       $002E,1             ; TPM1 Timer Channel 3 Status and Control Register
-TPM1C3V             equ       $002F,2             ; TPM1 Timer Channel 3 Value Register
-TPM1C3VH            equ       $002F,1             ; TPM1 Timer Channel 3 Value Register High
-TPM1C3VL            equ       $0030,1             ; TPM1 Timer Channel 3 Value Register Low
-TPM1C4SC            equ       $0031,1             ; TPM1 Timer Channel 4 Status and Control Register
-TPM1C4V             equ       $0032,2             ; TPM1 Timer Channel 4 Value Register
-TPM1C4VH            equ       $0032,1             ; TPM1 Timer Channel 4 Value Register High
-TPM1C4VL            equ       $0033,1             ; TPM1 Timer Channel 4 Value Register Low
-TPM1C5SC            equ       $0034,1             ; TPM1 Timer Channel 5 Status and Control Register
-TPM1C5V             equ       $0035,2             ; TPM1 Timer Channel 5 Value Register
-TPM1C5VH            equ       $0035,1             ; TPM1 Timer Channel 5 Value Register High
-TPM1C5VL            equ       $0036,1             ; TPM1 Timer Channel 5 Value Register Low
+TPM1SC              equ       $0020,1             ;TPM1 Status and Control Register
+TPM1CNT             equ       $0021,2             ;TPM1 Timer Counter Register
+TPM1CNTH            equ       $0021,1             ;TPM1 Timer Counter Register High
+TPM1CNTL            equ       $0022,1             ;TPM1 Timer Counter Register Low
+TPM1MOD             equ       $0023,2             ;TPM1 Timer Counter Modulo Register
+TPM1MODH            equ       $0023,1             ;TPM1 Timer Counter Modulo Register High
+TPM1MODL            equ       $0024,1             ;TPM1 Timer Counter Modulo Register Low
+TPM1C0SC            equ       $0025,1             ;TPM1 Timer Channel 0 Status and Control Register
+TPM1C0V             equ       $0026,2             ;TPM1 Timer Channel 0 Value Register
+TPM1C0VH            equ       $0026,1             ;TPM1 Timer Channel 0 Value Register High
+TPM1C0VL            equ       $0027,1             ;TPM1 Timer Channel 0 Value Register Low
+TPM1C1SC            equ       $0028,1             ;TPM1 Timer Channel 1 Status and Control Register
+TPM1C1V             equ       $0029,2             ;TPM1 Timer Channel 1 Value Register
+TPM1C1VH            equ       $0029,1             ;TPM1 Timer Channel 1 Value Register High
+TPM1C1VL            equ       $002A,1             ;TPM1 Timer Channel 1 Value Register Low
+TPM1C2SC            equ       $002B,1             ;TPM1 Timer Channel 2 Status and Control Register
+TPM1C2V             equ       $002C,2             ;TPM1 Timer Channel 2 Value Register
+TPM1C2VH            equ       $002C,1             ;TPM1 Timer Channel 2 Value Register High
+TPM1C2VL            equ       $002D,1             ;TPM1 Timer Channel 2 Value Register Low
+TPM1C3SC            equ       $002E,1             ;TPM1 Timer Channel 3 Status and Control Register
+TPM1C3V             equ       $002F,2             ;TPM1 Timer Channel 3 Value Register
+TPM1C3VH            equ       $002F,1             ;TPM1 Timer Channel 3 Value Register High
+TPM1C3VL            equ       $0030,1             ;TPM1 Timer Channel 3 Value Register Low
+TPM1C4SC            equ       $0031,1             ;TPM1 Timer Channel 4 Status and Control Register
+TPM1C4V             equ       $0032,2             ;TPM1 Timer Channel 4 Value Register
+TPM1C4VH            equ       $0032,1             ;TPM1 Timer Channel 4 Value Register High
+TPM1C4VL            equ       $0033,1             ;TPM1 Timer Channel 4 Value Register Low
+TPM1C5SC            equ       $0034,1             ;TPM1 Timer Channel 5 Status and Control Register
+TPM1C5V             equ       $0035,2             ;TPM1 Timer Channel 5 Value Register
+TPM1C5VH            equ       $0035,1             ;TPM1 Timer Channel 5 Value Register High
+TPM1C5VL            equ       $0036,1             ;TPM1 Timer Channel 5 Value Register Low
 
-TPMSC               equ       TPM1SC,::TPM1SC      ; TPM1 Status and Control Register
-TPMCNT              equ       TPM1CNT,::TPM1CNT    ; TPM1 Timer Counter Register
-TPMCNTH             equ       TPM1CNTH,::TPM1CNTH  ; TPM1 Timer Counter Register High
-TPMCNTL             equ       TPM1CNTL,::TPM1CNTL  ; TPM1 Timer Counter Register Low
-TPMMOD              equ       TPM1MOD,::TPM1MOD    ; TPM1 Timer Counter Modulo Register
-TPMMODH             equ       TPM1MODH,::TPM1MODH  ; TPM1 Timer Counter Modulo Register High
-TPMMODL             equ       TPM1MODL,::TPM1MODL  ; TPM1 Timer Counter Modulo Register Low
-TPMC0SC             equ       TPM1C0SC,::TPM1C0SC  ; TPM1 Timer Channel 0 Status and Control Register
-TPMC0V              equ       TPM1C0V,::TPM1C0V    ; TPM1 Timer Channel 0 Value Register
-TPMC0VH             equ       TPM1C0VH,::TPM1C0VH  ; TPM1 Timer Channel 0 Value Register High
-TPMC0VL             equ       TPM1C0VL,::TPM1C0VL  ; TPM1 Timer Channel 0 Value Register Low
-TPMC1SC             equ       TPM1C1SC,::TPM1C1SC  ; TPM1 Timer Channel 1 Status and Control Register
-TPMC1V              equ       TPM1C1V,::TPM1C1V    ; TPM1 Timer Channel 1 Value Register
-TPMC1VH             equ       TPM1C1VH,::TPM1C1VH  ; TPM1 Timer Channel 1 Value Register High
-TPMC1VL             equ       TPM1C1VL,::TPM1C1VL  ; TPM1 Timer Channel 1 Value Register Low
-TPMC2SC             equ       TPM1C2SC,::TPM1C2SC  ; TPM1 Timer Channel 2 Status and Control Register
-TPMC2V              equ       TPM1C2V,::TPM1C2V    ; TPM1 Timer Channel 2 Value Register
-TPMC2VH             equ       TPM1C2VH,::TPM1C2VH  ; TPM1 Timer Channel 2 Value Register High
-TPMC2VL             equ       TPM1C2VL,::TPM1C2VL  ; TPM1 Timer Channel 2 Value Register Low
-TPMC3SC             equ       TPM1C3SC,::TPM1C3SC  ; TPM1 Timer Channel 3 Status and Control Register
-TPMC3V              equ       TPM1C3V,::TPM1C3V    ; TPM1 Timer Channel 3 Value Register
-TPMC3VH             equ       TPM1C3VH,::TPM1C3VH  ; TPM1 Timer Channel 3 Value Register High
-TPMC3VL             equ       TPM1C3VL,::TPM1C3VL  ; TPM1 Timer Channel 3 Value Register Low
-TPMC4SC             equ       TPM1C4SC,::TPM1C4SC  ; TPM1 Timer Channel 4 Status and Control Register
-TPMC4V              equ       TPM1C4V,::TPM1C4V    ; TPM1 Timer Channel 4 Value Register
-TPMC4VH             equ       TPM1C4VH,::TPM1C4VH  ; TPM1 Timer Channel 4 Value Register High
-TPMC4VL             equ       TPM1C4VL,::TPM1C4VL  ; TPM1 Timer Channel 4 Value Register Low
-TPMC5SC             equ       TPM1C5SC,::TPM1C5SC  ; TPM1 Timer Channel 5 Status and Control Register
-TPMC5V              equ       TPM1C5V,::TPM1C5V    ; TPM1 Timer Channel 5 Value Register
-TPMC5VH             equ       TPM1C5VH,::TPM1C5VH  ; TPM1 Timer Channel 5 Value Register High
-TPMC5VL             equ       TPM1C5VL,::TPM1C5VL  ; TPM1 Timer Channel 5 Value Register Low
+TPMSC               equ       TPM1SC,::TPM1SC     ;TPM1 Status and Control Register
+TPMCNT              equ       TPM1CNT,::TPM1CNT   ;TPM1 Timer Counter Register
+TPMCNTH             equ       TPM1CNTH,::TPM1CNTH ;TPM1 Timer Counter Register High
+TPMCNTL             equ       TPM1CNTL,::TPM1CNTL ;TPM1 Timer Counter Register Low
+TPMMOD              equ       TPM1MOD,::TPM1MOD   ;TPM1 Timer Counter Modulo Register
+TPMMODH             equ       TPM1MODH,::TPM1MODH ;TPM1 Timer Counter Modulo Register High
+TPMMODL             equ       TPM1MODL,::TPM1MODL ;TPM1 Timer Counter Modulo Register Low
+TPMC0SC             equ       TPM1C0SC,::TPM1C0SC ;TPM1 Timer Channel 0 Status and Control Register
+TPMC0V              equ       TPM1C0V,::TPM1C0V   ;TPM1 Timer Channel 0 Value Register
+TPMC0VH             equ       TPM1C0VH,::TPM1C0VH ;TPM1 Timer Channel 0 Value Register High
+TPMC0VL             equ       TPM1C0VL,::TPM1C0VL ;TPM1 Timer Channel 0 Value Register Low
+TPMC1SC             equ       TPM1C1SC,::TPM1C1SC ;TPM1 Timer Channel 1 Status and Control Register
+TPMC1V              equ       TPM1C1V,::TPM1C1V   ;TPM1 Timer Channel 1 Value Register
+TPMC1VH             equ       TPM1C1VH,::TPM1C1VH ;TPM1 Timer Channel 1 Value Register High
+TPMC1VL             equ       TPM1C1VL,::TPM1C1VL ;TPM1 Timer Channel 1 Value Register Low
+TPMC2SC             equ       TPM1C2SC,::TPM1C2SC ;TPM1 Timer Channel 2 Status and Control Register
+TPMC2V              equ       TPM1C2V,::TPM1C2V   ;TPM1 Timer Channel 2 Value Register
+TPMC2VH             equ       TPM1C2VH,::TPM1C2VH ;TPM1 Timer Channel 2 Value Register High
+TPMC2VL             equ       TPM1C2VL,::TPM1C2VL ;TPM1 Timer Channel 2 Value Register Low
+TPMC3SC             equ       TPM1C3SC,::TPM1C3SC ;TPM1 Timer Channel 3 Status and Control Register
+TPMC3V              equ       TPM1C3V,::TPM1C3V   ;TPM1 Timer Channel 3 Value Register
+TPMC3VH             equ       TPM1C3VH,::TPM1C3VH ;TPM1 Timer Channel 3 Value Register High
+TPMC3VL             equ       TPM1C3VL,::TPM1C3VL ;TPM1 Timer Channel 3 Value Register Low
+TPMC4SC             equ       TPM1C4SC,::TPM1C4SC ;TPM1 Timer Channel 4 Status and Control Register
+TPMC4V              equ       TPM1C4V,::TPM1C4V   ;TPM1 Timer Channel 4 Value Register
+TPMC4VH             equ       TPM1C4VH,::TPM1C4VH ;TPM1 Timer Channel 4 Value Register High
+TPMC4VL             equ       TPM1C4VL,::TPM1C4VL ;TPM1 Timer Channel 4 Value Register Low
+TPMC5SC             equ       TPM1C5SC,::TPM1C5SC ;TPM1 Timer Channel 5 Status and Control Register
+TPMC5V              equ       TPM1C5V,::TPM1C5V   ;TPM1 Timer Channel 5 Value Register
+TPMC5VH             equ       TPM1C5VH,::TPM1C5VH ;TPM1 Timer Channel 5 Value Register High
+TPMC5VL             equ       TPM1C5VL,::TPM1C5VL ;TPM1 Timer Channel 5 Value Register Low
 
-SCI1BD              equ       $0038,2             ; SCI1 Baud Rate Register
-SCI1BDH             equ       $0038,1             ; SCI1 Baud Rate Register High
-SCI1BDL             equ       $0039,1             ; SCI1 Baud Rate Register Low
-SCI1C1              equ       $003A,1             ; SCI1 Control Register 1
-SCI1C2              equ       $003B,1             ; SCI1 Control Register 2
-SCI1S1              equ       $003C,1             ; SCI1 Status Register 1
-SCI1S2              equ       $003D,1             ; SCI1 Status Register 2
-SCI1C3              equ       $003E,1             ; SCI1 Control Register 3
-SCI1D               equ       $003F,1             ; SCI1 Data Register
+SCI1BD              equ       $0038,2             ;SCI1 Baud Rate Register
+SCI1BDH             equ       $0038,1             ;SCI1 Baud Rate Register High
+SCI1BDL             equ       $0039,1             ;SCI1 Baud Rate Register Low
+SCI1C1              equ       $003A,1             ;SCI1 Control Register 1
+SCI1C2              equ       $003B,1             ;SCI1 Control Register 2
+SCI1S1              equ       $003C,1             ;SCI1 Status Register 1
+SCI1S2              equ       $003D,1             ;SCI1 Status Register 2
+SCI1C3              equ       $003E,1             ;SCI1 Control Register 3
+SCI1D               equ       $003F,1             ;SCI1 Data Register
 
-SCI2BD              equ       $0040,2             ; SCI2 Baud Rate Register
-SCI2BDH             equ       $0040,1             ; SCI2 Baud Rate Register High
-SCI2BDL             equ       $0041,1             ; SCI2 Baud Rate Register Low
-SCI2C1              equ       $0042,1             ; SCI2 Control Register 1
-SCI2C2              equ       $0043,1             ; SCI2 Control Register 2
-SCI2S1              equ       $0044,1             ; SCI2 Status Register 1
-SCI2S2              equ       $0045,1             ; SCI2 Status Register 2
-SCI2C3              equ       $0046,1             ; SCI2 Control Register 3
-SCI2D               equ       $0047,1             ; SCI2 Data Register
+SCI2BD              equ       $0040,2             ;SCI2 Baud Rate Register
+SCI2BDH             equ       $0040,1             ;SCI2 Baud Rate Register High
+SCI2BDL             equ       $0041,1             ;SCI2 Baud Rate Register Low
+SCI2C1              equ       $0042,1             ;SCI2 Control Register 1
+SCI2C2              equ       $0043,1             ;SCI2 Control Register 2
+SCI2S1              equ       $0044,1             ;SCI2 Status Register 1
+SCI2S2              equ       $0045,1             ;SCI2 Status Register 2
+SCI2C3              equ       $0046,1             ;SCI2 Control Register 3
+SCI2D               equ       $0047,1             ;SCI2 Data Register
 
-ICGC1               equ       $0048,1             ; ICG Control Register 1
-ICGC2               equ       $0049,1             ; ICG Control Register 2
-ICGS1               equ       $004A,1             ; ICG Status Register 1
-ICGS2               equ       $004B,1             ; ICG Status Register 2
-ICGFLT              equ       $004C,2             ; ICG Filter Register
-ICGFLTU             equ       $004C,1             ; ICG Upper Filter Register
-ICGFLTL             equ       $004D,1             ; ICG Lower Filter Register
-ICGTRM              equ       $004E,1             ; ICG Trim Register
-ICSTRM              equ       ICGTRM,::ICGTRM     ; ICG Trim Register
+ICGC1               equ       $0048,1             ;ICG Control Register 1
+ICGC2               equ       $0049,1             ;ICG Control Register 2
+ICGS1               equ       $004A,1             ;ICG Status Register 1
+ICGS2               equ       $004B,1             ;ICG Status Register 2
+ICGFLT              equ       $004C,2             ;ICG Filter Register
+ICGFLTU             equ       $004C,1             ;ICG Upper Filter Register
+ICGFLTL             equ       $004D,1             ;ICG Lower Filter Register
+ICGTRM              equ       $004E,1             ;ICG Trim Register
+ICSTRM              equ       ICGTRM,::ICGTRM     ;ICG Trim Register
 
-SPI1C1              equ       $0050,1             ; SPI1 Control Register 1
-SPI1C2              equ       $0051,1             ; SPI1 Control Register 2
-SPI1BR              equ       $0052,1             ; SPI1 Baud Rate Register
-SPI1S               equ       $0053,1             ; SPI1 Status Register
-SPI1D               equ       $0055,1             ; SPI1 Data Register
-CRCH                equ       $0056,1             ; CRC High Register
-CRCL                equ       $0057,1             ; CRC Low Register
+SPI1C1              equ       $0050,1             ;SPI1 Control Register 1
+SPI1C2              equ       $0051,1             ;SPI1 Control Register 2
+SPI1BR              equ       $0052,1             ;SPI1 Baud Rate Register
+SPI1S               equ       $0053,1             ;SPI1 Status Register
+SPI1D               equ       $0055,1             ;SPI1 Data Register
 
-IIC1A               equ       $0058,1             ; IIC Address Register
-IIC1F               equ       $0059,1             ; IIC Frequency Divider Register
-IIC1C1              equ       $005A,1             ; IIC Control Register 1
-IIC1C               equ       $005A,1             ; IIC Control Register
-IIC1S               equ       $005B,1             ; IIC Status Register
-IIC1D               equ       $005C,1             ; IIC Data I/O Register
-IIC1C2              equ       $005D,1             ; IIC Control Register 2
+CRCH                equ       $0056,1             ;CRC High Register
+CRCL                equ       $0057,1             ;CRC Low Register
 
-TPM2SC              equ       $0060,1             ; TPM2 Status and Control Register
-TPM2CNT             equ       $0061,2             ; TPM2 Timer Counter Register
-TPM2CNTH            equ       $0061,1             ; TPM2 Timer Counter Register High
-TPM2CNTL            equ       $0062,1             ; TPM2 Timer Counter Register Low
-TPM2MOD             equ       $0063,2             ; TPM2 Timer Counter Modulo Register
-TPM2MODH            equ       $0063,1             ; TPM2 Timer Counter Modulo Register High
-TPM2MODL            equ       $0064,1             ; TPM2 Timer Counter Modulo Register Low
-TPM2C0SC            equ       $0065,1             ; TPM2 Timer Channel 0 Status and Control Register
-TPM2C0V             equ       $0066,2             ; TPM2 Timer Channel 0 Value Register
-TPM2C0VH            equ       $0066,1             ; TPM2 Timer Channel 0 Value Register High
-TPM2C0VL            equ       $0067,1             ; TPM2 Timer Channel 0 Value Register Low
-TPM2C1SC            equ       $0068,1             ; TPM2 Timer Channel 1 Status and Control Register
-TPM2C1V             equ       $0069,2             ; TPM2 Timer Channel 1 Value Register
-TPM2C1VH            equ       $0069,1             ; TPM2 Timer Channel 1 Value Register High
-TPM2C1VL            equ       $006A,1             ; TPM2 Timer Channel 1 Value Register Low
+IIC1A               equ       $0058,1             ;IIC Address Register
+IIC1F               equ       $0059,1             ;IIC Frequency Divider Register
+IIC1C1              equ       $005A,1             ;IIC Control Register 1
+IIC1C               equ       $005A,1             ;IIC Control Register
+IIC1S               equ       $005B,1             ;IIC Status Register
+IIC1D               equ       $005C,1             ;IIC Data I/O Register
+IIC1C2              equ       $005D,1             ;IIC Control Register 2
 
-SRS                 equ       $1800,1             ; System Reset Status Register
-SBDFR               equ       $1801,1             ; System Background Debug Force Reset Register
-SOPT                equ       $1802,1             ; System Options Register
-SOPT1               equ       $1802,1             ; System Options Register
-SMCLK               equ       $1803,1             ; System MCLK Control Register
+TPM2SC              equ       $0060,1             ;TPM2 Status and Control Register
+TPM2CNT             equ       $0061,2             ;TPM2 Timer Counter Register
+TPM2CNTH            equ       $0061,1             ;TPM2 Timer Counter Register High
+TPM2CNTL            equ       $0062,1             ;TPM2 Timer Counter Register Low
+TPM2MOD             equ       $0063,2             ;TPM2 Timer Counter Modulo Register
+TPM2MODH            equ       $0063,1             ;TPM2 Timer Counter Modulo Register High
+TPM2MODL            equ       $0064,1             ;TPM2 Timer Counter Modulo Register Low
+TPM2C0SC            equ       $0065,1             ;TPM2 Timer Channel 0 Status and Control Register
+TPM2C0V             equ       $0066,2             ;TPM2 Timer Channel 0 Value Register
+TPM2C0VH            equ       $0066,1             ;TPM2 Timer Channel 0 Value Register High
+TPM2C0VL            equ       $0067,1             ;TPM2 Timer Channel 0 Value Register Low
+TPM2C1SC            equ       $0068,1             ;TPM2 Timer Channel 1 Status and Control Register
+TPM2C1V             equ       $0069,2             ;TPM2 Timer Channel 1 Value Register
+TPM2C1VH            equ       $0069,1             ;TPM2 Timer Channel 1 Value Register High
+TPM2C1VL            equ       $006A,1             ;TPM2 Timer Channel 1 Value Register Low
 
-SDID                equ       $1806,2             ; System Device Identification Register
-SDIDH               equ       $1806,1             ; System Device Identification Register High
-SDIDL               equ       $1807,1             ; System Device Identification Register Low
+SRS                 equ       $1800,1             ;System Reset Status Register
+SBDFR               equ       $1801,1             ;System Background Debug Force Reset Register
+SOPT                equ       $1802,1             ;System Options Register
+SOPT1               equ       $1802,1             ;System Options Register
+SMCLK               equ       $1803,1             ;System MCLK Control Register
 
-SRTISC              equ       $1808,1             ; System Real-Time Interrupt Status and Control Register
-SPMSC1              equ       $1809,1             ; System Power Management Status and Control 1 Register
-SPMSC2              equ       $180A,1             ; System Power Management Status and Control 2 Register
+SDID                equ       $1806,2             ;System Device Identification Register
+SDIDH               equ       $1806,1             ;System Device Identification Register High
+SDIDL               equ       $1807,1             ;System Device Identification Register Low
 
-SOPT2               equ       $180C,1             ; System Options Register 2
+SRTISC              equ       $1808,1             ;System Real-Time Interrupt Status and Control Register
+SPMSC1              equ       $1809,1             ;System Power Management Status and Control 1 Register
+SPMSC2              equ       $180A,1             ;System Power Management Status and Control 2 Register
 
-DBGCA               equ       $1810,2             ; Debug Comparator A Register
-DBGCAH              equ       $1810,1             ; Debug Comparator A High Register
-DBGCAL              equ       $1811,1             ; Debug Comparator A Low Register
-DBGCB               equ       $1812,2             ; Debug Comparator B Register
-DBGCBH              equ       $1812,1             ; Debug Comparator B High Register
-DBGCBL              equ       $1813,1             ; Debug Comparator B Low Register
-DBGF                equ       $1814,2             ; Debug FIFO Register
-DBGFH               equ       $1814,1             ; Debug FIFO High Register
-DBGFL               equ       $1815,1             ; Debug FIFO Low Register
+SOPT2               equ       $180C,1             ;System Options Register 2
 
-DBGC                equ       $1816,1             ; Debug Control Register
-DBGT                equ       $1817,1             ; Debug Trigger Register
-DBGS                equ       $1818,1             ; Debug Status Register
+DBGCA               equ       $1810,2             ;Debug Comparator A Register
+DBGCAH              equ       $1810,1             ;Debug Comparator A High Register
+DBGCAL              equ       $1811,1             ;Debug Comparator A Low Register
+DBGCB               equ       $1812,2             ;Debug Comparator B Register
+DBGCBH              equ       $1812,1             ;Debug Comparator B High Register
+DBGCBL              equ       $1813,1             ;Debug Comparator B Low Register
+DBGF                equ       $1814,2             ;Debug FIFO Register
+DBGFH               equ       $1814,1             ;Debug FIFO High Register
+DBGFL               equ       $1815,1             ;Debug FIFO Low Register
 
-FCDIV               equ       $1820,1             ; FLASH Clock Divider Register
-FOPT                equ       $1821,1             ; FLASH Options Register
-FCNFG               equ       $1823,1             ; FLASH Configuration Register
-FPROT               equ       $1824,1             ; FLASH Protection Register
-FSTAT               equ       $1825,1             ; Flash Status Register
-FCMD                equ       $1826,1             ; FLASH Command Register
+DBGC                equ       $1816,1             ;Debug Control Register
+DBGT                equ       $1817,1             ;Debug Trigger Register
+DBGS                equ       $1818,1             ;Debug Status Register
 
-TPM3SC              equ       $1830,1             ; TPM3 Status and Control Register
-TPM3CNT             equ       $1831,2             ; TPM3 Timer Counter Register
-TPM3CNTH            equ       $1831,1             ; TPM3 Timer Counter Register High
-TPM3CNTL            equ       $1832,1             ; TPM3 Timer Counter Register Low
-TPM3MOD             equ       $1833,2             ; TPM3 Timer Counter Modulo Register
-TPM3MODH            equ       $1833,1             ; TPM3 Timer Counter Modulo Register High
-TPM3MODL            equ       $1834,1             ; TPM3 Timer Counter Modulo Register Low
-TPM3C0SC            equ       $1835,1             ; TPM3 Timer Channel 0 Status and Control Register
+FCDIV               equ       $1820,1             ;FLASH Clock Divider Register
+FOPT                equ       $1821,1             ;FLASH Options Register
+FCNFG               equ       $1823,1             ;FLASH Configuration Register
+FPROT               equ       $1824,1             ;FLASH Protection Register
+FSTAT               equ       $1825,1             ;Flash Status Register
+FCMD                equ       $1826,1             ;FLASH Command Register
 
-TPM3C0V             equ       $1836,2             ; TPM3 Timer Channel 0 Value Register
-TPM3C0VH            equ       $1836,1             ; TPM3 Timer Channel 0 Value Register High
-TPM3C0VL            equ       $1837,1             ; TPM3 Timer Channel 0 Value Register Low
-TPM3C1SC            equ       $1838,1             ; TPM3 Timer Channel 1 Status and Control Register
-TPM3C1V             equ       $1839,2             ; TPM3 Timer Channel 1 Value Register
-TPM3C1VH            equ       $1839,1             ; TPM3 Timer Channel 1 Value Register High
-TPM3C1VL            equ       $183A,1             ; TPM3 Timer Channel 1 Value Register Low
+TPM3SC              equ       $1830,1             ;TPM3 Status and Control Register
+TPM3CNT             equ       $1831,2             ;TPM3 Timer Counter Register
+TPM3CNTH            equ       $1831,1             ;TPM3 Timer Counter Register High
+TPM3CNTL            equ       $1832,1             ;TPM3 Timer Counter Register Low
+TPM3MOD             equ       $1833,2             ;TPM3 Timer Counter Modulo Register
+TPM3MODH            equ       $1833,1             ;TPM3 Timer Counter Modulo Register High
+TPM3MODL            equ       $1834,1             ;TPM3 Timer Counter Modulo Register Low
+TPM3C0SC            equ       $1835,1             ;TPM3 Timer Channel 0 Status and Control Register
 
-PTAPUE              equ       $1840,1             ; Port A Pull Enable Register
-PTASE               equ       $1841,1             ; Port A Slew Rate Enable Register
-PTADS               equ       $1842,1             ; Port A Drive Strength Selection Register
-PTBPUE              equ       $1844,1             ; Port B Pull Enable Register
-PTBSE               equ       $1845,1             ; Port B Slew Rate Enable Register
-PTBDS               equ       $1846,1             ; Port B Drive Strength Selection Register
-PTCPUE              equ       $1848,1             ; Port C Pull Enable Register
-PTCSE               equ       $1849,1             ; Port C Slew Rate Enable Register
-PTCDS               equ       $184A,1             ; Port C Drive Strength Selection Register
-PTDPUE              equ       $184C,1             ; Port D Pull Enable Register
-PTDSE               equ       $184D,1             ; Port D Slew Rate Enable Register
-PTDDS               equ       $184E,1             ; Port D Drive Strength Selection Register
-PTEPUE              equ       $1850,1             ; Port E Pull Enable Register
-PTESE               equ       $1851,1             ; Port E Slew Rate Enable Register
-PTEDS               equ       $1852,1             ; Port E Drive Strength Selection Register
-PTFPUE              equ       $1854,1             ; Port F Pull Enable Register
-PTFSE               equ       $1855,1             ; Port F Slew Rate Enable Register
-PTFDS               equ       $1856,1             ; Port F Drive Strength Selection Register
-PTGPUE              equ       $1858,1             ; Port G Pull Enable Register
-PTGSE               equ       $1859,1             ; Port G Slew Rate Enable Register
-PTGDS               equ       $185A,1             ; Port G Drive Strength Selection Register
+TPM3C0V             equ       $1836,2             ;TPM3 Timer Channel 0 Value Register
+TPM3C0VH            equ       $1836,1             ;TPM3 Timer Channel 0 Value Register High
+TPM3C0VL            equ       $1837,1             ;TPM3 Timer Channel 0 Value Register Low
+TPM3C1SC            equ       $1838,1             ;TPM3 Timer Channel 1 Status and Control Register
+TPM3C1V             equ       $1839,2             ;TPM3 Timer Channel 1 Value Register
+TPM3C1VH            equ       $1839,1             ;TPM3 Timer Channel 1 Value Register High
+TPM3C1VL            equ       $183A,1             ;TPM3 Timer Channel 1 Value Register Low
 
-NVBACKKEY           equ       $FFB0,8             ; Backdoor Comparison Key
-NVICGTRM1           equ       $FFBC,1             ; Non volatile storage of 250kHz ICG trim value
-NVPROT              equ       $FFBD,1             ; Non-volatile FLASH Protection Register
-NVICGTRM            equ       $FFBE,1             ; Non volatile ICG Trim Register
-NVICSTRM            equ       NVICGTRM,::NVICGTRM ; Non volatile ICG Trim Register
-NVOPT               equ       $FFBF,1             ; Non-volatile Flash Options Register
+PTAPUE              equ       $1840,1             ;Port A Pull Enable Register
+PTASE               equ       $1841,1             ;Port A Slew Rate Enable Register
+PTADS               equ       $1842,1             ;Port A Drive Strength Selection Register
+PTBPUE              equ       $1844,1             ;Port B Pull Enable Register
+PTBSE               equ       $1845,1             ;Port B Slew Rate Enable Register
+PTBDS               equ       $1846,1             ;Port B Drive Strength Selection Register
+PTCPUE              equ       $1848,1             ;Port C Pull Enable Register
+PTCSE               equ       $1849,1             ;Port C Slew Rate Enable Register
+PTCDS               equ       $184A,1             ;Port C Drive Strength Selection Register
+PTDPUE              equ       $184C,1             ;Port D Pull Enable Register
+PTDSE               equ       $184D,1             ;Port D Slew Rate Enable Register
+PTDDS               equ       $184E,1             ;Port D Drive Strength Selection Register
+PTEPUE              equ       $1850,1             ;Port E Pull Enable Register
+PTESE               equ       $1851,1             ;Port E Slew Rate Enable Register
+PTEDS               equ       $1852,1             ;Port E Drive Strength Selection Register
+PTFPUE              equ       $1854,1             ;Port F Pull Enable Register
+PTFSE               equ       $1855,1             ;Port F Slew Rate Enable Register
+PTFDS               equ       $1856,1             ;Port F Drive Strength Selection Register
+PTGPUE              equ       $1858,1             ;Port G Pull Enable Register
+PTGSE               equ       $1859,1             ;Port G Slew Rate Enable Register
+PTGDS               equ       $185A,1             ;Port G Drive Strength Selection Register
+
+NVBACKKEY           equ       $FFB0,8             ;Backdoor Comparison Key
+NVICGTRM1           equ       $FFBC,1             ;Non volatile storage of 250kHz ICG trim value
+NVPROT              equ       $FFBD,1             ;Non-volatile FLASH Protection Register
+NVICGTRM            equ       $FFBE,1             ;Non volatile ICG Trim Register
+NVICSTRM            equ       NVICGTRM,::NVICGTRM ;Non volatile ICG Trim Register
+NVOPT               equ       $FFBF,1             ;Non-volatile Flash Options Register
 
 ;*******************************************************************************
 ; Bit numbers for use in BCLR, BSET, BRCLR, and BRSET
@@ -352,401 +353,356 @@ NVOPT               equ       $FFBF,1             ; Non-volatile Flash Options R
 
 ;*** ADC1SC1 - Status and Control Register 1
 
-                    @bitnum   ADCH0,0             ; Input Channel Select Bit 0
-                    @bitnum   ADCH1,1             ; Input Channel Select Bit 1
-                    @bitnum   ADCH2,2             ; Input Channel Select Bit 2
-                    @bitnum   ADCH3,3             ; Input Channel Select Bit 3
-                    @bitnum   ADCH4,4             ; Input Channel Select Bit 4
-                    @bitnum   ADCO,5              ; Continuous Conversion Enable - ADCO is used to enable continuous conversions
-                    @bitnum   AIEN,6              ; Interrupt Enable - AIEN is used to enable conversion complete interrupts. When COCO becomes set while
-                    @bitnum   COCO,7              ; Conversion Complete Flag
+                    @bitnum   ADCH0,0             ;Input Channel Select Bit 0
+                    @bitnum   ADCH1,1             ;Input Channel Select Bit 1
+                    @bitnum   ADCH2,2             ;Input Channel Select Bit 2
+                    @bitnum   ADCH3,3             ;Input Channel Select Bit 3
+                    @bitnum   ADCH4,4             ;Input Channel Select Bit 4
+                    @bitnum   ADCO,5              ;Continuous Conversion Enable - ADCO is used to enable continuous conversions
+                    @bitnum   AIEN,6              ;Interrupt Enable - AIEN is used to enable conversion complete interrupts. When COCO becomes set while
+                    @bitnum   COCO,7              ;Conversion Complete Flag
 
 ;*** ADC1SC2 - Status and Control Register 2
 
-                    @bitnum   ACFGT,4             ; Compare Function Greater Than Enable
-                    @bitnum   ACFE,5              ; Compare Function Enable - ACFE is used to enable the compare function
-                    @bitnum   ADTRG,6             ; Conversion Trigger Select-ADTRG is used to select the type of trigger to be used for initiating
-                    @bitnum   ADACT,7             ; Conversion Active - ADACT indicates that a conversion is in progress. ADACT is set when a
+                    @bitnum   ACFGT,4             ;Compare Function Greater Than Enable
+                    @bitnum   ACFE,5              ;Compare Function Enable - ACFE is used to enable the compare function
+                    @bitnum   ADTRG,6             ;Conversion Trigger Select-ADTRG is used to select the type of trigger to be used for initiating
+                    @bitnum   ADACT,7             ;Conversion Active - ADACT indicates that a conversion is in progress. ADACT is set when a
 
 ;*** ADC1CFG - Configuration Register
 
-                    @bitnum   ADICLK0,0           ; Input Clock Select Bit 0
-                    @bitnum   ADICLK1,1           ; Input Clock Select Bit 1
-                    @bitnum   MODE0,2             ; Conversion Mode Selection Bit 0
-                    @bitnum   MODE1,3             ; Conversion Mode Selection Bit 1
-                    @bitnum   ADLSMP,4            ; Long Sample Time Configuration
-                    @bitnum   ADIV0,5             ; Clock Divide Select Bit 0
-                    @bitnum   ADIV1,6             ; Clock Divide Select Bit 1
-                    @bitnum   ADLPC,7             ; Low Power Configuration
+                    @bitnum   ADICLK0,0           ;Input Clock Select Bit 0
+                    @bitnum   ADICLK1,1           ;Input Clock Select Bit 1
+                    @bitnum   MODE0,2             ;Conversion Mode Selection Bit 0
+                    @bitnum   MODE1,3             ;Conversion Mode Selection Bit 1
+                    @bitnum   ADLSMP,4            ;Long Sample Time Configuration
+                    @bitnum   ADIV0,5             ;Clock Divide Select Bit 0
+                    @bitnum   ADIV1,6             ;Clock Divide Select Bit 1
+                    @bitnum   ADLPC,7             ;Low Power Configuration
 
 ;*** IRQSC - Interrupt request status and control register
 
-                    @bitnum   IRQMOD,0            ; IRQ Detection Mode
-                    @bitnum   IRQIE,1             ; IRQ Interrupt Enable
-                    @bitnum   IRQACK,2            ; IRQ Acknowledge
-                    @bitnum   IRQF,3              ; IRQ Flag
-                    @bitnum   IRQPE,4             ; IRQ Pin Enable
-                    @bitnum   IRQEDG,5            ; IRQ Edge Select
-                    @bitnum   IRQPDD,6            ; IRQ Pull Device Disable
+                    @bitnum   IRQMOD,0            ;IRQ Detection Mode
+                    @bitnum   IRQIE,1             ;IRQ Interrupt Enable
+                    @bitnum   IRQACK,2            ;IRQ Acknowledge
+                    @bitnum   IRQF,3              ;IRQ Flag
+                    @bitnum   IRQPE,4             ;IRQ Pin Enable
+                    @bitnum   IRQEDG,5            ;IRQ Edge Select
+                    @bitnum   IRQPDD,6            ;IRQ Pull Device Disable
 
 ;*** KBISC - KBI Status and Control Register
 
-                    @bitnum   KBIMOD,0            ; Keyboard Detection Mode
-                    @bitnum   KBIE,1              ; Keyboard Interrupt Enable
-                    @bitnum   KBACK,2             ; Keyboard Interrupt Acknowledge
-                    @bitnum   KBF,3               ; Keyboard Interrupt Flag
-                    @bitnum   KBEDG4,4            ; Keyboard Edge Select for KBI Port Bit 4
-                    @bitnum   KBEDG5,5            ; Keyboard Edge Select for KBI Port Bit 5
-                    @bitnum   KBEDG6,6            ; Keyboard Edge Select for KBI Port Bit 6
-                    @bitnum   KBEDG7,7            ; Keyboard Edge Select for KBI Port Bit 7
+                    @bitnum   KBIMOD,0            ;Keyboard Detection Mode
+                    @bitnum   KBIE,1              ;Keyboard Interrupt Enable
+                    @bitnum   KBACK,2             ;Keyboard Interrupt Acknowledge
+                    @bitnum   KBF,3               ;Keyboard Interrupt Flag
+                    @bitnum   KBEDG4,4            ;Keyboard Edge Select for KBI Port Bit 4
+                    @bitnum   KBEDG5,5            ;Keyboard Edge Select for KBI Port Bit 5
+                    @bitnum   KBEDG6,6            ;Keyboard Edge Select for KBI Port Bit 6
+                    @bitnum   KBEDG7,7            ;Keyboard Edge Select for KBI Port Bit 7
 
 ;*** TPMxSC - TPMx Status and Control Register
 
-                    @bitnum   PS0,0               ; Prescale Divisor Select Bit 0
-                    @bitnum   PS1,1               ; Prescale Divisor Select Bit 1
-                    @bitnum   PS2,2               ; Prescale Divisor Select Bit 2
-                    @bitnum   CLKSA,3             ; Clock Source Select A
-                    @bitnum   CLKSB,4             ; Clock Source Select B
-                    @bitnum   CPWMS,5             ; Center-Aligned PWM Select
-                    @bitnum   TOIE,6              ; Timer Overflow Interrupt Enable
-                    @bitnum   TOF,7               ; Timer Overflow Flag
+                    @bitnum   PS0,0               ;Prescale Divisor Select Bit 0
+                    @bitnum   PS1,1               ;Prescale Divisor Select Bit 1
+                    @bitnum   PS2,2               ;Prescale Divisor Select Bit 2
+                    @bitnum   CLKSA,3             ;Clock Source Select A
+                    @bitnum   CLKSB,4             ;Clock Source Select B
+                    @bitnum   CPWMS,5             ;Center-Aligned PWM Select
+                    @bitnum   TOIE,6              ;Timer Overflow Interrupt Enable
+                    @bitnum   TOF,7               ;Timer Overflow Flag
 
 ;*** TPMxC0SC - TPMx Timer Channel 0 Status and Control Register
 
-                    @bitnum   ELS0A,2             ; Edge/Level Select Bit A
-                    @bitnum   ELS0B,3             ; Edge/Level Select Bit B
-                    @bitnum   MS0A,4              ; Mode Select A for TPM Channel 0
-                    @bitnum   MS0B,5              ; Mode Select B for TPM Channel 0
-                    @bitnum   CH0IE,6             ; Channel 0 Interrupt Enable
-                    @bitnum   CH0F,7              ; Channel 0 Flag
-
-;*** TPMC0V - TPMx Timer Channel 0 Value Register
-
-                    @bitnum   ELS1A,2             ; Edge/Level Select Bit A
-                    @bitnum   ELS1B,3             ; Edge/Level Select Bit B
-                    @bitnum   MS1A,4              ; Mode Select A for TPM Channel 1
-                    @bitnum   MS1B,5              ; Mode Select B for TPM Channel 1
-                    @bitnum   CH1IE,6             ; Channel 1 Interrupt Enable
-                    @bitnum   CH1F,7              ; Channel 1 Flag
-
-;*** TPM1C1V - TPM1 Timer Channel 1 Value Register
-
-                    @bitnum   ELS2A,2             ; Edge/Level Select Bit A
-                    @bitnum   ELS2B,3             ; Edge/Level Select Bit B
-                    @bitnum   MS2A,4              ; Mode Select A for TPM Channel 2
-                    @bitnum   MS2B,5              ; Mode Select B for TPM Channel 2
-                    @bitnum   CH2IE,6             ; Channel 2 Interrupt Enable
-                    @bitnum   CH2F,7              ; Channel 2 Flag
-
-;*** TPM1C2V - TPM1 Timer Channel 2 Value Register
-
-                    @bitnum   ELS3A,2             ; Edge/Level Select Bit A
-                    @bitnum   ELS3B,3             ; Edge/Level Select Bit B
-                    @bitnum   MS3A,4              ; Mode Select A for TPM Channel 3
-                    @bitnum   MS3B,5              ; Mode Select B for TPM Channel 3
-                    @bitnum   CH3IE,6             ; Channel 3 Interrupt Enable
-                    @bitnum   CH3F,7              ; Channel 3 Flag
-
-;*** TPM1C3V - TPM1 Timer Channel 3 Value Register
-
-                    @bitnum   ELS4A,2             ; Edge/Level Select Bit A
-                    @bitnum   ELS4B,3             ; Edge/Level Select Bit B
-                    @bitnum   MS4A,4              ; Mode Select A for TPM Channel 4
-                    @bitnum   MS4B,5              ; Mode Select B for TPM Channel 4
-                    @bitnum   CH4IE,6             ; Channel 4 Interrupt Enable
-                    @bitnum   CH4F,7              ; Channel 4 Flag
-
-;*** TPM1C4V - TPM1 Timer Channel 4 Value Register
-
-                    @bitnum   ELS5A,2             ; Edge/Level Select Bit A
-                    @bitnum   ELS5B,3             ; Edge/Level Select Bit B
-                    @bitnum   MS5A,4              ; Mode Select A for TPM Channel 5
-                    @bitnum   MS5B,5              ; Mode Select B for TPM Channel 5
-                    @bitnum   CH5IE,6             ; Channel 5 Interrupt Enable
-                    @bitnum   CH5F,7              ; Channel 5 Flag
+                    @bitnum   ELSxA,2             ;Edge/Level Select Bit A
+                    @bitnum   ELSxB,3             ;Edge/Level Select Bit B
+                    @bitnum   MSxA,4              ;Mode Select A for TPM Channel x
+                    @bitnum   MSxB,5              ;Mode Select B for TPM Channel x
+                    @bitnum   CHxIE,6             ;Channel x Interrupt Enable
+                    @bitnum   CHxF,7              ;Channel x Flag
 
 ;*** SCIxC1 - SCIx Control Register 1
 
-                    @bitnum   PT,0                ; Parity Type
-                    @bitnum   PE,1                ; Parity Enable
-                    @bitnum   ILT,2               ; Idle Line Type Select
-                    @bitnum   WAKE,3              ; Receiver Wakeup Method Select
-                    @bitnum   M,4                 ; 9-Bit or 8-Bit Mode Select
-                    @bitnum   RSRC,5              ; Receiver Source Select
-                    @bitnum   SCISWAI,6           ; SCI Stops in Wait Mode
-                    @bitnum   LOOPS,7             ; Loop Mode Select
+                    @bitnum   PT,0                ;Parity Type
+                    @bitnum   PE,1                ;Parity Enable
+                    @bitnum   ILT,2               ;Idle Line Type Select
+                    @bitnum   WAKE,3              ;Receiver Wakeup Method Select
+                    @bitnum   M,4                 ;9-Bit or 8-Bit Mode Select
+                    @bitnum   RSRC,5              ;Receiver Source Select
+                    @bitnum   SCISWAI,6           ;SCI Stops in Wait Mode
+                    @bitnum   LOOPS,7             ;Loop Mode Select
 
 ;*** SCIxC2 - SCIx Control Register 2
 
-                    @bitnum   SBK,0               ; Send Break
-                    @bitnum   RWU,1               ; Receiver Wakeup Control
-                    @bitnum   RE,2                ; Receiver Enable
-                    @bitnum   TE,3                ; Transmitter Enable
-                    @bitnum   ILIE,4              ; Idle Line Interrupt Enable (for IDLE)
-                    @bitnum   RIE,5               ; Receiver Interrupt Enable (for RDRF)
-                    @bitnum   TCIE,6              ; Transmission Complete Interrupt Enable (for TC)
-                    @bitnum   TIE,7               ; Transmit Interrupt Enable (for TDRE)
+                    @bitnum   SBK,0               ;Send Break
+                    @bitnum   RWU,1               ;Receiver Wakeup Control
+                    @bitnum   RE,2                ;Receiver Enable
+                    @bitnum   TE,3                ;Transmitter Enable
+                    @bitnum   ILIE,4              ;Idle Line Interrupt Enable (for IDLE)
+                    @bitnum   RIE,5               ;Receiver Interrupt Enable (for RDRF)
+                    @bitnum   TCIE,6              ;Transmission Complete Interrupt Enable (for TC)
+                    @bitnum   TIE,7               ;Transmit Interrupt Enable (for TDRE)
 
 ;*** SCIxS1 - SCIx Status Register 1
 
-                    @bitnum   PF,0                ; Parity Error Flag
-                    @bitnum   FE,1                ; Framing Error Flag
-                    @bitnum   NF,2                ; Noise Flag
-                    @bitnum   OR,3                ; Receiver Overrun Flag
-                    @bitnum   IDLE,4              ; Idle Line Flag
-                    @bitnum   RDRF,5              ; Receive Data Register Full Flag
-                    @bitnum   TC,6                ; Transmission Complete Flag
-                    @bitnum   TDRE,7              ; Transmit Data Register Empty Flag
+                    @bitnum   PF,0                ;Parity Error Flag
+                    @bitnum   FE,1                ;Framing Error Flag
+                    @bitnum   NF,2                ;Noise Flag
+                    @bitnum   OR,3                ;Receiver Overrun Flag
+                    @bitnum   IDLE,4              ;Idle Line Flag
+                    @bitnum   RDRF,5              ;Receive Data Register Full Flag
+                    @bitnum   TC,6                ;Transmission Complete Flag
+                    @bitnum   TDRE,7              ;Transmit Data Register Empty Flag
 
 ;*** SCIxS2 - SCIx Status Register 2
 
-                    @bitnum   RAF,0               ; Receiver Active Flag
-                    @bitnum   LBKDE,1             ; LIN Break Detection Enable
-                    @bitnum   BRK13,2             ; Break Character Generation Length
-                    @bitnum   RWUID,3             ; Receive Wake Up Idle Detect
-                    @bitnum   RXINV,4             ; Receive Data Inversion
-                    @bitnum   RXEDGIF,6           ; RxD Pin Active Edge Interrupt Flag
-                    @bitnum   LBKDIF,7            ; LIN Break Detect Interrupt Flag
+                    @bitnum   RAF,0               ;Receiver Active Flag
+                    @bitnum   LBKDE,1             ;LIN Break Detection Enable
+                    @bitnum   BRK13,2             ;Break Character Generation Length
+                    @bitnum   RWUID,3             ;Receive Wake Up Idle Detect
+                    @bitnum   RXINV,4             ;Receive Data Inversion
+                    @bitnum   RXEDGIF,6           ;RxD Pin Active Edge Interrupt Flag
+                    @bitnum   LBKDIF,7            ;LIN Break Detect Interrupt Flag
 
 ;*** SCIxC3 - SCIx Control Register 3
 
-                    @bitnum   PEIE,0              ; Parity Error Interrupt Enable
-                    @bitnum   FEIE,1              ; Framing Error Interrupt Enable
-                    @bitnum   NEIE,2              ; Noise Error Interrupt Enable
-                    @bitnum   ORIE,3              ; Overrun Interrupt Enable
-                    @bitnum   TXINV,4             ; Transmit Data Inversion
-                    @bitnum   TXDIR,5             ; TxD Pin Direction in Single-Wire Mode
-                    @bitnum   T8,6                ; Ninth Data Bit for Transmitter
-                    @bitnum   R8,7                ; Ninth Data Bit for Receiver
+                    @bitnum   PEIE,0              ;Parity Error Interrupt Enable
+                    @bitnum   FEIE,1              ;Framing Error Interrupt Enable
+                    @bitnum   NEIE,2              ;Noise Error Interrupt Enable
+                    @bitnum   ORIE,3              ;Overrun Interrupt Enable
+                    @bitnum   TXINV,4             ;Transmit Data Inversion
+                    @bitnum   TXDIR,5             ;TxD Pin Direction in Single-Wire Mode
+                    @bitnum   T8,6                ;Ninth Data Bit for Transmitter
+                    @bitnum   R8,7                ;Ninth Data Bit for Receiver
 
 ;*** SCIxBDH - SCIx Baud Rate Register High
 
-                    @bitnum   RXEDGIE,6           ; RxD Input Active Edge Interrupt Enable (for RXEDGIF)
-                    @bitnum   LBKDIE,7            ; LIN Break Detect Interrupt Enable (for LBKDIF)
+                    @bitnum   RXEDGIE,6           ;RxD Input Active Edge Interrupt Enable (for RXEDGIF)
+                    @bitnum   LBKDIE,7            ;LIN Break Detect Interrupt Enable (for LBKDIF)
 
 ;*** ICGC1 - ICG Control Register 1
 
-                    @bitnum   LOCD,1              ; Loss of Clock Disable
-                    @bitnum   OSCSTEN,2           ; Enable Oscillator in Off Mode
-                    @bitnum   CLKS0,3             ; Clock Mode Select, bit 0
-                    @bitnum   CLKS1,4             ; Clock Mode Select, bit 1
-                    @bitnum   REFS,5              ; External Reference Select
-                    @bitnum   RANGE_SEL,6         ; Frequency Range Select
-                    @bitnum   HGO,7               ; High Gain Oscillator Select
+                    @bitnum   LOCD,1              ;Loss of Clock Disable
+                    @bitnum   OSCSTEN,2           ;Enable Oscillator in Off Mode
+                    @bitnum   CLKS0,3             ;Clock Mode Select, bit 0
+                    @bitnum   CLKS1,4             ;Clock Mode Select, bit 1
+                    @bitnum   REFS,5              ;External Reference Select
+                    @bitnum   RANGE_SEL,6         ;Frequency Range Select
+                    @bitnum   HGO,7               ;High Gain Oscillator Select
 
 ;*** ICGC2 - ICG Control Register 2
 
-                    @bitnum   RFD0,0              ; Reduced Frequency Divider, bit 0
-                    @bitnum   RFD1,1              ; Reduced Frequency Divider, bit 1
-                    @bitnum   RFD2,2              ; Reduced Frequency Divider, bit 2
-                    @bitnum   LOCRE,3             ; Loss of Clock Reset Enable
-                    @bitnum   MFD0,4              ; Multiplication Factor, bit 0
-                    @bitnum   MFD1,5              ; Multiplication Factor, bit 1
-                    @bitnum   MFD2,6              ; Multiplication Factor, bit 2
-                    @bitnum   LOLRE,7             ; Loss of Lock Reset Enable
+                    @bitnum   RFD0,0              ;Reduced Frequency Divider, bit 0
+                    @bitnum   RFD1,1              ;Reduced Frequency Divider, bit 1
+                    @bitnum   RFD2,2              ;Reduced Frequency Divider, bit 2
+                    @bitnum   LOCRE,3             ;Loss of Clock Reset Enable
+                    @bitnum   MFD0,4              ;Multiplication Factor, bit 0
+                    @bitnum   MFD1,5              ;Multiplication Factor, bit 1
+                    @bitnum   MFD2,6              ;Multiplication Factor, bit 2
+                    @bitnum   LOLRE,7             ;Loss of Lock Reset Enable
 
 ;*** ICGS1 - ICG Status Register 1
 
-                    @bitnum   ICGIF,0             ; ICG Interrupt Flag
-                    @bitnum   ERCS,1              ; External Reference Clock Status
-                    @bitnum   LOCS,2              ; Loss Of Clock Status
-                    @bitnum   LOCK,3              ; FLL Lock Status
-                    @bitnum   LOLS,4              ; FLL Loss of Lock Status
-                    @bitnum   REFST,5             ; Reference Clock Status
-                    @bitnum   CLKST0,6            ; Clock Mode Status, bit 0
-                    @bitnum   CLKST1,7            ; Clock Mode Status, bit 1
+                    @bitnum   ICGIF,0             ;ICG Interrupt Flag
+                    @bitnum   ERCS,1              ;External Reference Clock Status
+                    @bitnum   LOCS,2              ;Loss Of Clock Status
+                    @bitnum   LOCK,3              ;FLL Lock Status
+                    @bitnum   LOLS,4              ;FLL Loss of Lock Status
+                    @bitnum   REFST,5             ;Reference Clock Status
+                    @bitnum   CLKST0,6            ;Clock Mode Status, bit 0
+                    @bitnum   CLKST1,7            ;Clock Mode Status, bit 1
 
 ;*** ICGS2 - ICG Status Register 2
 
-                    @bitnum   DCOS,0            ; DCO Clock Stable
+                    @bitnum   DCOS,0              ;DCO Clock Stable
 
 ;*** SPI1C1 - SPI1 Control Register 1
 
-                    @bitnum   LSBFE,0           ; LSB First (Shifter Direction)
-                    @bitnum   SSOE,1            ; Slave Select Output Enable
-                    @bitnum   CPHA,2            ; Clock Phase
-                    @bitnum   CPOL,3            ; Clock Polarity
-                    @bitnum   MSTR,4            ; Master/Slave Mode Select
-                    @bitnum   SPTIE,5           ; SPI Transmit Interrupt Enable
-                    @bitnum   SPE,6             ; SPI System Enable
-                    @bitnum   SPIE,7            ; SPI Interrupt Enable (for SPRF and MODF)
+                    @bitnum   LSBFE,0             ;LSB First (Shifter Direction)
+                    @bitnum   SSOE,1              ;Slave Select Output Enable
+                    @bitnum   CPHA,2              ;Clock Phase
+                    @bitnum   CPOL,3              ;Clock Polarity
+                    @bitnum   MSTR,4              ;Master/Slave Mode Select
+                    @bitnum   SPTIE,5             ;SPI Transmit Interrupt Enable
+                    @bitnum   SPE,6               ;SPI System Enable
+                    @bitnum   SPIE,7              ;SPI Interrupt Enable (for SPRF and MODF)
 
 ;*** SPI1C2 - SPI1 Control Register 2
 
-                    @bitnum   SPC0,0            ; SPI Pin Control 0
-                    @bitnum   SPISWAI,1         ; SPI Stop in Wait Mode
-                    @bitnum   BIDIROE,3         ; Bidirectional Mode Output Enable
-                    @bitnum   MODFEN,4          ; Master Mode-Fault Function Enable
+                    @bitnum   SPC0,0              ;SPI Pin Control 0
+                    @bitnum   SPISWAI,1           ;SPI Stop in Wait Mode
+                    @bitnum   BIDIROE,3           ;Bidirectional Mode Output Enable
+                    @bitnum   MODFEN,4            ;Master Mode-Fault Function Enable
 
 ;*** SPI1BR - SPI1 Baud Rate Register
 
-                    @bitnum   SPR0,0            ; SPI Baud Rate Divisor Bit 0
-                    @bitnum   SPR1,1            ; SPI Baud Rate Divisor Bit 1
-                    @bitnum   SPR2,2            ; SPI Baud Rate Divisor Bit 2
-                    @bitnum   SPPR0,4           ; SPI Baud Rate Prescale Divisor Bit 0
-                    @bitnum   SPPR1,5           ; SPI Baud Rate Prescale Divisor Bit 1
-                    @bitnum   SPPR2,6           ; SPI Baud Rate Prescale Divisor Bit 2
+                    @bitnum   SPR0,0              ;SPI Baud Rate Divisor Bit 0
+                    @bitnum   SPR1,1              ;SPI Baud Rate Divisor Bit 1
+                    @bitnum   SPR2,2              ;SPI Baud Rate Divisor Bit 2
+                    @bitnum   SPPR0,4             ;SPI Baud Rate Prescale Divisor Bit 0
+                    @bitnum   SPPR1,5             ;SPI Baud Rate Prescale Divisor Bit 1
+                    @bitnum   SPPR2,6             ;SPI Baud Rate Prescale Divisor Bit 2
 
 ;*** SPI1S - SPI1 Status Register
 
-                    @bitnum   MODF,4            ; Master Mode Fault Flag
-                    @bitnum   SPTEF,5           ; SPI Transmit Buffer Empty Flag
-                    @bitnum   SPRF,7            ; SPI Read Buffer Full Flag
+                    @bitnum   MODF,4              ;Master Mode Fault Flag
+                    @bitnum   SPTEF,5             ;SPI Transmit Buffer Empty Flag
+                    @bitnum   SPRF,7              ;SPI Read Buffer Full Flag
 
 ;*** IIC1F - IIC Frequency Divider Register
 
-                    @bitnum   ICR0,0              ; IIC Clock Rate Bit 0
-                    @bitnum   ICR1,1              ; IIC Clock Rate Bit 1
-                    @bitnum   ICR2,2              ; IIC Clock Rate Bit 2
-                    @bitnum   ICR3,3              ; IIC Clock Rate Bit 3
-                    @bitnum   ICR4,4              ; IIC Clock Rate Bit 4
-                    @bitnum   ICR5,5              ; IIC Clock Rate Bit 5
-                    @bitnum   MULT0,6             ; Multiplier Factor Bit 0
-                    @bitnum   MULT1,7             ; Multiplier Factor Bit 1
+                    @bitnum   ICR0,0              ;IIC Clock Rate Bit 0
+                    @bitnum   ICR1,1              ;IIC Clock Rate Bit 1
+                    @bitnum   ICR2,2              ;IIC Clock Rate Bit 2
+                    @bitnum   ICR3,3              ;IIC Clock Rate Bit 3
+                    @bitnum   ICR4,4              ;IIC Clock Rate Bit 4
+                    @bitnum   ICR5,5              ;IIC Clock Rate Bit 5
+                    @bitnum   MULT0,6             ;Multiplier Factor Bit 0
+                    @bitnum   MULT1,7             ;Multiplier Factor Bit 1
 
 ;*** IICxC - IIC Control Register
 
-                    @bitnum   RSTA,2              ; Repeat START
-                    @bitnum   TXAK,3              ; Transmit Acknowledge Enable
-                    @bitnum   TX,4                ; Transmit Mode Select
-                    @bitnum   MST,5               ; Master Mode Select
-                    @bitnum   IICIE,6             ; IIC Interrupt Enable
-                    @bitnum   IICEN,7             ; IIC Enable
+                    @bitnum   RSTA,2              ;Repeat START
+                    @bitnum   TXAK,3              ;Transmit Acknowledge Enable
+                    @bitnum   TX,4                ;Transmit Mode Select
+                    @bitnum   MST,5               ;Master Mode Select
+                    @bitnum   IICIE,6             ;IIC Interrupt Enable
+                    @bitnum   IICEN,7             ;IIC Enable
 
 ;*** IIC1S - IIC Status Register
 
-                    @bitnum   RXAK,0              ; Receive Acknowledge
-                    @bitnum   IICIF,1             ; IIC Interrupt Flag
-                    @bitnum   SRW,2               ; Slave Read/Write
-                    @bitnum   ARBL,4              ; Arbitration Lost
-                    @bitnum   BUSY,5              ; Bus Busy
-                    @bitnum   IAAS,6              ; Addressed as a Slave
-                    @bitnum   TCF,7               ; Transfer Complete Flag
+                    @bitnum   RXAK,0              ;Receive Acknowledge
+                    @bitnum   IICIF,1             ;IIC Interrupt Flag
+                    @bitnum   SRW,2               ;Slave Read/Write
+                    @bitnum   ARBL,4              ;Arbitration Lost
+                    @bitnum   BUSY,5              ;Bus Busy
+                    @bitnum   IAAS,6              ;Addressed as a Slave
+                    @bitnum   TCF,7               ;Transfer Complete Flag
 
 ;*** IIC1C2 - IIC Control Register 2
 
-                    @bitnum   AD8,0               ; Slave Address Bit 8
-                    @bitnum   AD9,1               ; Slave Address Bit 9
-                    @bitnum   AD10,2              ; Slave Address Bit 10
-                    @bitnum   ADEXT,6             ; Address Extension
-                    @bitnum   GCAEN,7             ; General Call Address Enable
+                    @bitnum   AD8,0               ;Slave Address Bit 8
+                    @bitnum   AD9,1               ;Slave Address Bit 9
+                    @bitnum   AD10,2              ;Slave Address Bit 10
+                    @bitnum   ADEXT,6             ;Address Extension
+                    @bitnum   GCAEN,7             ;General Call Address Enable
 
 ;*** SRS - System Reset Status Register
 
-                    @bitnum   LVD,1               ; Low Voltage Detect
-                    @bitnum   ICG,2               ; Internal Clock Generation Module Reset
-                    @bitnum   ILOP,4              ; Illegal Opcode
-                    @bitnum   COP,5               ; Computer Operating Properly (COP) Watchdog
-                    @bitnum   PIN,6               ; External Reset Pin
-                    @bitnum   POR,7               ; Power-On Reset
+                    @bitnum   LVD,1               ;Low Voltage Detect
+                    @bitnum   ICG,2               ;Internal Clock Generation Module Reset
+                    @bitnum   ILOP,4              ;Illegal Opcode
+                    @bitnum   COP,5               ;Computer Operating Properly (COP) Watchdog
+                    @bitnum   PIN,6               ;External Reset Pin
+                    @bitnum   POR,7               ;Power-On Reset
 
 ;*** SBDFR - System Background Debug Force Reset Register
 
-                    @bitnum   BDFR,0              ; Background Debug Force Reset
+                    @bitnum   BDFR,0              ;Background Debug Force Reset
 
 ;*** SOPT - System Options Register
 
-                    @bitnum   STOPE,5             ; Stop Mode Enable
-                    @bitnum   COPT,6              ; COP Watchdog Timeout
-                    @bitnum   COPE,7              ; COP Watchdog Enable
+                    @bitnum   STOPE,5             ;Stop Mode Enable
+                    @bitnum   COPT,6              ;COP Watchdog Timeout
+                    @bitnum   COPE,7              ;COP Watchdog Enable
 
 ;*** SMCLK - System MCLK Control Register
 
-                    @bitnum   MCSEL0,0            ; MCLK Divide Select, bit 0
-                    @bitnum   MCSEL1,1            ; MCLK Divide Select, bit 1
-                    @bitnum   MCSEL2,2            ; MCLK Divide Select, bit 2
-                    @bitnum   MPE,4               ; MCLK Pin Enable
+                    @bitnum   MCSEL0,0            ;MCLK Divide Select, bit 0
+                    @bitnum   MCSEL1,1            ;MCLK Divide Select, bit 1
+                    @bitnum   MCSEL2,2            ;MCLK Divide Select, bit 2
+                    @bitnum   MPE,4               ;MCLK Pin Enable
 
 ;*** SDIDH - System Device Identification Register High
 
-                    @bitnum   ID8,0               ; Part Identification Number, bit 8
-                    @bitnum   ID9,1               ; Part Identification Number, bit 9
-                    @bitnum   ID10,2              ; Part Identification Number, bit 10
-                    @bitnum   ID11,3              ; Part Identification Number, bit 11
+                    @bitnum   ID8,0               ;Part Identification Number, bit 8
+                    @bitnum   ID9,1               ;Part Identification Number, bit 9
+                    @bitnum   ID10,2              ;Part Identification Number, bit 10
+                    @bitnum   ID11,3              ;Part Identification Number, bit 11
 
 ;*** SRTISC - System Real-Time Interrupt Status and Control Register
 
-                    @bitnum   RTIS0,0             ; Real-Time Interrupt Delay Selects, bit 0
-                    @bitnum   RTIS1,1             ; Real-Time Interrupt Delay Selects, bit 1
-                    @bitnum   RTIS2,2             ; Real-Time Interrupt Delay Selects, bit 2
-                    @bitnum   RTIE,4              ; Real-Time Interrupt Enable
-                    @bitnum   RTICLKS,5           ; Real-Time Interrupt Clock Select
-                    @bitnum   RTIACK,6            ; Real-Time Interrupt Acknowledge
-                    @bitnum   RTIF,7              ; Real-Time Interrupt Flag
+                    @bitnum   RTIS0,0             ;Real-Time Interrupt Delay Selects, bit 0
+                    @bitnum   RTIS1,1             ;Real-Time Interrupt Delay Selects, bit 1
+                    @bitnum   RTIS2,2             ;Real-Time Interrupt Delay Selects, bit 2
+                    @bitnum   RTIE,4              ;Real-Time Interrupt Enable
+                    @bitnum   RTICLKS,5           ;Real-Time Interrupt Clock Select
+                    @bitnum   RTIACK,6            ;Real-Time Interrupt Acknowledge
+                    @bitnum   RTIF,7              ;Real-Time Interrupt Flag
 
 ;*** SPMSC1 - System Power Management Status and Control 1 Register
 
-                    @bitnum   BGBE,0              ; Bandgap Buffer Enable
-                    @bitnum   LVDE,2              ; Low-Voltage Detect Enable
-                    @bitnum   LVDSE,3             ; Low-Voltage Detect Stop Enable
-                    @bitnum   LVDRE,4             ; Low-Voltage Detect Reset Enable
-                    @bitnum   LVDIE,5             ; Low-Voltage Detect Interrupt Enable
-                    @bitnum   LVDACK,6            ; Low-Voltage Detect Acknowledge
-                    @bitnum   LVDF,7              ; Low-Voltage Detect Flag
+                    @bitnum   BGBE,0              ;Bandgap Buffer Enable
+                    @bitnum   LVDE,2              ;Low-Voltage Detect Enable
+                    @bitnum   LVDSE,3             ;Low-Voltage Detect Stop Enable
+                    @bitnum   LVDRE,4             ;Low-Voltage Detect Reset Enable
+                    @bitnum   LVDIE,5             ;Low-Voltage Detect Interrupt Enable
+                    @bitnum   LVDACK,6            ;Low-Voltage Detect Acknowledge
+                    @bitnum   LVDF,7              ;Low-Voltage Detect Flag
 
 ;*** SPMSC2 - System Power Management Status and Control 2 Register
 
-                    @bitnum   PPDC,0              ; Partial Power Down Control
-                    @bitnum   PPDACK,2            ; Partial Power Down Acknowledge
-                    @bitnum   PPDF,3              ; Partial Power Down Flag
-                    @bitnum   LVWV,4              ; Low-Voltage Warning Voltage Select
-                    @bitnum   LVDV,5              ; Low-Voltage Detect Voltage Select
-                    @bitnum   LVWACK,6            ; Low-Voltage Warning Acknowledge
-                    @bitnum   LVWF,7              ; Low-Voltage Warning Flag
+                    @bitnum   PPDC,0              ;Partial Power Down Control
+                    @bitnum   PPDACK,2            ;Partial Power Down Acknowledge
+                    @bitnum   PPDF,3              ;Partial Power Down Flag
+                    @bitnum   LVWV,4              ;Low-Voltage Warning Voltage Select
+                    @bitnum   LVDV,5              ;Low-Voltage Detect Voltage Select
+                    @bitnum   LVWACK,6            ;Low-Voltage Warning Acknowledge
+                    @bitnum   LVWF,7              ;Low-Voltage Warning Flag
 
 ;*** SOPT2 - System Options Register 2
 
-                    @bitnum   TPMCCFG,3           ; TPM Clock Confguration
-                    @bitnum   COPCLKS,7           ; COP Watchdog Clock Select
+                    @bitnum   TPMCCFG,3           ;TPM Clock Confguration
+                    @bitnum   COPCLKS,7           ;COP Watchdog Clock Select
 
 ;*** DBGC - Debug Control Register
 
-                    @bitnum   RWBEN,0             ; Enable R/W for Comparator B
-                    @bitnum   RWB,1               ; R/W Comparison Value for Comparator B
-                    @bitnum   RWAEN,2             ; Enable R/W for Comparator A
-                    @bitnum   RWA,3               ; R/W Comparison Value for Comparator A
-                    @bitnum   BRKEN,4             ; Break Enable
-                    @bitnum   TAG,5               ; Tag/Force Select
-                    @bitnum   ARM,6               ; Arm Control
-                    @bitnum   DBGEN,7             ; Debug Module Enable
+                    @bitnum   RWBEN,0             ;Enable R/W for Comparator B
+                    @bitnum   RWB,1               ;R/W Comparison Value for Comparator B
+                    @bitnum   RWAEN,2             ;Enable R/W for Comparator A
+                    @bitnum   RWA,3               ;R/W Comparison Value for Comparator A
+                    @bitnum   BRKEN,4             ;Break Enable
+                    @bitnum   TAG,5               ;Tag/Force Select
+                    @bitnum   ARM,6               ;Arm Control
+                    @bitnum   DBGEN,7             ;Debug Module Enable
 
 ;*** DBGT - Debug Trigger Register
 
-                    @bitnum   TRG0,0              ; Select Trigger Mode Bit 0
-                    @bitnum   TRG1,1              ; Select Trigger Mode Bit 1
-                    @bitnum   TRG2,2              ; Select Trigger Mode Bit 2
-                    @bitnum   TRG3,3              ; Select Trigger Mode Bit 3
-                    @bitnum   BEGIN,6             ; Begin/End Trigger Select
-                    @bitnum   TRGSEL,7            ; Trigger Type
+                    @bitnum   TRG0,0              ;Select Trigger Mode Bit 0
+                    @bitnum   TRG1,1              ;Select Trigger Mode Bit 1
+                    @bitnum   TRG2,2              ;Select Trigger Mode Bit 2
+                    @bitnum   TRG3,3              ;Select Trigger Mode Bit 3
+                    @bitnum   BEGIN,6             ;Begin/End Trigger Select
+                    @bitnum   TRGSEL,7            ;Trigger Type
 
 ;*** DBGS - Debug Status Register
 
-                    @bitnum   CNT0,0              ; FIFO Valid Count Bit 0
-                    @bitnum   CNT1,1              ; FIFO Valid Count Bit 1
-                    @bitnum   CNT2,2              ; FIFO Valid Count Bit 2
-                    @bitnum   CNT3,3              ; FIFO Valid Count Bit 3
-                    @bitnum   ARMF,5              ; Arm Flag
-                    @bitnum   BF,6                ; Trigger Match B Flag
-                    @bitnum   AF,7                ; Trigger Match A Flag
+                    @bitnum   CNT0,0              ;FIFO Valid Count Bit 0
+                    @bitnum   CNT1,1              ;FIFO Valid Count Bit 1
+                    @bitnum   CNT2,2              ;FIFO Valid Count Bit 2
+                    @bitnum   CNT3,3              ;FIFO Valid Count Bit 3
+                    @bitnum   ARMF,5              ;Arm Flag
+                    @bitnum   BF,6                ;Trigger Match B Flag
+                    @bitnum   AF,7                ;Trigger Match A Flag
 
 ;*** FSTAT - Flash Status Register
 
-                    @bitnum   FBLANK,2            ; FLASH Flag Indicating the Erase Verify Operation Status
-                    @bitnum   FACCERR,4           ; FLASH Access Error Flag
-                    @bitnum   FPVIOL,5            ; FLASH Protection Violation Flag
-                    @bitnum   FCCF,6              ; FLASH Command Complete Interrupt Flag
-                    @bitnum   FCBEF,7             ; FLASH Command Buffer Empty Flag
+                    @bitnum   FBLANK,2            ;FLASH Flag Indicating the Erase Verify Operation Status
+                    @bitnum   FACCERR,4           ;FLASH Access Error Flag
+                    @bitnum   FPVIOL,5            ;FLASH Protection Violation Flag
+                    @bitnum   FCCF,6              ;FLASH Command Complete Interrupt Flag
+                    @bitnum   FCBEF,7             ;FLASH Command Buffer Empty Flag
 
 ;*** NVPROT - Non-volatile FLASH Protection Register
 
-                    @bitnum   FPDIS,0             ; FLASH Protection Disable
-                    @bitnum   FPS1,1              ; FLASH Protect Select Bit 1
-                    @bitnum   FPS2,2              ; FLASH Protect Select Bit 2
-                    @bitnum   FPS3,3              ; FLASH Protect Select Bit 3
-                    @bitnum   FPS4,4              ; FLASH Protect Select Bit 4
-                    @bitnum   FPS5,5              ; FLASH Protect Select Bit 5
-                    @bitnum   FPS6,6              ; FLASH Protect Select Bit 6
-                    @bitnum   FPS7,7              ; FLASH Protect Select Bit 7
+                    @bitnum   FPDIS,0             ;FLASH Protection Disable
+                    @bitnum   FPS1,1              ;FLASH Protect Select Bit 1
+                    @bitnum   FPS2,2              ;FLASH Protect Select Bit 2
+                    @bitnum   FPS3,3              ;FLASH Protect Select Bit 3
+                    @bitnum   FPS4,4              ;FLASH Protect Select Bit 4
+                    @bitnum   FPS5,5              ;FLASH Protect Select Bit 5
+                    @bitnum   FPS6,6              ;FLASH Protect Select Bit 6
+                    @bitnum   FPS7,7              ;FLASH Protect Select Bit 7
 
 ; **** END OF ORIGINAL DEFINITIONS *********************************************
 
@@ -802,23 +758,25 @@ Virq                next      :temp,2             ;IRQ vector
 Vswi                next      :temp,2             ;SWI vector
 Vreset              next      :temp,2             ;Reset vector
 
-Vtpmovf             equ       Vtpm1ovf,2
-Vtpmch5             equ       Vtpm1ch5,2
-Vtpmch4             equ       Vtpm1ch4,2
-Vtpmch3             equ       Vtpm1ch3,2
-Vtpmch2             equ       Vtpm1ch2,2
-Vtpmch1             equ       Vtpm1ch1,2
-Vtpmch0             equ       Vtpm1ch0,2
+Vtpmovf             equ       Vtpm1ovf,::Vtpm1ovf
+Vtpmch5             equ       Vtpm1ch5,::Vtpm1ch5
+Vtpmch4             equ       Vtpm1ch4,::Vtpm1ch4
+Vtpmch3             equ       Vtpm1ch3,::Vtpm1ch3
+Vtpmch2             equ       Vtpm1ch2,::Vtpm1ch2
+Vtpmch1             equ       Vtpm1ch1,::Vtpm1ch1
+Vtpmch0             equ       Vtpm1ch0,::Vtpm1ch0
 
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE     ;round to next higher block
 TRUE_ROM            equ       $8000               ;start of 32K Flash
 
 EEPROM              def       TRUE_ROM
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          equ       FLASH_DATA_SIZE+EEPROM-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
-                    #Error    FLASH_DATA_SIZE is too large
+  #ifnz FLASH_DATA_SIZE
+                    #Error    FLASH_DATA_SIZE ({FLASH_DATA_SIZE}) is too large
+  #endif
  #endif
 #endif
 
