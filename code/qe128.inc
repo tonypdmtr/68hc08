@@ -876,6 +876,8 @@ NVOPT               equ       $FFBF,1             ;NV flash options byte
                                                   ;NVFEOPT transfers to FOPT on reset
 ;*******************************************************************************
 
+_9S08QE128_         def       *                   ;Tells us this INCLUDE has been used
+
 TEMPERATURE_CHANNEL equ       26                  ;Channel for internal temperature
 BANDGAP_CHANNEL     equ       27                  ;Channel for internal bandgap
 BANDGAP_VOLTAGE     def       1170                ;typical bandgap voltage in mV
@@ -907,9 +909,11 @@ RVECTORS            set       BOOTROM+:temp&$FFFF ;start of redirected vectors
 ?NVPROT_MASK        def       0
           #endif
 ?NVPROT_MASK        def       127-:temp<1|1
-
+          #ifmmu
 TRUE_ROM            equ       $4000               ;start(!) of 128K paged flash (do NOT use $2080-$3FFF which is also PPAGE 0)
-
+          #else
+TRUE_ROM            equ       $2080               ;start(!) of ~56K non-paged flash
+          #endif
 EEPROM              def       TRUE_ROM
 EEPROM_END          def       FLASH_DATA_SIZE+EEPROM-1
 
@@ -922,13 +926,20 @@ EEPROM_END          def       FLASH_DATA_SIZE+EEPROM-1
 #endif
 
 ROM                 def       EEPROM_END+1
+          #ifmmu
 ROM_END             def       :PAGE_START-1       ;end of pre-window flash
 
 XROM                def       :PAGE_END+1
 XROM_END            def       $FF9F               ;end of all flash (before NV registers and fixed vectors)
+          #endif
+ROM_END             def       $FF9F               ;end of all flash (before NV registers and fixed vectors)
 
 #ifdef BOOT&BOOTROM
+  #ifdef XROM_END
 XROM_END            set       BOOTROM-1
+  #else
+ROM_END             set       BOOTROM-1
+  #endif
 #endif
 
 #if EEPROM_END <= HighRegs_End
@@ -952,8 +963,11 @@ XRAM                set       BOOTXRAM_END
 #endif
 
 FLASH_START         equ       XRAM_END+1
+          #ifdef XROM_END
 FLASH_END           equ       XROM_END
-
+          #else
+FLASH_END           equ       ROM_END
+          #endif
           #ifdef BOOTROM
 FLASH_END           set       BOOTROM-1
           #endif
@@ -1009,6 +1023,7 @@ Vtpmch0             equ       Vtpm1ch0,2          ;TPM1 Channel 0 (alias)
 
 RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vectors
 ;-------------------------------------------------------------------------------
+          #ifmmu
 ?                   macro
                     #SEG{:loop-1}
                     org       :PAGE_START
@@ -1016,7 +1031,7 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
                     endm
 
                     @?
-          #ifmmu
+
 PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
 PPAGE1              equ       $01<16+:PAGE_START
 PPAGE2              equ       $02<16+:PAGE_START
@@ -1113,26 +1128,26 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
 
                     #RAM
                     org       RAM
-
+          #ifdef XROM
                     #XROM
                     org       XROM
-
+          #endif
                     #ROM
                     org       ROM
 
                     #MEMORY   ROM       ROM_END
           #ifndef OS8PRELOADED
+            #ifdef XROM
                     #MEMORY   XROM      XROM_END
+            #endif
           #endif
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
                     #MEMORY   VECTORS   VECTORS|$00FF
-
           #ifnz FLASH_DATA_SIZE
                     #MEMORY   EEPROM EEPROM_END
           #endif
-
           #ifdef RVECTORS
                     #MEMORY   RVECTORS  RVECTORS|$00FF
           #endif
