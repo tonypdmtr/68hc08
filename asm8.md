@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2019 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: December 24, 2019 for ASM8 v9.88*
+*Latest Manual Update: December 25, 2019 for ASM8 v9.88*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -2287,5 +2287,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.88, December 24, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
+ASM8 v9.88, December 25, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
