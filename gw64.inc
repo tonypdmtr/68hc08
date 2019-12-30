@@ -1918,7 +1918,32 @@ FLL_FACTOR          equ       512                 ;fixed at 512
 
 MIN_FLASH_KHZ       def       800
 MAX_FLASH_KHZ       def       1000
+;-------------------------------------------------------------------------------
+?                   macro
+                    #SEG{:loop-1}
+                    org       :PAGE_START
+                    mtop      8
+                    endm
 
+                    @?
+          #ifmmu
+PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
+PPAGE1              equ       $01<16+:PAGE_START
+PPAGE2              equ       $02<16+:PAGE_START
+PPAGE3              equ       $03<16+:PAGE_START
+
+PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
+
+?                   macro     Page
+                    mswap     1,:loop
+                    #SEG~1~
+                    org       PPAGE~1~
+                    #MEMORY   PPAGE~1~  PPAGE~1~+PPAGE_SIZE-1
+                    mtop      :n
+                    endm
+
+                    @?        0,2                 ;define memory for PPAGEs
+          #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
@@ -1967,31 +1992,6 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #VECTORS
                     org       VECTORS
 
-?                   macro
-                    #SEG{:loop-1}
-                    org       :PAGE_START
-                    mtop      8
-                    endm
-
-                    @?
-          #ifmmu
-PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
-PPAGE1              equ       $01<16+:PAGE_START
-PPAGE2              equ       $02<16+:PAGE_START
-PPAGE3              equ       $03<16+:PAGE_START
-
-PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
-
-?                   macro     Page
-                    mswap     1,:loop
-                    #SEG~1~
-                    org       PPAGE~1~
-                    #MEMORY   PPAGE~1~  PPAGE~1~+PPAGE_SIZE-1
-                    mtop      :n
-                    endm
-
-                    @?        0,2                 ;define memory for PPAGEs
-          #endif
                     #RAM
                     org       RAM
 
