@@ -10,7 +10,6 @@
                     #Message  **********************
 
                     #HcsOn
-                    #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  TBoot pre-loaded
   #ifexists tboot.exp
@@ -1848,10 +1847,18 @@ Vswi                next      :temp,2             ;$FFFC SWI vector
 Vreset              next      :temp,2             ;$FFFE Reset vector
 
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE     ;round to next higher block
-TRUE_ROM            equ       $C000               ;start of contiguous Flash
-
-EEPROM              equ       $3100
-EEPROM_END          equ       $31FF
+          #ifmmu
+TRUE_ROM            equ       $C000               ;start(!) of 64K paged flash (do NOT use $1960-$3FFF which is also PPAGE 0)
+          #else
+TRUE_ROM            equ       $1960               ;start(!) of ~58K non-paged flash
+          #endif
+          #ifmmu
+EEPROM              equ       $10C0
+          #else
+EEPROM              def       TRUE_ROM
+          #endif
+EEPROM              align     FLASH_PAGE_SIZE
+EEPROM_END          equ       EEPROM+FLASH_PAGE_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -1865,14 +1872,10 @@ ROM_END             equ       $FF95               ;end of all flash (before NV r
 #ifdef BOOT&BOOTROM
 ROM_END             set       BOOTROM-1
 #endif
-
-XROM                equ       $4000
-XROM_END            equ       $7FFF
-XROM1               equ       $10C0
-XROM1_END           equ       $17FF
-XROM2               equ       $1960
-XROM2_END           equ       $3FFF
-
+          #ifnommu
+XROM                equ       $10C0
+XROM_END            equ       $17FF
+          #endif
 ?                   macro
                     #temp     $10000              ;;count down from 64K
                     mdo
@@ -1919,6 +1922,7 @@ FLL_FACTOR          equ       512                 ;fixed at 512
 MIN_FLASH_KHZ       def       800
 MAX_FLASH_KHZ       def       1000
 ;-------------------------------------------------------------------------------
+          #ifmmu
 ?                   macro
                     #SEG{:loop-1}
                     org       :PAGE_START
@@ -1926,7 +1930,7 @@ MAX_FLASH_KHZ       def       1000
                     endm
 
                     @?
-          #ifmmu
+
 PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
 PPAGE1              equ       $01<16+:PAGE_START
 PPAGE2              equ       $02<16+:PAGE_START

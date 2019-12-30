@@ -915,7 +915,8 @@ TRUE_ROM            equ       $4000               ;start(!) of 128K paged flash 
 TRUE_ROM            equ       $2080               ;start(!) of ~56K non-paged flash
           #endif
 EEPROM              def       TRUE_ROM
-EEPROM_END          def       FLASH_DATA_SIZE+EEPROM-1
+EEPROM              align     FLASH_PAGE_SIZE
+EEPROM_END          equ       EEPROM+FLASH_PAGE_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM

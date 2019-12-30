@@ -2946,7 +2946,7 @@ MAX_OS_CALLS        def       64                  ;default room for OS calls (68
           #ifdef ~1~&~1~_END
                     #Message  ~1~~'..........:'.1.{10-:1}~ {~1~(h)}-{~1~_END(h)} ({~1~_END-~1~+1} bytes)
           #else ifdef ~1~
-                    #Message  ~1~~'..........:'.1.{10-:1}~ {~1~(h)}-{~1~+:PAGE_END-1(h)} ({~1~+:PAGE_END-~1~+1} bytes)
+                    #Message  ~1~~'..........:'.1.{10-:1}~ {~1~(h)}-{~1~&$FF0000+:PAGE_END(h)} ({~1~&$FF0000+:PAGE_END-~1~+1} bytes)
           #endif
                     mtop      :n
                     endm
