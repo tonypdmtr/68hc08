@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Always-present Tiny Bootloader
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
 ;* Segments  : RAM    : Variables
 ;*           : ROM    : Code
 ;* Note(s)   : User vectors are automatically redirected.

@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
 ;* Purpose   : Jump to any PPAGE location (in #MMU mode), works as JMP otherwise
-;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/leap.html
 ;* History   : 10.12.09 v1.00 Original
 ;*           : 13.11.27 v1.10 Allowed for use even in non-MMU mode

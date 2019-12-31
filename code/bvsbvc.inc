@@ -4,7 +4,7 @@
 ;* Purpose   : Macros to implement missing oVerflow bit instructions, i.e.,
 ;*           : Set/Clear CCR[V], and non-CCR-destructive BVC and BVS equivalents
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2019 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/bvsbvc.html
 ;* Note(s)   : Use: #Include bvsbvc.inc
 ;*******************************************************************************
