@@ -21,11 +21,12 @@ TRUE_ROM            def       $EE00
 MAX_OS_CALLS        def       64                  ;default room for OS calls
 
 FLASH_PAGE_SIZE     def       64                  ;minimum that must be erased at once
-EEPROM              def       TRUE_ROM
-
 FLASH_DATA_SIZE     def       0
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
-EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
+
+EEPROM              def       TRUE_ROM
+EEPROM              align     FLASH_PAGE_SIZE
+EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 FLBPR_MASK          def       EEPROM+FLASH_DATA_SIZE>6&$FF ;mask to use for FLBPR
 

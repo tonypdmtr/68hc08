@@ -29,30 +29,23 @@ TRUE_ROM            def       $7800
 MAX_OS_CALLS        def       64                  ;default room for OS calls
 
 FLASH_PAGE_SIZE     def       64                  ;minimum that must be erased at once
-EEPROM              def       TRUE_ROM
-
 FLASH_DATA_SIZE     def       0
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
-EEPROM_END          def       EEPROM+FLASH_DATA_SIZE
+EEPROM              def       TRUE_ROM
+EEPROM              align     FLASH_PAGE_SIZE
+EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 #if FLASH_DATA_SIZE > 512
                     #Message  All Flash is unprotected
 FLBPR_MASK          def       %00000000           ;all Flash is unprotected
-#endif
-
-#if FLASH_DATA_SIZE > 256
+#else if FLASH_DATA_SIZE > 256
 FLBPR_MASK          def       %00001000           ;256-512 bytes of Flash
-#endif
-
-#if FLASH_DATA_SIZE > 128
+#else if FLASH_DATA_SIZE > 128
 FLBPR_MASK          def       %00000100           ;128-256 bytes of Flash
-#endif
-
-#ifnz FLASH_DATA_SIZE
+#else ifnz FLASH_DATA_SIZE
 FLBPR_MASK          def       %00000010           ;0-128 bytes of Flash
 #endif
-
 FLBPR_MASK          def       %00000001           ;all Flash is protected
 
 RAM                 def       $0080               ;Start of on-chip RAM

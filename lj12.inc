@@ -24,9 +24,10 @@ FLASH_DATA_SIZE     def       0
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
 EEPROM              def       TRUE_ROM
-EEPROM_END          def       EEPROM+FLASH_DATA_SIZE
+EEPROM              align     FLASH_PAGE_SIZE
+EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
-FLBPR_MASK          def       EEPROM_END>7<1&$FF  ;mask to use for FLBPR
+FLBPR_MASK          def       EEPROM_END<1&$FF    ;mask to use for FLBPR
 
 RAM                 def       $0060               ;Start of on-chip RAM
 RAM_END             def       $00FF               ;End of zero-page RAM
