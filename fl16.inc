@@ -745,6 +745,7 @@ TRUE_ROM            equ       $C000               ;start of 16K Flash
 ?NVPROT_MASK        def       TRUE_ROM+FLASH_DATA_SIZE-1&$FE00>8  ;enable FPROT
 
 EEPROM              def       TRUE_ROM
+EEPROM              align     FLASH_PAGE_SIZE
 EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM

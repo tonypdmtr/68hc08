@@ -823,7 +823,7 @@ TRUE_ROM            equ       $1080               ;start of 60K flash (extra ROM
           #endif
 
 EEPROM              def       TRUE_ROM
-EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
           #if EEPROM_END <= HighRegs_End
 ROM                 def       HighRegs_End+1

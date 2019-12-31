@@ -1858,7 +1858,7 @@ EEPROM              equ       $10C0
 EEPROM              def       TRUE_ROM
           #endif
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_PAGE_SIZE-1
+EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM

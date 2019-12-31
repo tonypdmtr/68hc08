@@ -685,7 +685,8 @@ TRUE_ROM            equ       $F000
 ?NVPROT_MASK        def       TRUE_ROM+FLASH_DATA_SIZE-1&$FE00>8  ;enable FPROT
 
 EEPROM              def       TRUE_ROM            ;start of flash used as EEPROM (main ROM)
-EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
+EEPROM              align     FLASH_PAGE_SIZE
+EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM

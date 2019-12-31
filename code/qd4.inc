@@ -463,6 +463,7 @@ FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE     ;round to next higher block
 RVECTORS            equ       VECTORS-$FFFF+TRUE_ROM+FLASH_DATA_SIZE-1
 
 EEPROM              def       TRUE_ROM
+EEPROM              align     FLASH_PAGE_SIZE
 EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 ROM                 def       EEPROM_END+1

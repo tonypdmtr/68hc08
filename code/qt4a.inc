@@ -21,11 +21,11 @@ TRUE_ROM            equ       $EE00
 MAX_OS_CALLS        def       64                  ;default room for OS calls
 
 FLASH_PAGE_SIZE     equ       64                  ;minimum that must be erased at once
-EEPROM              equ       TRUE_ROM
-
 FLASH_DATA_SIZE     def       0
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
+EEPROM              equ       TRUE_ROM
+EEPROM              align     FLASH_PAGE_SIZE
 EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 RAM                 equ       $0080               ;Start of on-chip RAM

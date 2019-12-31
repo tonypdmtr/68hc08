@@ -849,6 +849,7 @@ FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE     ;round to next higher block
 TRUE_ROM            equ       $E000               ;start of 8K Flash
 
 EEPROM              def       TRUE_ROM
+EEPROM              align     FLASH_PAGE_SIZE
 EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
