@@ -1,9 +1,9 @@
 ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 ================================================================================
 
-*ASM8 - Copyright (c) 2001-2019 by Tony Papadimitriou (email: <tonyp@acm.org>)*
+*ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: December 25, 2019 for ASM8 v9.88*
+*Latest Manual Update: January 1, 2020 for ASM8 v9.88*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -1849,7 +1849,7 @@ Errors
 |`Invalid first argument`                               |The first value or expression supplied is not correct.
 |`Invalid second argument`                              |The second value or expression supplied is not correct.
 |`Missing value between commas`                         |Found two (or more) commas without a value in between.
-|`Possibly duplicate symbol "<SYMBOL>"`                 |The symbol shown has already been defined. The word 'possibly' suggests that a symbol may have been truncated to 19 characters, and thus not appear duplicate to the user, only to the assembler. It also suggests that the original may have been written for case-sensitive assembly but you turned the option off.
+|`Possibly duplicate symbol "<SYMBOL>"`                 |The symbol shown has already been defined. The word 'possibly' suggests that a symbol may have been truncated to 19 (or `#MaxLabel`) characters, and thus not appear duplicate to the user, only to the assembler. It also suggests that the original may have been written for case-sensitive assembly but you turned the option off.
 |`Repeater value is invalid`                            |The repeater value (the :n part of the opcode) is a positive integer number.
 |`Symbol "<SYMBOL>" contains invalid character(s)`      |The symbol shown contains characters that are used in special ways and, therefore, cannot be part of a symbol because they will cause ambiguities. For example, a quote within a symbol is not allowed.
 |`Undefined symbol "<SYMBOL>" or bad number`            |The string shown is either a symbol that hasn't been defined at all, or it is a number that has some error, for example: `$ABCH` and `$FFFFF` are not valid hex numbers. The first contains an invalid character while the second is greater than 16 significant bits (`$FFFF`) in non-MMU mode.
@@ -2287,5 +2287,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.88, December 25, 2019, Copyright (c) 2001-2019 by Tony G. Papadimitriou
+ASM8 v9.88, January 1, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
