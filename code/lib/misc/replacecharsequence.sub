@@ -14,8 +14,7 @@
 
 ReplaceCharSequence proc
                     psha      ch@@
-                    pshhx     ;.s@@
-                    #ais
+                    pshhx
 
                     lda       ,x                  ;A = 1st character
                     bra       Go@@
@@ -28,7 +27,6 @@ Loop@@              psha
 Go@@                cbeq      x+,Loop@@
                     pull
                     rtc
-#spcheck
 
 ;*******************************************************************************
                     #sp
