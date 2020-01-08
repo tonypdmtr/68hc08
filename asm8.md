@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: January 1, 2020 for ASM8 v9.88*
+*Latest Manual Update: January 8, 2020 for ASM8 v9.90*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -989,6 +989,8 @@ internal symbols are defined:
 
 -   `:CYCLES` returns the current value of the cycles counter, and then it
      resets it to zero.
+
+-   `:CCYCLES` returns the current value of the cycles counter (v9.90+).
 
 -   `:OCYCLES` returns the older value of the cycles counter (but does not
      reset it).
@@ -2287,5 +2289,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.88, January 1, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.90, January 8, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
