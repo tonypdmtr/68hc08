@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: January 8, 2020 for ASM8 v9.90*
+*Latest Manual Update: January 14, 2020 for ASM8 v9.90*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -71,12 +71,12 @@ Three versions are currently available:
 - DOS _with the GO32V2 memory manager extension built-in_.
   It has also been tested under DOSBox v0.73-2 and performs without problems.
 
-See [Linux/Win32 version addendum] for behavioral differences related to the OS.
+See [Linux/Win32 version addendum][] for behavioral differences related to the OS.
 
 Reference Guide
 ===============
 
-<br>__Command-Line Syntax and Options__<br>
+Command-Line Syntax and Options
 --------------------------------------------------------------------------------
 
 `ASM8 [-option [...]] [[@]filespec [...]] [>errfile]`<br>
@@ -97,7 +97,7 @@ Reference Guide
 -   If the file extension for a source filespec is omitted, the extension `.ASM`
     is assumed (see description of the `-R.ext` option below).
 
--   Assembler errors may be redirected to errfile using standard DOS output
+-   Assembler [errors][] may be redirected to errfile using standard DOS output
     redirection syntax. This capability may be used in conjunction with, or as
     an alternative to the `-E+` option.
 
@@ -170,7 +170,7 @@ Reference Guide
 | `-W     `| _(none)_  |Write options specified on command line to the `asm8.cfg` file. The user-specified options become the default values used by ASM8 in subsequent invocations. Filespec(s) on the command line are ignored. Assembly of source files does not take place if this option is specified.
 | `-WW    `| _(none)_  |Same as -W but removes licensing information from the configuration file (e.g., for public distribution).
 
-<br>__Source File Pseudo-Opcodes (Pseudo-Instructions)__<br>
+Source File Pseudo-Opcodes (Pseudo-Instructions)
 --------------------------------------------------------------------------------
 
 | Pseudo-Op                  | Description|
@@ -218,7 +218,7 @@ Reference Guide
 |`label SET expr[,size]`     |Assigns the value of expr to label even if label is already defined with a different value.<br><br>This is similar to `EQU` but allows making multiple re-definitions.  The value set will be used until another `SET` pseudo-instruction or to the end of the assembly process.<br><br>Warning: Careless, or simply wrong use of this directive can lead to multiple side errors or warnings (please note this is a two-pass assembler).  Using a forward `SET` defined symbol may lead to problems, as the value used will be the one from the last `SET` definition, which is not necessarily the one we want.<br><br>Correct behavior is guaranteed if any symbols re-defined with `SET` are used only after each new re-definition, otherwise, the first reference in Pass 2 will use the value from the last re-definition in Pass 1.<br><br>_Example of wrong use:_<br><br>1.` lda #Value ;we expect 123, actual is 234`<br><br>2.`Value equ 123`<br><br>` ...`<br><br>3.` lda #Value ;we expect 234, actual is 123`<br><br>4.`Value set 234`<br><br>Value in line 1 will be 234 (the last known value from Pass 1) while Value in line 3 will be 123 (most recent value in current Pass 2).<br><br>_Example of correct use:_<br><br>1. `Value equ 123`<br><br>2. `lda #Value ;we expect 123, actual is 123`<br><br>`...`<br><br>3. `Value set 234`<br><br>4. `lda #Value ;we expect 234, actual is 234`<br><br>_See also_ `EXP` and `EQU`
 |`label SETN symbol[,expr]`  |Assigns the current value of symbol to label as if with `SET`.  Then, it increments the value of symbol by one (as if with `SET`) or, if the optional expression is present, by the value of that expression.  Useful for (re-)defining a series of symbols based on a common starting value.  Note: symbol is a single label and not an expression.  _See also_ `NEXP`,`NEXT`
 
-<br>__Assembler Directives__<br>
+Assembler Directives
 --------------------------------------------------------------------------------
 
 -   All processing directives must be prefixed with a `$` or `#` character. ASM8
@@ -388,7 +388,7 @@ a                   remacro
 |`#XRAM`            |Activation of the XRAM segment. Default starting value is `$0100`.
 |`#XROM`            |Activation of the XROM segment. Default starting value is `$8000`.
 
-<br>__Macros__<br>
+Macros
 --------------------------------------------------------------------------------
 
 -   Macros must be defined anytime before they are invoked, and they can be
@@ -740,7 +740,7 @@ a                   remacro
 * Virtually unlimited size of each macro (memory permitting.)
 * Unlimited number of macro invocations (all internal macro counters are 32-bit).
 
-### <br>__Simple nested example__<br>_(counts lines of intermediate source code, and issues warning if optional limit is exceeded):_
+### Simple nested example (counts lines of intermediate source code, and issues warning if optional limit is exceeded):
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
                     org       *
@@ -768,7 +768,7 @@ CountLines          macro     [Limit][,Description]
                     mresume
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<br>__String Expressions and Formatting__<br>
+String Expressions and Formatting
 --------------------------------------------------------------------------------
 
 Note: [text] in directives and all strings may contain nested expressions
@@ -862,7 +862,7 @@ that both curly brackets are not part of the same string, e.g.:
 instead of `fcc '{Hello}'` which tries to evaluate the symbol `Hello` use:<br>
 `fcc '{','Hello}'`.
 
-<br>__Internal symbols__<br>
+Internal symbols
 --------------------------------------------------------------------------------
 
 Some special internal symbols are always defined by the assembler. All such
@@ -1129,7 +1129,7 @@ internal symbols are defined:
 
 -   `:ERRORS` returns the current number of errors.
 
-### <br>__Notes about :SP and :SP1:__<br>
+### Notes about :SP and :SP1:
 
 `:SP` returns the current automatic SP offset (the same for both `#SP` and
 `#SP1` modes). It will NOT account for the extra 'plus one' of the `#SP1` mode,
@@ -1254,7 +1254,7 @@ offsets for each case.
 35 F639:9EE6 0B [ 4]      lda       ?,sp
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### <br>__Notes about :AIS:__<br>
+### Notes about :AIS:
 
 `:AIS` returns the number of stack bytes still allocated since the most recent
 stack-increasing `AIS` instruction (normally useful only in `#SP[AUTO]` modes).
@@ -1280,7 +1280,7 @@ Example usage:
                     #sp                           ;cancel auto mode and offsets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### <br>__Notes about #SPAUTO:__<br>
+### Notes about #SPAUTO:
 
 Besides providing a method for automatic adjustment of stack offsets that refer
 outside/within a certain block of code (so they remain 'apparently' constant),
@@ -1536,7 +1536,7 @@ Several coding examples that collectively implement all the features described
 here can be found at http://www.aspisys.com/code and in the `code` subdirectory
 of the assembler ZIP archive.
 
-### <br>__Notes about :X and #X mode__<br>
+### Notes about :X and #X mode
 
 `:X` will return the current automatic X offset. This allows you to get the
 true difference between automatic and actual X offset. You can also use the
@@ -1561,7 +1561,7 @@ Sub                 tsx
                     lda       MyOffset,x          ;(equivalent to above)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-### <br>__Notes about :cycles__:<br>
+### Notes about :cycles:
 
 -   The cycles counter is reset to zero right after it is accessed. To count
     cycles for a section of code, you must access `:cycles` twice, once before
@@ -1812,11 +1812,11 @@ Error and Warning Messages
 
 This section provides the lists of error and warning messages.
 
-Errors inform the user about problems that prevent the assembler from producing
+[Errors][] inform the user about problems that prevent the assembler from producing
 usable code. If there is even a single error during assembly, no files will be
 created (except for the ERR file, if one was requested).
 
-Warnings inform the user about problems that do not prevent the assembler from
+[Warnings][] inform the user about problems that do not prevent the assembler from
 producing usable code but the code produced may not be what was intended, or it
 may be inefficient. A program that has warnings may be totally correct and run
 as expected.
@@ -1929,9 +1929,9 @@ ASM8's Miscellaneous Features
 Repeaters
 ---------
 
-Each opcode or pseudo-opcode may be suffixed by a colon [:] and a positive
-integer or expression evaluating to a number between 1 and 32767. This is
-referred to as the repeater value.
+Each opcode or pseudo-opcode (but not macro calls) may be suffixed by a colon [:]
+and a positive integer or expression evaluating to a number between 1 and 32767.
+This is referred to as the repeater value.
 
 Some examples:
 
@@ -1965,7 +1965,7 @@ the initial default values) and they are interchangeable. Use of segments is
 optional. If segments aren't used, you are always in the default `#ROM` segment
 (which explains why code assembles beginning at `$F600`).
 
-<br>__Local Symbols__<br>
+Local Symbols
 --------------------------------------------------------------------------------
 
 All symbols that begin with a question mark [`?`] are considered to be local.
@@ -1987,7 +1987,7 @@ outside.
 _Note_: You can also have procedure-local symbols. See the `#PROC` and `PROC`
 directives for details.
 
-<br>__Marking big blocks as comments__<br>
+Marking big blocks as comments
 --------------------------------------------------------------------------------
 
 `#IFDEF` without any expression following will always evaluate to False. This
@@ -2089,7 +2089,7 @@ Start               proc                          ;the program begins here
                     bra       *                   ;the program ends here
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-<br>__My own source code style and naming convention__<br>
+My own source code style and naming convention
 --------------------------------------------------------------------------------
 
 *Hungarian notation is never used.*
@@ -2148,7 +2148,7 @@ Each proc begins with the proc name and the assembler directive `proc`. An
 another proc for proximity reasons, in which case we need to protect the parent
 proc's label locality.
 
-<br>__Getting rid of the `No ORG...` warning__<br>
+Getting rid of the `No ORG...` warning
 --------------------------------------------------------------------------------
 
 If you are annoyed by the `No ORG...` warning that shows up whenever the
@@ -2168,7 +2168,7 @@ location counter for the ORG. It effectively does nothing. It will, however, set
 the appropriate internal flag that tells the assembler an ORG has been used and,
 thus, no warning!
 
-<br>__Calling ASM8 from PE's WinIDE__<br>
+Calling ASM8 from PE's WinIDE
 --------------------------------------------------------------------------------
 
 Here's how to setup the WinIDE to use ASM8.EXE instead of PE's assembler. This
@@ -2198,7 +2198,7 @@ actually used in your `ASM8.BAT` above).
 
 The Error Format should be "Borland Compatible".
 
-<br>__Tips on using the MEMORY directive__<br>
+Tips on using the MEMORY directive
 --------------------------------------------------------------------------------
 
 The MEMORY directive is generally very useful for any program. It could help
@@ -2227,7 +2227,7 @@ If while writing your program you begin getting MEMORY Violation warnings,
 you'll know you have reached (actually, gone beyond) the allowed limit. You
 must cut down the size of your code until the warning disappears.
 
-<br>__Linux/Win32 version addendum__<br>
+Linux/Win32 version addendum
 --------------------------------------------------------------------------------
 
 The DOS, Win, and Linux versions are practically identical. Where there are
@@ -2275,7 +2275,7 @@ These are pretty much the only differences in behavior.
 Assembly language source code syntax is identical for all platform versions,
 except where noted otherwise.
 
-<br>__Setting up FreeMASTER (from Freescale/NXP) for use with ASM8__<br>
+Setting up FreeMASTER (from Freescale/NXP) for use with ASM8
 --------------------------------------------------------------------------------
 
 IMPORTANT: You must use the `-MTA` option for generation of ASM8 map files.
@@ -2289,5 +2289,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.90, January 8, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.90, January 14, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
