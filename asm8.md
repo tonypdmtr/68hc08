@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: January 14, 2020 for ASM8 v9.90*
+*Latest Manual Update: January 24, 2020 for ASM8 v9.90*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -272,7 +272,7 @@ Subroutine          ais       #-4                 ;local data
 |`#HCSON`           |Enables the HCS08 instruction set mode.<br>_See also_ `#IFHCS #IFNHCS #HCSOFF`<br><br>Equivalent to the `-HCS+` command line option.
 |`#HOMEDIR [path]`  |Makes the specified path the current home directory. Although this cannot affect where any output files will go, it does make a difference on where any following relative `#INCLUDE` files will be searched. Relative file path specifications will now be relative to the directory specified by the #HOMEDIR directive, including any relative `#INCLUDE` references in nested include files.<br><br>If [path] is missing, the original main file path is restored.
 |`#IF expr1 cond expr2`|Evaluates expr1 and expr2 (which may be any valid ASM8 expression) and compares them using the specified cond conditional operator. If the condition is true, the code following the #IF operator is assembled, up to its matching `#ELSE` or `#ENDIF` directive.<br><br>Cond may be any one of: \< \<= = \>= \> \<\><br><br>The condition is always evaluated using unsigned arithmetic.<br><br>If a symbol referenced in expr1 or expr2 is not defined, the statement will always evaluate as false.<br>The `#!IF` variant will suppress warnings for undefined symbols.
-|`#IFDEF expr`      |Attempts to evaluate expr, and if successful, assembles the code that follows, up to the matching `#ELSE` or `#ENDIF` directive. This directive is used to test if a specified symbol has been defined. Symbol(s) referenced in expr must be defined before the directive for the result to evaluate true (e.g., forward references will evaluate as false). `#IFDEF` without an expr following will always evaluate to False.<br><br>alt-179 (¦) ORs separated conditions.
+|`#IFDEF expr`      |Attempts to evaluate expr, and if successful, assembles the code that follows, up to the matching `#ELSE` or `#ENDIF` directive. This directive is used to test if a specified symbol has been defined. Symbol(s) referenced in expr must be defined before the directive for the result to evaluate true (e.g., forward references will evaluate as false). `#IFDEF` without an expr following will always evaluate to False.<br><br>alt-0166 (¦) ORs separated conditions.
 |`#IFEXISTS fpath`  |Checks for the existence of the file specified by fpath (using the same rules as those used for `#INCLUDE` directives) and assembles the code that follows if the specified fpath exists.
 |`#IFHCS`           |Assembles the following code if the assembler is in the extended HCS08 instruction set mode. _See also_ `#IFNHCS #HCSON #HCSOFF`
 |`#IFINCLUDED`      |Assembles the code which follows if the file containing this directive is a file used in an INCLUDE directive of a higher-level file (regardless of nesting level). _See also_ `#IFMAIN`
@@ -288,7 +288,7 @@ Subroutine          ais       #-4                 ;local data
 |`#IFNONUM text`    |`#IFNONUM` performs the opposite test.
 |`#INCLUDE fpath`   |Includes the specified fpath file in the assembly stream, as if the contents of the file were physically present in the source at the point where the `#INCLUDE` directive is encountered. `#INCLUDE`'s may be nested, up to 255 levels (the main source file counts as one level). Relative fpath specifications are always referenced to the directory in which the main source file resides, including any relative `#INCLUDE` fpath references in nested include files.
 |`#USES fpath`      |`#USES` is an alternative, slightly different method to include a file. It will `#INCLUDE` the file specified (using the same file-finding rules as `#INCLUDE`) but only if the same file path has not been included (via  `#INCLUDE` or `#USES`) at least once, already. `#USES` is useful for creating `#INCLUDE` file dependencies (normally, from a higher level to a lower level; e.g., an analog temperature sensor driver module `#USES` the A/D driver module, but not the other way around). This allows directly `#USING` (_an alias for `#USES`_) only the module of interest in your application, and it should take care to use whatever other modules it requires (in a recursive sort of way). If another included module in the same application `#USES` the same lower-level module, it will not be included a second time. This is similar to the common technique used to prevent multiple inclusions of the same file, but only have it included the first time it is referenced. Normally, the<br>`#IFNDEF ... #ENDIF`<br>block is found inside the file, meaning the assembler must enter the file before it 'knows' it doesn't need it. The advantages with `#USES`, however, are: (1) you do not need a specific symbol definition for each file, and (2) you never enter an already included file (which would use up a sometimes precious file count towards the maximum number of `#INCLUDE` files.)<br>`#IFNDEF MODULE`<br>`MODULE`<br>_... your module code goes here_<br>`#ENDIF`<br><br>Bi-directional, or circular co-dependencies (e.g., file A depends on file B, while file B depends on A) are possible in some cases, and then they require some extra attention in the respective files' internal organization, or it could not work as you might have expected, and leave you confused by 'spurious' errors. In general though, you should try to avoid them.<br><br>Also, you cannot use `#USES` in place of `#INCLUDE` for modules that must be intentionally included multiple times (e.g., including the same SCI driver module, once for each hardware SCI available), although you could use `#USES` to include a file that itself does `#INCLUDE` the same file multiple times.<br><br>_Note_: The assembler will only generate a standard error (not an assembly-terminating fatal error) if a file specified in a `#INCLUDE` (or `#USES`) directive is not found. The `#IFEXISTS` and `#IFNEXISTS` directives may be used in conjunction with `#FATAL` if termination of assembly is desired under such conditions.
-|`#IFNDEF expr`     |Evaluates expr and assembles the code that follows if the expression could NOT be evaluated, usually as the result of a reference to an undefined symbol. This directive is the functional opposite of the `#IFDEF` directive.<br><br>alt-179 (¦) ORs separated conditions.
+|`#IFNDEF expr`     |Evaluates expr and assembles the code that follows if the expression could NOT be evaluated, usually as the result of a reference to an undefined symbol. This directive is the functional opposite of the `#IFDEF` directive.<br><br>alt-0166 (¦) ORs separated conditions.
 |`#IFNEXISTS fpath` |The opposite of `#IFEXISTS`; code following this directive is assembled if the specified fpath does NOT exist. The `-Ix` directory will be used also to determine if a file exists or not.
 |`#IFNHCS`          |Assembles the following code if the assembler is in the regular HC08 instruction set mode.<br><br>_See also_ `#IFHCS #HCSON #HCSOFF`
 |`#IFNZ expr`       |Evaluates expr and assembles the code that follows if the expression evaluates to a non-zero value. `#IFNZ` always evaluates to false if expr references undefined or forward-defined symbols.
@@ -2193,7 +2193,7 @@ In the box Type, select "Other Assembler/Compiler" In Options, type: `%FILE%`
 Select the checkboxes for "Wait for compiler to finish", "Save files before
 assembling", and "Recover Error from compiler" and de-select the remaining ones.
 
-The Error Filename should be c:\temp\error.out (or whatever filename you
+The Error Filename should be `c:\temp\error.out` (or whatever filename you
 actually used in your `ASM8.BAT` above).
 
 The Error Format should be "Borland Compatible".
@@ -2282,12 +2282,12 @@ IMPORTANT: You must use the `-MTA` option for generation of ASM8 map files.
 This will create ASCII map files that can be parsed by a regular expression text
 parser. (The default _P&E Micro_ map files cannot be used for this purpose.)
 
-In FreeMASTER application, go to "Project/Options/MAP Files" option and define a
+In FreeMASTER application, go to `Project/Options/MAP Files` option and define a
 RegExp text parser as the File Format. Then fill out the screen that appears as
 follows:
 `([0-9A-F]+) +([0-9]+) +([0-9]+) +([^ ]+) +([1-9][0-9]*)`
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.90, January 14, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.90, January 24, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
