@@ -16,7 +16,7 @@
   #ifexists tboot.exp
                     #Uses     tboot.exp
   #else
-                    #Uses     tboot/tboot32.exp
+                    #Uses     tboot/tboot_qe32.exp
   #endif
 
 #endif

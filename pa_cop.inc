@@ -22,9 +22,13 @@ KickCop             proc
                     tpa
                     sei
                     ldhx      #$A602
+                    #temp     :ccycles
                     sthx      WDOG_CNT
                     ldhx      #$B480
                     sthx      WDOG_CNT
+          #if :ccycles-:temp > 16
+                    #Warning  COP sequence longer than 16 cycles ({:ccycles-:temp})
+          #endif
                     tap
                     pull
                     rtc
@@ -33,11 +37,12 @@ KICKCOP_CYCLES      equ       :cycles
                     mexit
           #endif
           #ifdef KickCop
-                    #temp     :ocycles<16+:cycles
+                    #temp1    :ocycles
+                    #temp2    :cycles
                     call      KickCop
-?$$$                equ       :cycles+KICKCOP_CYCLES
-                    #Cycles   :temp>16&$FFFF
-                    #Cycles   :temp&$FFFF+?$$$
+                    #temp     :cycles+KICKCOP_CYCLES
+                    #Cycles   :temp1
+                    #Cycles   :temp2+:temp
           #endif
                     endm
 ;-------------------------------------------------------------------------------
@@ -46,9 +51,13 @@ DisableCOP          macro
                     tpa
                     sei
                     ldhx      #$C520
+                    #temp     :ccycles
                     sthx      WDOG_CNT
                     ldhx      #$D928
                     sthx      WDOG_CNT
+          #if :ccycles-:temp > 16
+                    #Warning  COP sequence longer than 16 cycles ({:ccycles-:temp})
+          #endif
                     clrx
                     stx       WDOG_CS1
                     stx       WDOG_CS2

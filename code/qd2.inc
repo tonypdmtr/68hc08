@@ -16,7 +16,7 @@
   #ifexists tboot.exp
                     #Uses     tboot.exp
   #else
-                    #Uses     tboot/tbootqd2.exp
+                    #Uses     tboot/tboot_qd2.exp
   #endif
 
 #endif

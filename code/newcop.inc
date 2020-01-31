@@ -30,10 +30,11 @@ KICKCOP_CYCLES      equ       :cycles
                     mexit
           #endif
           #ifdef KickCop
-                    #temp     :ocycles<16+:cycles
+                    #temp1    :ocycles
+                    #temp2    :cycles
                     call      KickCop
-?$$$                equ       :cycles+KICKCOP_CYCLES
-                    #Cycles   :temp>16&$FFFF
-                    #Cycles   :temp&$FFFF+?$$$
+                    #temp     :cycles+KICKCOP_CYCLES
+                    #Cycles   :temp1
+                    #Cycles   :temp2+:temp
           #endif
                     endm

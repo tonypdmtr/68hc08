@@ -587,7 +587,8 @@ Rep                 macro     Times,Instruction1[,Instruction2]*
           #if ::~1,~ <= 1
                     psha                          ;;protect user's A
                     lda       ~1~                 ;;A = counter value
-Loop$$$             psha                          ;;save current counter
+Loop$$$
+                    psha                          ;;save current counter
                     lda       2,asp               ;;A = user's A
                     msuspend                      ;;run user code
                     sta       2,asp               ;;save user's A for later
@@ -597,7 +598,8 @@ Loop$$$             psha                          ;;save current counter
           #else if ::~1,~ = 2
                     pshhx                         ;;protect user's A
                     ldhx      ~1~                 ;;HX = counter value
-Loop$$$             pshhx                         ;;save current counter
+Loop$$$
+                    pshhx                         ;;save current counter
                     ldhx      3,asp               ;;HX = user's HX
                     msuspend                      ;;run user code
                     sthx      3,asp               ;;save user's HX for later
@@ -1381,7 +1383,8 @@ PullV               macro     Variable[ SizeOf(Variable)]
 _ClrVar_            macro     Variable
                     clrh
                     ldx       #::~1~
-Loop$$$             clr       ~1~-1,ax
+Loop$$$
+                    clr       ~1~-1,ax
                     dbnzx     Loop$$$
                     endm
 
