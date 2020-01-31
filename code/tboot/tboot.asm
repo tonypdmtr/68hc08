@@ -24,6 +24,8 @@
   #Hint * SH8..............: Target is 9S08SH8
   #Hint * QD2..............: Target is 9S08QD2
   #Hint * QD4..............: Target is 9S08QD4
+  #Hint * AC32.............: Target is 9S08AC32
+  #Hint * AC96.............: Target is 9S08AC96
   #Hint *---------------------------------------------------
   #Hint * HZ...............: MCU effective clock as Hz
   #Hint * KHZ..............: MCU effective clock as KHz
@@ -46,13 +48,10 @@
 #endif
 
 BOOTROM_VERSION     def       118                 ;version as x.xx
-
 ;-------------------------------------------------------------------------------
 
 SCI                 def       1                   ;SCI to use (1 or 2)
-
 ;-------------------------------------------------------------------------------
-
           #ifdef QE128
 BOOTROM             def       $F800               ;QE128 version is a bit larger
           #else ifdef DZ32¦DZ60
@@ -63,9 +62,7 @@ BOOTROM             def       $FC00
           #ifnz BOOTROM\512
                     #Error    BOOTROM is not on a 512-byte page boundary
           #endif
-
 ;-------------------------------------------------------------------------------
-
 ?                   macro
           #ifdef ~1~
 FLASH_DATA_SIZE     def       ~2~
@@ -77,9 +74,7 @@ FLASH_DATA_SIZE     def       ~2~
                     @?        GB60,1920
 
 FLASH_DATA_SIZE     def       512
-
 ;-------------------------------------------------------------------------------
-
           #ifdef PRIVATE
 NVOPT_VALUE         def       %10000000           ; NVOPT transfers to FOPT on reset
           #endif             ; ||||||||
@@ -99,6 +94,7 @@ NVOPT_VALUE  set  NVOPT_VALUE|%00100000           ; EPGMOD = 1 (8-byte mode)
 ;-------------------------------------------------------------------------------
 #ifndef ROM
 ROM                 equ       BOOTROM
+;-------------------------------------------------------------------------------
 ;-------------------------------------------------------------------------------
           #ifdef QE128
 HZ                  def       32768*512           ;MCU & Cyclone's default
@@ -129,10 +125,14 @@ BDIV                equ       1                   ;(actually, no BDIV in GB60)
                     #Uses     gb60.inc
           #endif
 ;-------------------------------------------------------------------------------
-          #ifdef AC32
+          #ifdef AC32¦AC96
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
+            #ifdef AC32
                     #Uses     ac32.inc
+            #else
+                    #Uses     ac96.inc
+            #endif
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef QD2¦QD4
@@ -146,9 +146,9 @@ BDIV                def       1
             #ifnz SCI
 SCI_TX_PIN          @pin      PORTA,1
 SCI_RX_PIN          @pin      PORTA,2
-          #ifdef BPS
+              #ifdef BPS
 BPS_RATE            equ       BPS
-          #endif
+              #endif
                     #push
                     #MCF
                     org       BOOTROM
@@ -197,7 +197,6 @@ BDIV                def       1
 ;-------------------------------------------------------------------------------
 
 RVECTORS            def       BOOTROM-1&VECTORS
-
 APP_CODE_START      def       TRUE_ROM+FLASH_DATA_SIZE
 APP_CODE_END        def       BOOTROM-1
 #Message  AppSpace: {APP_CODE_START(h)}-{APP_CODE_END(h)} ({APP_CODE_END-APP_CODE_START+1} bytes) RVECTORS: {RVECTORS(h)}
@@ -221,9 +220,7 @@ APP_CODE_END        def       BOOTROM-1
                     fcs       ~1~
                     endm
 #endif
-
 ;-------------------------------------------------------------------------------
-
 Page                macro
                     mset      #
                     #Message  +-------------------------------------------------
@@ -246,13 +243,13 @@ LF2CRLF             def       *
                     @ConstMinMax SCI,1,2
 
 #ifdef HARD_FLOW_CONTROL
- #ifndef CTS_LINE
+  #ifndef CTS_LINE
           #ifdef QE128
 CTS_LINE            @pin      PORTE,6             ;/CTS is output from MCU
           #else ifdef QE8¦QE32
 CTS_LINE            @pin      PORTC,7             ;/CTS is output from MCU
           #endif
- #endif
+  #endif
                     @CheckPin CTS_LINE
 #endif
 
@@ -391,7 +388,6 @@ Loop@@
 
                     lda       #LF                 ;next, print a LF
           #endif
-
 Print@@             @cop
           #ifz ]?SCIS1
                     tst       ?SCIS1
@@ -575,7 +571,6 @@ S@@                 jsr       ?GetCharLocal       ;Get next character
 S8@@
 S9@@                @?print   '!'
                     bra       OK@@
-
 S2@@
 S1@@                @?print   '.'
 
@@ -589,9 +584,7 @@ OK@@                sta       ?rec_type           ;Save the record type
 
                     sub       #3                  ;adjust for 2-byte address and 1-byte CRC
                     sta       ?length             ;save Length of record (without address & CRC)
-
-          ;Now, get the load address
-
+          ;-------------------------------------- ;now, get the load address
           #ifdef PPAGE
                     mov       #2,PPAGE            ;assume default PPAGE for every new S record
 
@@ -605,7 +598,6 @@ OK@@                sta       ?rec_type           ;Save the record type
                     bsr       ?UpdateCRC
                     sta       PPAGE               ;update PPAGE for this record
           #endif
-
 GetAddress@@        jsr       ?ReadHex            ;Get MSB of address
                     bcs       ??Error
 
@@ -617,9 +609,7 @@ GetAddress@@        jsr       ?ReadHex            ;Get MSB of address
 
                     sta       ?address+1          ;Save LSB of address
                     bsr       ?UpdateCRC
-
-          ;Now, get the code/data bytes
-
+          ;-------------------------------------- ;now, get the code/data bytes
                     tst       ?length             ;Check Length of zero
                     beq       DoCRC@@             ;Empty code/data section of record
 
@@ -627,18 +617,15 @@ Loop@@              jsr       ?ReadHex            ;get first/next data byte
                     bcs       ?Error              ;if something wrong, get out with error
 
                     bsr       ?UpdateCRC
-
-          ;load-time CRC calculation may be added here, if required
-
-          ;save byte and advance pointer
-
+          ;--------------------------------------
+          ; Add load-time CRC calculation here, if required
+          ;-------------------------------------- ;save byte and advance pointer
                     ldhx      ?address            ;Get address in HX
                     bsr       ?CheckAddr          ;Check address to be
                     bcs       RangeError@@        ; within valid Flash limits
 
                     cphx      #VECTORS
                     blo       Save@@
-
           #ifz RVECTORS-VECTORS&$FF
                     psha
                     tha
@@ -648,7 +635,6 @@ Loop@@              jsr       ?ReadHex            ;get first/next data byte
           #else
                     aix       #RVECTORS-VECTORS   ;redirector to user vectors
           #endif
-
 Save@@              jsr       ?FlashWrite         ;Save to Flash
                     beq       NextByte@@
 
@@ -658,9 +644,7 @@ NextByte@@          ldhx      ?address
                     !aix      #1                  ;Adjust the PC value by 1
                     sthx      ?address
                     dbnz      ?length,Loop@@      ;One less byte to read
-
 ;-------------------------------------------------------------------------------
-
 DoCRC@@             bsr       ?ReadHex            ;Get CRC byte
                     bcs       ?Error              ;if something wrong, get out with error
 
@@ -678,9 +662,7 @@ GoNext@@            bsr       ?SkipToEOL          ;Clean up to the end of line
                     cbeqa     #'8',?Success       ;Done, get out without errors
           #endif
                     jmp       MainLoop@@          ;Go back to read another line
-
 ;-------------------------------------------------------------------------------
-
 RangeError@@        @?print   BS,'R'              ;Address Range error indicator
                     bra       NextByte@@          ;skip error byte
 
@@ -706,9 +688,9 @@ Loop@@              bsr       ?GetCharLocal
 
                     @cmp.s    PPAGE #2            ;for all but the default page
                     beq       CheckAddr@@
-
-          ;do a single PPAGE address range check and exit
-
+          ;--------------------------------------
+          ; Do a single PPAGE address range check and exit
+          ;--------------------------------------
                     cphx      #:PAGE_START
                     blo       ?Error
 
@@ -719,7 +701,6 @@ Loop@@              bsr       ?GetCharLocal
                     rts
           #endif
 CheckAddr@@
-
           #ifdef ALLOW_EEPROM
                     #Message  EEPROM is allowed
                     cphx      #EEPROM
@@ -736,7 +717,6 @@ Go@@                cphx      #APP_CODE_START     ;Check address to be
 
                     cphx      #APP_CODE_END       ; as is, and redirected
                     bhi       ?Error              ; automatically by loader.
-
           #if HighRegs > APP_CODE_START
                     cphx      #HighRegs           ;Check address for hole
                     blo       Done@@              ; in Flash created by
@@ -766,7 +746,6 @@ Done@@              clc                           ;no errors from here
                     beq       ?Error              ;(do NOT change to CBEQA)
 
                     clc                           ;assume no error
-
                     cbeqa     #ESC,?Error         ;ESC cancels
 ;                   bra       ?Upcase
 
@@ -781,15 +760,11 @@ Done@@              clc                           ;no errors from here
 ?Upcase             proc
                     pshx
                     tpx                           ;(transfer CCR to X)
-
                     cmpa      #'a'
                     blo       Done@@
-
                     cmpa      #'z'
                     bhi       Done@@
-
                     add       #'A'-'a'
-
 Done@@              txp                           ;(transfer X to CCR)
                     pulx
                     rts
@@ -892,7 +867,6 @@ Loop@@              bit       FSTAT               ;Step 4 - Wait for completion
 ?FlashWrite         proc
                     cmpa      ,x                  ;(do NOT replace with CBEQ)
                     beq       Done@@              ;value already there, no need to update
-
           #ifz ERASED_STATE
                     tst       ,x                  ;test if erased, and if not
           #else
@@ -928,7 +902,6 @@ Done@@              equ       :AnRTS
                     @cop                          ;reset COP (for maximum tolerance)
                     jsr       ?burn_routine       ;execute RAM routine to perform Flash command
 ;                   pulcc
-
                     lda       FSTAT
                     bit       #FPVIOL_|FACCERR_
                     rts
@@ -1008,19 +981,19 @@ Done@@              lda       #FPVIOL_|FACCERR_
           #ifdef NVICSTRM
                     lda       NVICSTRM
                     sta       ICSTRM
-
+            #ifdef FTRIM_
                     lda       NVFTRIM
                     and       #FTRIM_
-            #ifdef DRS1_&DRS0_
-              #if MHZ >= 48
+              #ifdef DRS1_&DRS0_
+                #if MHZ >= 48
                     ora       #DRS1_              ;high DCO range (%01) x1536
-              #else if MHZ >= 32
+                #else if MHZ >= 32
                     ora       #DRS0_              ;middle DCO range (%01) x1024
+                #endif
               #endif
-            #endif
                     sta       ICSSC
+            #endif
           #endif
-
 SOPT_VALUE          def       %00100010
                              ; ||||||||
                              ; |||||||+---------  RSTPE - RST pin enable
@@ -1031,29 +1004,24 @@ SOPT_VALUE          def       %00100010
                              ; |+---------------  COPT - COP Timeout (0=Short [32msec], 1=Long [256msec])
                              ; +----------------  COPE - COP Enable
           #ifdef QE128
-          #ifnz SOPT_VALUE&COPE_
+            #ifnz SOPT_VALUE&COPE_
                     #Warning  COPE does not work well with buggy (QE128) chips
-          #endif
+            #endif
           #endif
                     lda       #SOPT_VALUE
                     sta       SOPT                ;write-once register
-
-;         #ifdef ICSC1
-;           #ifz ]ICSC1
+;         #!ifz ]ICSC1
 ;                   mov       #%00000111|RDIV_,ICSC1
 ;                             ; |||||||+--------- IREFSTEN
 ;                             ; ||||||+---------- IRCLKEN
 ;                             ; |||||+----------- IREFS
 ;                             ; ||+++------------ RDIV
 ;                             ; ++--------------- CLKS
-;           #else
+;         #else ifdef ICSC1
 ;                   lda       #%00000111|RDIV_
 ;                   sta       ICSC1
-;           #endif
 ;         #endif
-
-          #ifdef ICSC2
-            #ifz ]ICSC2
+          #!ifz ]ICSC2
                     mov       #%00000000|BDIV_|RANGE_,ICSC2
                               ; |||||||+--------- EREFSTEN
                               ; ||||||+---------- ERCLKEN
@@ -1062,10 +1030,9 @@ SOPT_VALUE          def       %00100010
                               ; |||+------------- HGO
                               ; ||+-------------- RANGE
                               ; ++--------------- BDIV
-            #else
+          #else ifdef ICSC2
                     lda       #%00000000|BDIV_|RANGE_
                     sta       ICSC2
-            #endif
           #endif
 ;                   bra       ?CopyRamCode
 
@@ -1132,9 +1099,9 @@ Loop@@              lda       ?RAM_Code,x
 ?Monitor            proc
                     sei                           ;just in case we entered from user code
                     bsr       ?Initialize
-
-          ;--- Initialize the RS232 communications channel
-
+          ;--------------------------------------
+          ; Initialize the RS232 communications channel
+          ;--------------------------------------
           #ifdef ?SetBAUD
                     ldhx      #?MY_BPS_RATE
                     jsr       ?SetBAUD
@@ -1281,7 +1248,6 @@ Done@@              RTS                           ;return OR execute user code
                     blo       Done@@              ;Fail@@ really (but CCR[C]=1 already)
 
                     sub       #'A'-10-'0'
-
 Number@@            sub       #'0'
 ;                   clc                           ;(redundant due to positive SUB result)
 Done@@              rts
