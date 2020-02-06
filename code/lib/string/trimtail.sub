@@ -19,10 +19,10 @@ StringTrimTail      proc
 
                     lda       #' '                ;will be looking for spaces
 Loop@@              aix       #-2                 ;back up one (and one from SkipChar or cbeq x+)
+                    clr       1,x                 ;ASCIZ (but convert all spaces to zeros)
                     cbeq      x+,Loop@@           ;repeat while last string char is a space
 
-Done@@              clr       ,x                  ;make this the end of string
-                    pull
+Done@@              pull
                     rtc
 
 ;*******************************************************************************
