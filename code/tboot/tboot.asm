@@ -95,43 +95,56 @@ NVOPT_VALUE  set  NVOPT_VALUE|%00100000           ; EPGMOD = 1 (8-byte mode)
 #ifndef ROM
 ROM                 equ       BOOTROM
 ;-------------------------------------------------------------------------------
-;-------------------------------------------------------------------------------
           #ifdef QE128
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
                     #MMU
+                    #ListOff
                     #Uses     qe128.inc
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef QE8¦QE32
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
             #ifdef QE8
+                    #ListOff
                     #Uses     qe8.inc
+                    #ListOn
             #else
+                    #ListOff
                     #Uses     qe32.inc
+                    #ListOn
             #endif
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef FL16
 HZ                  def       16777216            ;Cyclone default 32768*512
 BDIV                def       1
+                    #ListOff
                     #Uses     fl16.inc
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef GB60
 HZ                  def       243000*64           ;MCU's default
 BDIV                equ       1                   ;(actually, no BDIV in GB60)
+                    #ListOff
                     #Uses     gb60.inc
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef AC32¦AC96
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
             #ifdef AC32
+                    #ListOff
                     #Uses     ac32.inc
+                    #ListOn
             #else
+                    #ListOff
                     #Uses     ac96.inc
+                    #ListOn
             #endif
           #endif
 ;-------------------------------------------------------------------------------
@@ -139,9 +152,13 @@ BDIV                def       1
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
             #ifdef QD2
+                    #ListOff
                     #Uses     qd2.inc
+                    #ListOn
             #else
+                    #ListOff
                     #Uses     qd4.inc
+                    #ListOn
             #endif
             #ifnz SCI
 SCI_TX_PIN          @pin      PORTA,1
@@ -165,9 +182,13 @@ BOOTROM             set       *
 HZ                  def       32000000            ;MCU & Cyclone's default
 BDIV                def       1
             #ifdef DZ32
+                    #ListOff
                     #Uses     dz32.inc
+                    #ListOn
             #else
+                    #ListOff
                     #Uses     dz60.inc
+                    #ListOn
             #endif
                     #temp     NVOPT_VALUE>5&1     ;isolate EPGMOD
                     #Message  EPGMOD = {:temp} ({:temp*4+4}-byte mode)
@@ -176,13 +197,17 @@ BDIV                def       1
           #ifdef SH8
 HZ                  def       33554432            ;MCU & Cyclone's default
 BDIV                def       1
+                    #ListOff
                     #Uses     sh8.inc
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef QG8
 HZ                  def       16000000            ;MCU & Cyclone's default
 BDIV                def       1
+                    #ListOff
                     #Uses     qg8.inc
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifndef RAM

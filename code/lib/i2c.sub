@@ -131,13 +131,13 @@ I2C_PutChar         proc
 Loop@@              rola                          ;get data-bit (MSB) into Carry
                     bcs       OneBit@@            ;and put it to data-line
 
-                    bsr       ?DataLow            ;a ZERO bit
+                    !jsr      ?DataLow            ;a ZERO bit
                     bra       Clock@@             ;CLOCK LOW PERIOD (15/18 cycles)
 
-OneBit@@            bsr       ?DataHigh           ;a ONE bit
+OneBit@@            !jsr      ?DataHigh           ;a ONE bit
                     brn       *                   ;(optional) for timing symmetry of 0 & 1 cases
 
-Clock@@             bsr       ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
+Clock@@             !jsr      ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
                     @?delay                       ;optional extra delay
                     bsr       ?ClkLow             ;set clock-line to '0'
                     @?delay                       ;optional extra delay
@@ -146,7 +146,7 @@ Clock@@             bsr       ?ClkHighSync        ;set clock-line to '1' and wai
                     pulxa                         ;restore user registers
           ;-------------------------------------- ;get the acknowledge bit
                     @Input    I2C_DATA            ;input for receipt of acknowledge
-                    bsr       ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
+                    !jsr      ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
                     @?delay                       ;optional extra delay (is it needed after clock sync?)
                     @ReadPin  I2C_DATA            ;acknowledge? (bit = 0)
                     bsr       ?ClkLow             ;set clock-line to '0'

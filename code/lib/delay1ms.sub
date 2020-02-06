@@ -9,6 +9,7 @@
 ;*           :      call      Delay1ms
 ;* History   : 10.01.15 v1.00 Original
 ;*           : 14.09.17       Added 6 cycles for JSR for a little greater accuracy
+;*           : 20.01.09 v1.10 Protect user's CCR
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -19,7 +20,8 @@
 ?_OBJECT_?
                               #Cycles 6           ;reset the cycles counter
 Delay1ms            proc
-                    pshhx
+                    push
+                    tpa
                     ldhx      #DELAY@@
                               #Cycles
 Loop@@              @cop                          ;kick the watchdog
@@ -27,7 +29,8 @@ Loop@@              @cop                          ;kick the watchdog
                     cphx      #0
                     bne       Loop@@
                               #temp :cycles
-                    pulhx
+                    tap
+                    pull
                     rtc
 
 DELAY@@             equ       BUS_KHZ-:cycles-:ocycles/:temp
