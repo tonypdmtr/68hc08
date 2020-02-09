@@ -1981,15 +1981,6 @@ Output              macro     PinName[,PinName]*
                     endm
 
 ;*******************************************************************************
-; Skip one byte. For example, makes it easy to have a common routine exit with
-; CLC (for success) and SEC (for failure), one of them falling thru to the other
-; using @Skip1 to jump over the single-byte opposite effect instruction.
-
-Skip1               macro
-                    fcb       $21                 ;BRN xxx
-                    endm
-
-;*******************************************************************************
 ; Turn PIN On or Off, accordingly, and make sure it's an output.
 
 On                  macro     PinName[,PinName]*
@@ -2492,8 +2483,6 @@ Start               @align2   9                   ;as power of two
                     @bitnum   ADPU,1              ;define a single bit
                     @bits     Flag,5,8            ;define Flag5..Flag8 bits & masks
                     @bits     A,1,5,3             ;define A1..A5 starting from 3
-
-                    @Skip1                        ;BRN xxx
 
                     @pin      XXX,VarAnyPage,3    ;define a non-zero page "pin"
                     @bset     XXX                 ;turn "pin" on
