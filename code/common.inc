@@ -2211,9 +2211,9 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
                     mswap     0,1                 ;;bitsize now in ~ text ~
                     mdel      1
                     mset      #
-                    #Message  --------------------------------------------------
-                    #Message  Expr: ~1~
-                    #Message  --------------------------------------------------
+                    @@Msg     --------------------------------------------------
+                    @@Msg     Expr: ~1~
+                    @@Msg     --------------------------------------------------
                     @@_FindStkMth_ ~text~
                     mset      0,{:mexit},~text~   ;;(bitsize to use, actual bitsize)
           #endif
@@ -2254,7 +2254,7 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
               #endif
               #ifparm ~,1~ = ,sp                  ;;else, if SP-indexed
 ~1,~                equ       ::,~text,~/8        ;;leave on stack with this name
-                    #Message  Saved to TOS (~1,~)
+                    @@Msg     Saved to TOS (~1,~)
                     mexit
               #endif
                     merror    Unknown variable \@~1~\@
@@ -2292,22 +2292,22 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
                     @@~0~     ~1~                 ;;the first term without operator
                     mdo       2
             #ifparm ~{:mloop}.1.1~ = +
-                    #Message  Add~text,~
+                    @@Msg     Add~text,~
                     call      StackAdd~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = -
-                    #Message  Sub~text,~
+                    @@Msg     Sub~text,~
                     call      StackSub~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = |
-                    #Message  Or~text,~
+                    @@Msg     Or~text,~
                     call      StackOr~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = ^
-                    #Message  Xor~text,~
+                    @@Msg     Xor~text,~
                     call      StackXor~text,~
                     #spadd    -{~text,~/8}
             #endif
@@ -2323,32 +2323,32 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
                     @@~0~     ~1~                 ;;the first factor without operator
                     mdo       2
             #ifparm ~{:mloop}.1.1~ = *
-                    #Message  Mul~text,~
+                    @@Msg     Mul~text,~
                     call      StackMul~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = /
-                    #Message  Div~text,~
+                    @@Msg     Div~text,~
                     call      StackDiv~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = \
-                    #Message  Mod~text,~
+                    @@Msg     Mod~text,~
                     call      StackMod~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = &
-                    #Message  And~text,~
+                    @@Msg     And~text,~
                     call      StackAnd~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = >
-                    #Message  Shr~text,~
+                    @@Msg     Shr~text,~
                     call      StackShr~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = <
-                    #Message  Shl~text,~
+                    @@Msg     Shl~text,~
                     call      StackShl~text,~
                     #spadd    -{~text,~/8}
             #endif
@@ -2358,21 +2358,21 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           #ifparm ~1.1.4~~1.{:1}~ = NEG()         ;;do NEG(ate) function
                     @@~0~     ~1.5.{:1-5}~
-                    #Message  Neg~text,~
+                    @@Msg     Neg~text,~
                     call      StackNegate~text,~
                     mexit
           #endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           #ifparm ~1.1.4~~1.{:1}~ = ABS()         ;;do ABS(olute) function
                     @@~0~     ~1.5.{:1-5}~
-                    #Message  Abs~text,~
+                    @@Msg     Abs~text,~
                     call      StackAbs~text,~
                     mexit
           #endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           #ifparm ~1.1.4~~1.{:1}~ = SQR()         ;;do SQR() function -- square
                     @@~0~     ~1.5.{:1-5}~
-                    #Message  Sqr~text,~(TOS)
+                    @@Msg     Sqr~text,~(TOS)
                     tsx
                     call      StackLoad~text,~
                     call      StackMul~text,~
@@ -2524,7 +2524,7 @@ Str64               macro     [Number],[ResultString]
                     endm
 
 ;*******************************************************************************
-; Show the current value and size of the specified symbols
+; Show the current value and size of the specified symbol(s)
 
 ShowSym             macro     Symbol[,Symbol]*
                     #Message  --------------------------------------------------
@@ -2537,7 +2537,7 @@ ShowSym             macro     Symbol[,Symbol]*
                     endm
 
 ;*******************************************************************************
-; Find the minimum value of the given symbols
+; Find the minimum value of the given symbol(s)
 
 _MinSymbolValue_    macro     ConstExpr[,ConstExpr]*
                     mreq      1:ConstExpr[,ConstExpr]*

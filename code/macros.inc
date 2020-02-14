@@ -149,6 +149,8 @@
 ;*           : 19.04.13 v2.23 Pullup macro forces BSET to avoid macro invocation
 ;*           : 19.04.25 v2.24 EndStats macro now always shows 'Module size'
 ;*           : 19.11.26 v2.25 EndStats macro now adds ?HANDLER_CYCLES display
+;*           : 20.02.12 v2.26 Added Msg macro to silence debugging messages
+;*           :                unless SHOW_ALL_MESSAGES is defined
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -185,6 +187,16 @@ COP                 macro                         ;kick the COP watchdog
           #ifdef COP
                     sta       COP
           #endif
+                    endm
+
+;*******************************************************************************
+
+Msg                 macro
+          #ifndef SHOW_ALL_MESSAGES               ;;define this to show messages
+                    mexit
+          #endif
+                    mset      #
+                    #Message  ~1~
                     endm
 
 ;*******************************************************************************
@@ -1960,22 +1972,32 @@ Input               macro     PinName[,PinName]*
           #ifdef DDR
                     !bclr     ~1~.,~1~+DDR
           #else
-                    @@bclr    ~1~.,~1~+DDRO
-                    @@bset    ~1~.,~1~+DDRI
+            #ifnz ~1~+DDRO&$FFFFFF00
+                    psha
+            #endif
+                    @@_bclr_  ~1~.,~1~+DDRO
+                    @@_bset_  ~1~.,~1~+DDRI
+            #ifnz ~1~+DDRO&$FFFFFF00
+                    pula
+            #endif
           #endif
                     mtop      :n
                     endm
-
 ;-------------------------------------------------------------------------------
-
 Output              macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
           #ifdef DDR
                     !bset     ~1~.,~1~+DDR
           #else
-                    @@bclr    ~1~.,~1~+DDRI
-                    @@bset    ~1~.,~1~+DDRO
+            #ifnz ~1~+DDRO&$FFFFFF00
+                    psha
+            #endif
+                    @@_bclr_  ~1~.,~1~+DDRI
+                    @@_bset_  ~1~.,~1~+DDRO
+            #ifnz ~1~+DDRO&$FFFFFF00
+                    pula
+            #endif
           #endif
                     mtop      :n
                     endm
@@ -1987,27 +2009,15 @@ On                  macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
                     !bset     ~1~.,~1~
-          #ifdef DDR
-                    !bset     ~1~.,~1~+DDR
-          #else
-                    @@bclr    ~1~.,~1~+DDRI
-                    @@bset    ~1~.,~1~+DDRO
-          #endif
+                    @@Output  ~1~
                     mtop      :n
                     endm
-
 ;-------------------------------------------------------------------------------
-
 Off                 macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
                     !bclr     ~1~.,~1~
-          #ifdef DDR
-                    !bset     ~1~.,~1~+DDR
-          #else
-                    @@bclr    ~1~.,~1~+DDRI
-                    @@bset    ~1~.,~1~+DDRO
-          #endif
+                    @@Output  ~1~
                     mtop      :n
                     endm
 

@@ -339,6 +339,7 @@
 ;*           :                when NN is different from MATHSIZE and no explicit
 ;*           :                variable is given
 ;*           : 19.10.04 v8.56 Minor HC08 mode optimization in SIGNED ?ToStr [-1 byte]
+;*           : 20.02.12 v8.57 Replaced #Message with @Msg to silence debugging messages
 ;*******************************************************************************
 
 ;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
@@ -436,11 +437,9 @@ MATHSIZE            set       32                  ;32-bit quantity (default)
                     @?        32
           #endif
                     #Message  MATHSIZE = {MATHSIZE}-bit version
-
           #ifdef SIGNED
                     #Message  Signed routines enabled
           #endif
-
 ;*******************************************************************************
 ; Macros to make operations as simple as with a high-level language
 ; In operations that require two operands and a result, if only one operand is
@@ -943,9 +942,9 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
                     mswap     0,1                 ;;bitsize now in ~ text ~
                     mdel      1
                     mset      #
-                    #Message  --------------------------------------------------
-                    #Message  Expr: ~1~
-                    #Message  --------------------------------------------------
+                    @@Msg     --------------------------------------------------
+                    @@Msg     Expr: ~1~
+                    @@Msg     --------------------------------------------------
                     @@_FindStkMth_ ~text~
                     mset      0,{:mexit},~text~   ;;(bitsize to use, actual bitsize)
           #endif
@@ -986,7 +985,7 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
               #endif
               #ifparm ~,1~ = ,sp                  ;;else, if SP-indexed
 ~1,~                equ       ::,~text,~/8        ;;leave on stack with this name
-                    #Message  Saved to TOS (~1,~)
+                    @@Msg     Saved to TOS (~1,~)
                     mexit
               #endif
                     merror    Unknown variable \@~1~\@
@@ -1024,22 +1023,22 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
                     @@~0~     ~1~                 ;;the first term without operator
                     mdo       2
             #ifparm ~{:mloop}.1.1~ = +
-                    #Message  Add~text,~
+                    @@Msg     Add~text,~
                     call      StackAdd~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = -
-                    #Message  Sub~text,~
+                    @@Msg     Sub~text,~
                     call      StackSub~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = |
-                    #Message  Or~text,~
+                    @@Msg     Or~text,~
                     call      StackOr~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = ^
-                    #Message  Xor~text,~
+                    @@Msg     Xor~text,~
                     call      StackXor~text,~
                     #spadd    -{~text,~/8}
             #endif
@@ -1055,32 +1054,32 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
                     @@~0~     ~1~                 ;;the first factor without operator
                     mdo       2
             #ifparm ~{:mloop}.1.1~ = *
-                    #Message  Mul~text,~
+                    @@Msg     Mul~text,~
                     call      StackMul~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = /
-                    #Message  Div~text,~
+                    @@Msg     Div~text,~
                     call      StackDiv~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = \
-                    #Message  Mod~text,~
+                    @@Msg     Mod~text,~
                     call      StackMod~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = &
-                    #Message  And~text,~
+                    @@Msg     And~text,~
                     call      StackAnd~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = >
-                    #Message  Shr~text,~
+                    @@Msg     Shr~text,~
                     call      StackShr~text,~
                     #spadd    -{~text,~/8}
             #endif
             #ifparm ~{:mloop}.1.1~ = <
-                    #Message  Shl~text,~
+                    @@Msg     Shl~text,~
                     call      StackShl~text,~
                     #spadd    -{~text,~/8}
             #endif
@@ -1090,21 +1089,21 @@ _Eval_              macro     [BitSize,]Expression (eg. [ans=](a+b)*(a-b)/2)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           #ifparm ~1.1.4~~1.{:1}~ = NEG()         ;;do NEG(ate) function
                     @@~0~     ~1.5.{:1-5}~
-                    #Message  Neg~text,~
+                    @@Msg     Neg~text,~
                     call      StackNegate~text,~
                     mexit
           #endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           #ifparm ~1.1.4~~1.{:1}~ = ABS()         ;;do ABS(olute) function
                     @@~0~     ~1.5.{:1-5}~
-                    #Message  Abs~text,~
+                    @@Msg     Abs~text,~
                     call      StackAbs~text,~
                     mexit
           #endif
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
           #ifparm ~1.1.4~~1.{:1}~ = SQR()         ;;do SQR() function -- square
                     @@~0~     ~1.5.{:1-5}~
-                    #Message  Sqr~text,~(TOS)
+                    @@Msg     Sqr~text,~(TOS)
                     tsx
                     call      StackLoad~text,~
                     call      StackMul~text,~
@@ -1241,7 +1240,7 @@ _DoLoad             macro     BitSize[,Variable]  ;if no Variable, wherever HX p
             #endif
           #endif
           #ifnb ~#~                               ;;process immediate mode
-                    #Message  Load{:temp*8} ~1~
+                    @@Msg     Load{:temp*8} ~1~
                     mset      1,~#1~
                     mset      0                   ;;use as flag for CLRH usage
                     mdo
@@ -1276,7 +1275,7 @@ _DoLoad             macro     BitSize[,Variable]  ;if no Variable, wherever HX p
           #ifndef ~1,~
                     #Warning  Loading forward \@~1,~\@ as var
           #endif
-                    #Message  Load{:temp*8} ~1~
+                    @@Msg     Load{:temp*8} ~1~
                     @@lea     ~1~                 ;;default case
                     @@_?sei_  ~1~
                     call      StackLoad{:temp*8}  ;;load as is
@@ -1316,7 +1315,7 @@ _DoSave             macro     BitSize[,Variable]  ;if no Variable, wherever HX p
               #endif
             #endif
           #endif
-                    #Message  Save~1~ ~2~
+                    @@Msg     Save~1~ ~2~
                     @@lea     ~2~                 ;;default case
                     @@_?sei_  ~2~
                     call      StackSave~1~        ;;save as is
@@ -1342,7 +1341,7 @@ _DoOperation        macro     Operation[,BitSize]
                     #Warning  Macro NOT to be called directly
           #endif
                     mdef      2,~1.{:1-1}~
-                    #Message  ~1~
+                    @@Msg     ~1~
                     call      Stack~1~
           #ifspauto
                     #spadd    -~2~/8
@@ -1384,7 +1383,7 @@ _DoAbs              macro     BitSize[,Source][,Destination]
           #if :macronest = 1
                     #Warning  Macro NOT to be called directly
           #endif
-                    #Message  Abs~1~ ~@@~
+                    @@Msg     Abs~1~ ~@@~
                     @@_FindStkMth_ ~1~
                     mset      1,{:mexit}
           #ifparm ~2~
@@ -1402,7 +1401,7 @@ _DoNeg              macro     BitSize[,Source][,Destination]
           #if :macronest = 1
                     #Warning  Macro NOT to be called directly
           #endif
-                    #Message  Neg~1~ ~@@~
+                    @@Msg     Neg~1~ ~@@~
                     @@_FindStkMth_ ~1~
                     mset      1,{:mexit}
           #ifparm ~2~
@@ -1437,7 +1436,7 @@ _DoStr              macro     BitSize,[Variable],[ResultString]
                #endif
           #endif
           #ifnb ~2~
-                    #Message  Convert \@~2~\@ ({::~2,~*8}-bit) to ASCIZ in \@~3~\@
+                    @@Msg     Convert \@~2~\@ ({::~2,~*8}-bit) to ASCIZ in \@~3~\@
           #endif
                     @@lea     ~3~
                     call      Stack~1~ToASCIZ
@@ -1536,9 +1535,9 @@ Loop@@              psha
 ?SubCycles          equ       :cycles
 
 #ifdef NO_BIT_OPS
-                    #Message  Bit ops disabled (undefine NO_BIT_OPS to enable)
+                    @Msg      Bit ops disabled (undefine NO_BIT_OPS to enable)
 #else
-                    #Message  Bit ops enabled (define NO_BIT_OPS to disable)
+                    @Msg      Bit ops enabled (define NO_BIT_OPS to disable)
 ;*******************************************************************************
 ; Purpose: AND N1 with N2 and place result on top-of-stack. N1 & N2 removed
 ; Input  : [TOS+?WORD] = Number2
@@ -2389,11 +2388,11 @@ ResizeTOS           macro     #FromByteSize,#ToByteSize,,unsigned_if_present
                     mexit                         ;;same sizes, nothing to do
           #endif
           #ifnb ~4~
-                    #Message  {~#1~*8}-bit => {~#2~*8}-bit
+                    @@Msg     {~#1~*8}-bit => {~#2~*8}-bit
           #else ifdef SIGNED
-                    #Message  Signed {~#1~*8}-bit => {~#2~*8}-bit
+                    @@Msg     Signed {~#1~*8}-bit => {~#2~*8}-bit
           #else
-                    #Message  {~#1~*8}-bit => {~#2~*8}-bit
+                    @@Msg     {~#1~*8}-bit => {~#2~*8}-bit
           #endif
           #if :temp > 0                           ;;increase stack (optimized)
             #if :temp < 5                         ;;up to size 'long'

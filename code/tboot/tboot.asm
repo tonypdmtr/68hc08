@@ -95,6 +95,7 @@ NVOPT_VALUE  set  NVOPT_VALUE|%00100000           ; EPGMOD = 1 (8-byte mode)
 #ifndef ROM
 ROM                 equ       BOOTROM
 ;-------------------------------------------------------------------------------
+;-------------------------------------------------------------------------------
           #ifdef QE128
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
