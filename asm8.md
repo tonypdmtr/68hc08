@@ -78,364 +78,118 @@ Version History
 
 ```
   +------+-------------------------------------------------------------+
-  | 1.00 |Original (based on ASM5 v1.04) Started: 010706               |
-  | 1.01 |Added = as synonym to EQU                                    |
-  |      |Changed RAM segment default from $80 to $50                  |
-  |      |Changed RAM segment default back to $80                      |
-  |      |Changed VECTORS segment default to $FFDE                     |
-  | 1.02 |Added AAX extra to add A to H:X                              |
-  |      |Added INX and DEX extras for INCX and DECX                   |
-  | 1.03 |Added errorlevel 5 for "no files found"                      |
-  | 1.04 |Added THX and TXH extras                                     |
-  |      |Added LSLHX extra (for multiplying HX by two)                |
-  |      |Added ADDHX #nnnn extra                                      |
-  | 1.05 |Fixed cycle counts for several instructions                  |
-  | 1.06 |Added support for HCS08 (#HCSON/OFF #IF[N]HCS)               |
-  | 1.07 |Fixed bug with STHX ??,sp code                               |
-  | 1.08 |Use shorter indexed modes when possible                      |
-  | 1.09 |Fixed cycle counts and DBNZ ,x mode recognition              |
-  |      |Fixed bugs with EOR                                          |
-  | 1.10 |Made #PUSH/#PULL save/restore #HCSON/#HCSOFF                 |
-  | 1.11 |Optimized LSLHX from 8/14 to 6/10 bytes/cycles               |
-  | 1.12 |Added extra mnemonic XGAX (exchange A with X)                |
-  | 1.13 |Internal changes only                                        |
-  | 1.14 |Fixed bug with remaining Integer() parts                     |
-  | 1.15 |Optimized AAX for 1 less byte, 2 less cycles                 |
-  | 1.16 |Added PSHCC and PULCC extra instructions                     |
-  | 1.17 |Added SET pseudo-instruction                                 |
-  | 1.18 |Added expression evaluation in #Message etc                  |
-  | 1.19 |Added expression evaluation in strings                       |
-  | 1.20 |Change default format for embedded expressions               |
-  | 1.21 |Added { ... } format modifiers (1) thru (4)                  |
-  | 1.22 |Added NEXT pseudo-op                                         |
-  | 1.23 |Added #VARIABLE directive                                    |
-  | 1.24 |Allowed repeaters to be expressions                          |
-  | 1.25 |Added system variables YEAR, MONTH, and DATE                 |
-  | 1.26 |Added optional expression to NEXT                            |
-  | 1.27 |NEXT expression evaluates as Integer. Added show error.      |
-  | 1.28 |Added NEXP pseudo-op                                         |
-  | 1.29 |Q option also disables #Message output                       |
-  | 1.30 |Improved #VARIABLE violation message                         |
-  | 1.31 |Added SETN pseudo-op                                         |
-  | 1.32 |Added #CRC directive and :CRC internal symbol                |
-  | 1.33 |#CRC shows error for undefined symbols                       |
-  | 1.34 |Added CRC display in completion status line                  |
-  | 1.35 |Added { ... } expression recognition in EQU strings          |
-  | 1.36 |Added error for unresolved { ... } expression                |
-  | 1.37 |Added S19CRC and made it display in summary                  |
-  | 1.38 |Added S2/S8, CALL/RTC, #MMU/NOMMU, FAR                       |
-  |      |Added option -MMU[+/-]                                       |
-  |      |Added { ... } formats (5) and (6) for 24-bit                 |
-  |      |Added option -S2 for forcing S2 production                   |
-  |      |Added option -Z[+/-] for linear addresses S19                |
-  |      |Added #IFMMU and #IFNOMMU                                    |
-  |      |When MMU is off, CALL -> JSR and RTC -> RTC &                |
-  |      |-J option and #JUMP #CALL to control the same                |
-  | 1.39 |CRC and S19CRC counters initialized for pass 2               |
-  | 1.40 |Operator [[ returns the low word                             |
-  |      |Allowed 24-bit constant strings                              |
-  |      |Made S19CRC use linear address when -Z enabled               |
-  | 1.41 |Made S2 appear only in MMU or ForceS2 mode                   |
-  | 1.42 |Added #S2 (-S2+) and #S1 (-S2-) directives                   |
-  | 1.43 |"MMU is disabled" converted to Error                         |
-  | 1.44 |#PULL now flushes S19 if forceS2 state changes               |
-  | 1.45 |Internal changes only                                        |
-  | 1.46 |Added RESET extra instruction for forcing reset              |
-  | 1.47 |Made TP option usable with common ERR files                  |
-  | 1.48 |Made TP option usable with console output                    |
-  | 1.49 |BugFix: SET was updating label sequence                      |
-  | 1.50 |Internal changes only                                        |
-  | 1.51 |Added PUSH and PULL extras                                   |
-  | 1.52 |Added LONG for 32-bit constant data                          |
-  |      |Added 32-bit label definitions                               |
-  | 1.53 |Fixed LONG bug                                               |
-  | 1.54 |Added CRC at end of listing file                             |
-  | 1.55 |Operator ]] returns the high word, [[ low word               |
-  | 1.56 |Conditional directives now use full 32-bit word              |
-  | 1.57 |Conditionals IF, IFZ, IFNZ are 32-bit correct                |
-  | 1.58 |Added option -U to define output directory                   |
-  | 1.59 |Added :CYCLES for counting cycles                            |
-  | 1.60 |Corrected error message "Symbol does not start"              |
-  | 1.70 |Made Date an atomic operation for consistency                |
-  |      |Added #UNDEF and made EXP use 'SET', not 'EQU'               |
-  |      |EXP only exports during PASS1                                |
-  |      |Allowed strings up to long in EQUs                           |
-  |      |Division by zero in { ... } expressions shows ???            |
-  |      |(S)igned { ... } expressions auto-adjust by size             |
-  |      |Added { ... } formats up to (9) for 32-bit                   |
-  |      |#WARN and #NOWARN control warnings from code                 |
-  | 1.80 |Added :AB (AddressBytes) internal symbol                     |
-  |      |#PUSH and #PULL save and restore CurrentSeg                  |
-  |      |Fixed cross-page jumping warnings                            |
-  |      |Added :PAGE_START & :PAGE_END internal symbols               |
-  | 2.00 |Added #SP1 and #SP directives                                |
-  |      |Added ABS (Absolute Value of A) internal macro               |
-  | 2.01 |Added #SP exp to offset SP indexed instructions              |
-  |      |Added :SP internal symbol to return the one-based SP offset  |
-  | 2.02 |Added :SP1 internal symbol to return the zero-based SP offset|
-  | 2.10 |Added :1 internal symbol (alias for :SP1) ***REMOVED LATER***|
-  | 2.11 |Bug fix in #SP/#SP1 processing - word -> long                |
-  | 2.12 |Added ,ASP (Absolute SP) indexed mode does -:SP1             |
-  |      |Added ,LSP (Local SP) indexed mode does -:SP                 |
-  | 2.20 |Change SP offset processing and fixed rare bug               |
-  | 2.22 |Fixed OptRtsXX warning for CALL/RTC cases                    |
-  | 2.30 |Added PSHXA and PULXA internal macros                        |
-  |      |Removed :1 alias for :SP1                                    |
-  | 2.40 |Added automatic SP adjustments for Push / Pull               |
-  |      |Added directives #SPAUTO (cancel with #SP)                   |
-  | 2.50 |Added #X for X-indexed offset                                |
-  |      |Added #SPCHECK and related code                              |
-  |      |#SPAUTO with parameter #OFF# turns off SPAUTO                |
-  |      |#PUSH/#PULL now save/restore #SPCHECK value                  |
-  |      |Added :SPCHECK internal symbol returns the #SPCHECK value    |
-  |      |Added :PSP internal symbol returns (:SP-:SPCHECK)            |
-  |      |Added ,PSP (Preserved SP) indexed mode for +:psp             |
-  |      |Help screen beautified and made more complete                |
-  |      |Added :: as alias for 1-:SP for easy definition              |
-  |      |Added :SPFREE (:PSP) to return :SP-:SPCHECK                  |
-  |      |Added NEGXA extra mnemonic                                   |
-  |      |Added XGAH and XGHX extra mnemonics                          |
-  |      |Added #SPADD which adjusts :SP by a signed value             |
-  |      |Added SEXA extra mnemonic, sign-extends A into XA            |
-  | 3.00 |Added #PSP to update PSP value with current :SP              |
-  |      |Fixed #SPADD to not cancel SP1 mode                          |
-  |      |Added #HOMEDIR directive                                     |
-  |      |Added NEGHX extra mnemonic                                   |
-  |      |Added #iftos directive [(expr + :SP) = 1]                    |
-  | 3.01 |Symbol :: is alias for 0-:SP when in #SP1 mode               |
-  | 3.02 |#iftos corrected to match v3.01 change                       |
-  | 3.03 |Added warning for SP symbols outside #SP[AUTO]               |
-  | 3.10 |Added stdout for displaying to the console                   |
-  | 3.11 |Added :AIS internal symbol and #AIS directive                |
-  |      |Added warning: Stack structure requires "AIS #?"             |
-  | 3.12 |:AIS is set to the #SP/#SP1/#SPAUTO offset                   |
-  | 3.15 |Negative AIS instructions reset the :AIS symbol              |
-  | 3.20 |Added :SPX to return :SP-1 for #X :SPX                       |
-  | 3.30 |Added ,SPX indexing mode to use TSX-based SP                 |
-  | 3.33 |Added AIX instruction adjustment of TSX-based SP             |
-  | 3.40 |-X option (dis-)allows simulated index modes                 |
-  |      |Added warning 'Invalid SP offset'                            |
-  | 3.50 |Made Assembled display not truncate long names               |
-  | 4.00B|Added macro support (BETA due to significant code changes)   |
-  |      |Added [n] display for macro errors/warnings                  |
-  |      |Added IFPARM/IFNOPARM, #DROP, #PARMS                         |
-  | 4.00 |Added MEXIT                                                  |
-  | 4.01 |Fixed local macro recognition                                |
-  | 4.10 |Added #MLISTON/#MLISTOFF & #MLIST/#NOMLIST                   |
-  | 4.20 |Added IFMDEF/IFNOMDEF for check macro presence               |
-  | 4.30 |Made IFPARM/IFNOPARM available outside MACROS                |
-  | 4.40 |Internal changes only                                        |
-  | 4.50 |Internal changes only                                        |
-  | 4.51 |Internal changes only                                        |
-  | 4.52 |Fixed nested #IF(s) in macros not counted right              |
-  | 4.60 |Added optional macro parm for single call                    |
-  | 4.70 |Added mapping for macro lines and #TRACEON/#TRACEOFF         |
-  | 4.80 |Automatically drop special ad-hoc '?' macro                  |
-  | 4.81 |Internal changes only                                        |
-  | 4.90 |Internal changes only                                        |
-  | 5.00 |Macro calling without the @ symbol >MacroAssume              |
-  |      |Added warning "Macro repeater ignored"                       |
-  |      |Replaced #NOMACRO with #@MACRO                               |
-  | 5.01 |Bug fix in ',SPX' case with zero :SP                         |
-  | 5.02 |Internal changes only                                        |
-  | 5.10 |Added #IFPARM with comma [,] for comparing two strings       |
-  | 5.11 |Internal changes only                                        |
-  | 5.12 |Fixed recognition of comma in non-@ macros                   |
-  | 5.20 |Added ~label~ macro placeholder                              |
-  | 5.21 |Disallowed comments in #IFPARM/#IFNOPARM                     |
-  | 5.25 |Added #IFSPAUTO conditional directive                        |
-  | 5.30 |Added ~n,~ and ~,n~ macro placeholders                       |
-  |      |#PARMS SPACE makes separator a space                         |
-  | 5.31 |Bug fix for ~#~ processing                                   |
-  | 5.32 |Fixed misleading MMU "Attempt to jump to page"               |
-  | 5.40 |Added #MCF (Macros Come First) & MacroFirst                  |
-  | 5.50 |Internal changes only                                        |
-  | 5.51 |Added 'Nested macro definition not allowed'                  |
-  | 5.55 |Added \, and • to re-use last macro delimiter                |
-  | 5.60 |Added #Cycles to (re)set :CYCLES to any value                |
-  | 5.70 |Added implicit "label set ::" next to any push instruction   |
-  |      |BugFix for space parm delimiter self-replacing               |
-  | 5.71 |"Bug" fix. spxSP no longer updated with #SPAUTO              |
-  | 5.80 |Added :TOTALMACROCALLS, :MACROLOOP, :MACROINDEX              |
-  | 5.85 |:MACROLOOP -> :MACRONEST, added :MACROLOOP                   |
-  | 5.90 |Added :INDEX for use from inside macros                      |
-  | 6.00 |Allowed { ... } expression> anywhere in macro text           |
-  |      |BugFix: Other macro called right after #DROP                 |
-  |      |Added reset macro counters capability by calling %macro      |
-  | 6.01 |Internal changes only                                        |
-  | 6.02 |BugFix regarding EQU & SET when used with repeaters          |
-  | 6.03 |BugFix: Improved v6.02 EQU & SET BugFix                      |
-  | 6.10 |Improvement: No trailing commas when reading macro lines     |
-  |      |Added: ~@~ and ~@@~ macro placeholders                       |
-  | 6.20 |Do not show #ENDIFs with -LC-                                |
-  | 6.21 |BugFix: #HOMEDIR not saving home between passes              |
-  |      |Added #HOMEDIR without parms to restore original home        |
-  | 6.30 |Added :0 to :9 for getting length of macro parm              |
-  | 6.40 |Added "Line may have been truncated" warning                 |
-  | 6.41 |Length :0 now works correctly                                |
-  | 6.42 |Did not allow negatives in ReadParm and ~n.s.l~              |
-  | 6.45 |Added MTOP                                                   |
-  | 6.45 |Added :DOW internal variable (0=Sunday)                      |
-  | 6.50 |Internal changes only                                        |
-  | 6.60 |Added ability to hide all macro keywords                     |
-  |      |{ ... } expressions can now be nested                        |
-  | 6.61 |Ability to hide all macros macros & their definitions        |
-  | 6.70 |Internal changes only                                        |
-  | 6.80 |Allowed upto 125 total INCLUDE files                         |
-  |      |Added #PROC, PROC and :PROC for local labels                 |
-  |      |Allowed { ... } expression in labels even outside of macros  |
-  |      |Removed @@ local labels from SYM file                        |
-  |      |Added "Number of [#]PROCs used" message in LST               |
-  | 6.90 |Added #IFSTR/#IFNOSTR conditional directives                 |
-  | 7.00 |Added recursive macros and #MLimit to set max depth          |
-  |      |Added MSET to change the text of a macro parm                |
-  |      |:LOOP is reset when calling self with @@                     |
-  |      |Added MDEF (similar to MSET but only #IFNOPARM)              |
-  |      |Added MSWAP (swaps any two macro parameters)                 |
-  | 7.01 |BugFix: Corrected cleanup of file-local macros on file change|
-  | 7.02 |Added :OCYCLES to return the previous (Old) #Cycles          |
-  |      |MSWAP now silently ignores swapping with self                |
-  | 7.10 |Added :PC and :PPC (#PPC)                                    |
-  | 7.11 |Internal changes only                                        |
-  | 7.20 |Added DEF which does EQU if not already defined              |
-  |      |BugFix: Command-line symbol definitions re-set for PASS2     |
-  | 7.21 |Internal changes only                                        |
-  | 7.30 |Added #IFB/#IFNB aliases for #IFNOPARM/#IFPARM, respectively |
-  |      |Added MREQ for required macro parameters                     |
-  | 7.40 |Added MERROR (combines #Error with mexit) for macros         |
-  |      |Added MSTR to turn non-string macro parm into string         |
-  | 7.50 |Added :ANRTS & :ANRTC internal variables                     |
-  |      |Added #EXIT directive to stop #INCLUDE file at that point    |
-  |      |Added #USES#USING directives to #INCLUDE if not-yet included |
-  | 7.60 |Added MDO MLOOP :MLOOP :MEXIT MTOP/MLOOP limits              |
-  | 7.70 |Added #TEMP and :TEMP                                        |
-  |      |Non-macro :TEMP keeps its pre-macro value                    |
-  |      |Added == for IFPARM case-sensitive comparison                |
-  | 7.71 |Internal changes only                                        |
-  | 7.72 |Allowed label next to MEXIT, etc.                            |
-  | 7.75 |Allowed @@ to #@Macro #Macro and #MCF for nested calls       |
-  | 7.80 |Added #RENAME to rename a macro                              |
-  | 7.81 |Fixed #EXIT to restore conditional file level                |
-  | 7.82 |Added -FD command-line option for fixed date in internal vars|
-  | 7.83 |Added :LABEL to return length of ~label~                     |
-  | 7.85 |Added recognition of * and ?* wildcards to #DROP directive   |
-  |      |Fixed MREQ with message to show correct message              |
-  | 7.90 |Added :LINENO and :MLINENO internal variables                |
-  | 8.00 |Added ;; comment removal from macros                         |
-  |      |Added ~macro~ and ~00~ placeholders                          |
-  |      |Added -S9 command-line option to disable S9 record           |
-  |      |Added #EXPORT directive                                      |
-  |      |Added #MEXPORT directive (for exporting macros)              |
-  |      |Changed from 'SET' to 'set' in EXP files                     |
-  |      |Fixed #MEXPORT to produce raw (fully unprocessed) macro lines|
-  |      |#MEXPORT uses preserve defined macro name case               |
-  |      |Added END INCLUDE message in #EXIT directive                 |
-  |      |Fixed #MEXPORT from within macro when -EXP-                  |
-  |      |Fixed some memory leaks related to macro use                 |
-  |      |Added :TSX internal variable                                 |
-  |      |Added :TEMP as possible label in NEXT, NEXP, SETN [#AIS]     |
-  |      |Added ALIGN pseudo-op                                        |
-  | 8.01 |First macro level inherits :TEMP from main                   |
-  | 8.02 |Added #MCF2 mode                                             |
-  | 8.03 |Fixed long-standing bug with #MCF[2] no-@ call               |
-  | 8.04 |@macro or %macro can now start at column one                 |
-  | 8.05 |Added MSTOP                                                  |
-  |      |Fixed long-standing bug #IFMDEF inside a macro               |
-  |      |Allowed first source line to have symbol also used by -D     |
-  | 8.07 |Added MDO optional initializer expression                    |
-  |      |Added :CPU internal symbol                                   |
-  |      |Added #IFNUM and #IFNONUM to test a parm for being numeric   |
-  | 8.08 |Added REMACRO capability                                     |
-  | 8.09 |Added macro parm delimiter #PUSH/#PULL protection            |
-  | 8.10 |Fixed ALIGN with zero bug                                    |
-  | 8.11 |Fixed "Used Range" percentage in case of #MEMORY use         |
-  |      |Allowed #EXPORT to come before the actual label definitions  |
-  | 8.15 |Added MSUSPEND and MRESUME and fixed :MINDEX recursion       |
-  |      |MSTOP (with optional parm #ALL#) stops suspended macros      |
-  | 8.20 |Added #REMACRO to allow renaming to an existing macro name   |
-  |      |Added ~self~ and ~text~ macro placeholders                   |
-  | 8.21 |Fixed #MEXPORT by adding a new FindMacro in ASMACROS.PAS     |
-  | 8.30 |Allowed ALIGN to align only label to the left (if present)   |
-  |      |Added internal symbols to get current value of each segment  |
-  |      |Fixed bug with labeled ALIGN with zero                       |
-  | 8.31 |Improved code for the AAX internal macro                     |
-  | 8.35 |Added ~filename~ ~basename~ ~path~ and ~#text~ placeholders  |
-  |      |Fixed bug with range in listing                              |
-  |      |Added #OFF# parameter to #MEMORY and #VARIABLE directives    |
-  |      |Added ProcName assignment, and ~procname~ placeholder(s)     |
-  | 8.40 |BugFix: Symbols over 19 chars gave no error on redefinition  |
-  | 8.50 |BugFix: #MEMORY and #VARIABLE #OFF# did not work correctly   |
-  |      |Added "RMB overlap" warning                                  |
-  | 8.55 |Added :N internal variable (for number of macro parameters)  |
-  | 8.57 |Added MOV DIR,X+ & MOV X+,DIR instruction adjustment of :TSX |
-  | 8.60 |Added MDEL in macros                                         |
-  | 8.70 |#PROC resets ~procname~ to null                              |
-  |      |#AIS without argument resets :AIS counter to zero            |
-  | 8.80 |Added placeholder ~[n.p]~ for smart part extraction          |
-  | 8.90 |Added #SIZE LABEL,SIZE directive & ::label internal symbol   |
-  |      |Added MSET # option to unite all parms into one              |
-  |      |Added :SPMAX, #SPAUTO, depth option                          |
-  |      |Added MSET #'charset' option                                 |
-  |      |Made :SPMAX show maximum stack depth since last :SPLIMIT set |
-  |      |Added :SPLIMIT to return the currently effective stack limit |
-  |      |Added :NN internal variable to return total macro parm count |
-  |      |Minor speedup when using -Q+ option                          |
-  | 9.00 |BugFix: > and < over 32-bit now do not wrap-around           |
-  |      |Added ~n[set]index~ macro parameter placeholder              |
-  |      |Added MTRIM macro command                                    |
-  | 9.02 |BugFix: ~n[set]index~ not working for all occurrences        |
-  |      |Added ~n'set'index~ alternative                              |
-  |      |Added ,size option as 'PSHx NAME,SIZE'                       |
-  | 9.05 |Added ,size option next to EQU/SET/DEF                       |
-  |      |Added MSTOP in-macro parameter to display #Error             |
-  |      |Added #SPA alias for #SPAUTO directive                       |
-  | 9.10 |Allowed embedded { ... } expressions in macro calls          |
-  | 9.15 |MSET # now skips strings and allows quotes & parens in set   |
-  | 9.17 |Internal changes only                                        |
-  | 9.18 |BugFix: v9.05+ did not allow ',' in EQU etc.                 |
-  | 9.20 |BugFix: MergeParms now uses LastMacroParm                    |
-  | 9.21 |BugFix relating to $$$ internal conversion in macros         |
-  | 9.23 |BugFix: Added MSTOP 'USER: ' msg. Removed MERROR ExpToStr()  |
-  | 9.25 |Internal changes only                                        |
-  | 9.30 |Added size info in -LSS and -MTA output formats              |
-  | 9.31 |BugFix in -MTA format when label is blank, size was misspaced|
-  | 9.32 |BugFix: Added missing size from EXP file symbols             |
-  |      |"Macro already defined" message now shows only in pass one   |
-  |      |Added "Non-proc symbol redefinition" warning for PSHx        |
-  | 9.33 |Added ~text,~ and ~,text~ placeholders.                      |
-  | 9.35 |#IFNUM now detects bin & hex as numbers                      |
-  | 9.36 |BugFix: Added "if MacroRecording then exit" to IF/ELSE/ENDIF |
-  | 9.37 |BugFix: ~n[charset]index~ can contain [ and ]                |
-  |      |Charset can now also be delimited by " or ` quotes           |
-  | 9.40 |Made #SIZE second parm optional with :PC-LABEL as default    |
-  | 9.41 |BugFix: ::LABEL does not give error in pass one              |
-  |      |Improved NEXT when no label on left to increment placeholder |
-  | 9.42 |Internal changes only                                        |
-  | 9.43 |Corrected multi-operand pseudo-instructions size calculation |
-  |      |Added filename & linenumber display when canceling with ESC  |
-  |      |Added :HOUR, :MIN, :SEC for clock time                       |
-  | 9.45 |Added ExpToStr formats: Fn (space-fill) and Zn (zero-fill)   |
-  |      |Added extra mnemonics INCH (increment H) & DECH (decrement H)|
-  | 9.50 |New INCLUDE search order: as is, parent path, include path   |
-  |      |BugFix: IFDEF, IFZ, IF now use PosStr() instead of Pos()     |
-  |      |Added multiple -I option directories separated by semi-colon |
-  |      |Allowed user editable -I dir list when ? is given as parm    |
-  |      |-I '*' is a placeholder for current directory definition     |
-  |      |#!IF/#!IFZ/#!IFNZ false w/out warning on undefined expression|
-  | 9.51 |BugFix: PUSH opsize presence suppressed redefinition warning |
-  | 9.52 |Enhancement: !BGND does not give warning (BGND does)         |
-  | 9.55 |Enhancement: #MEXPORT now uses remacro instead of macro in   |
-  |      |case of multiple exports of the same macro name.             |
-  | 9.56 |Enhancement: ?1 in -I option means main file path            |
-  |      |             ?2 in -I option means parent file path          |
-  | 9.57 |Internal changes only                                        |
-  | 9.58 |Added -FQ option to control display of line number display   |
-  |      |during assembly. Useful for IDE use.                         |
-  |      |BugFix: -E option without +/- now works again                |
-  |      |Added extra mnemonics ROLH, RORH, LSLH, and LSRH             |
-  |      |Enhancement: -I option ?F matches FOSSIL root                |
-  | 9.60 |Improved help screen for better fit in console window        |
-  | 9.61 |Enhancement: -I option ?A matches special _asm_ file root    |
+  | 9.91 |OR condition separator can be either alt-179/0166 or '||'    |
+  |      |Made number of warnings and errors a long for huge numbers   |
+  | 9.90 |Added :CCYCLES to return current cycles without zeroing them |
+  |      |Changed hint 'Found [re]definition of' to '[Re]defined'      |
+  | 9.89 |BugFix: procname was affected even inside false conditional  |
+  |      |Show 'Found target address' hint macro name with -FX option  |
+  | 9.88 |Default: "Free private/commercial use license (not resale)"  |
+  |      |BugFix: Changed output to stdout for #ERROR and #WARNING     |
+  |      |Changed max command-line -F option targets from 1 to 100     |
+  | 9.87 |Improved NoICE map files and also removed proc local symbols |
+  |      |DEF without any operand now gives a more informative error   |
+  |      |Hint ... shows always and if prefixed with ! only when -D... |
+  |      |BugFix: Spaces between #EXPORT arguments were not trimmed    |
+  | 9.86 |BugFix: Correct implementation of empty string FCS case      |
+  | 9.85 |BugFix: Correct MMU implementation of OS8 extra instruction  |
+  |      |Warning 'P&E MAP files may not support more than 127 files'  |
+  |      |Added extra mnemonic TSTH (test H) as PSHH/TST 1,SP/PULH     |
+  |      |Added ... to mark incomplete sections with optional message  |
+  |      |BugFix: Define labels next to MTOP, MDO, MLOOP, and MSUSPEND |
+  |      |'Invalid SP offset' is a warning for zero but error for less |
+  |      |Remove all macro and proc local symbols from P&E map files   |
+  | 9.84 |#HomeDir now also tries _ASM_ and _FOSSIL_ before failing    |
+  |      |BugFix: Failure to #Include a file keeps counter unchanged   |
+  | 9.83 |CreateMap -MTA does not export byte size for missing labels  |
+  |      |Added option -WW to save configuration with license removed  |
+  |      |Optimized -U option processing                               |
+  |      |Allowed FCS to be an empty string as it creates trailing zero|
+  | 9.82 |Evaluate { ... } expressions w/out errors for informational  |
+  |      |directives inside macros                                     |
+  | 9.81 |Added OS8 extra instruction which does SWI followed by FAR   |
+  |      |#![M]EXPORT does not give warning on undefined label         |
+  | 9.80 |BugFix: #HOMEDIR first changes to the current file's path    |
+  |      |Improvement: #INCLUDE displays normalized path with -FI hint |
+  |      |Improvement: Added { ... } expressions in #INCLUDE paths     |
+  |      |Improvement: MTRIM error now displays actual problem text    |
+  |      |Improvement: Added AIS and AIX out-of-range warnings         |
+  | 9.79 |Added #TEMP1 :TEMP1 #TEMP2 :TEMP2 similar to #TEMP :TEMP     |
+  |      |#!DROP prevents 'macro not found' warning                    |
+  | 9.78 |Enhancement: !MRESUME does not give error                    |
+  |      |Enhancement: IF[N]DEF ORs alt-179/0166 separated conditions  |
+  |      |Added value display in 'Repeater out of range' message       |
+  |      |Added #!UNDEF to prevent 'symbol not found' warning          |
+  |      |Enhancement: EXIT accepts alt-179/0166 separated conditions  |
+  |      |Changed built-in defaults to -T+ and -C+                     |
+  |      |Added :ERRORS and :WARNINGS internal variables               |
+  | 9.77 |BugFix: In -X+ mode, ignore * after a push instruction       |
+  |      |If '*' in FindSymbol target can be any substring of symbol   |
+  |      |BugFix: Error 'invalid binary number' once for same number   |
+  | 9.76 |MAP files when ?A or ?F root is present uses relative paths  |
+  |      |Absolute path is used when -U option is given                |
+  |      |BugFix: RMB first defines label; allows its use in expression|
+  |      |Added -FI debugging option to show included filenames        |
+  |      |Altered the default segment addresses for more practical use |
+  | 9.75 |#FATAL no longer aborts all assemblies, only the current one |
+  |      |Allowed Escape to break out of a long repeater loop          |
+  |      |BugFix: Added recognition of \, as alias to • in macro calls |
+  | 9.74 |Allowed !RMB or !DS to prevent warning about overlap         |
+  |      |Added #S19WRITE directive that writes messages to S19 file   |
+  |      |Added #S19RESET directive to forget all used S19 addr ranges |
+  | 9.73 |Added -FX non-saveable option to enable macro line # display |
+  |      |in ERROR, WARNING, MESSAGE and HINT directives (default: Off)|
+  |      |-F: option now also displays the related value               |
+  |      |-F: option too now honors the newly added -FX option         |
+  |      |Help screen shows default -I option as DEFAULT_INCLUDE_PATH  |
+  | 9.72 |Added -LLn option to use a non-default label size up to      |
+  |      |MAX_LABEL_LENGTH. This option is global and cannot be saved. |
+  |      |Added #MAXLABEL directive to specify new max label length.   |
+  |      |Added :MAXLABEL internal symbol to get the max label length. |
+  |      |#PUSH/#PULL now save/restore the value of :MAXLABEL          |
+  |      |#MESSAGE and #HINT now show the macro line when inside macros|
+  | 9.71 |REMACRO now keeps previous definition even of special ? macro|
+  |      |Improved error precision by referring to exact directive name|
+  |      |Updated help screen to add TPX and TXP internal macros       |
+  | 9.70 |Added #ENDP, ENDP & :MAXPROC to allow nested proc definitions|
+  |      |BugFix: Define ENDP and ENDM labels before processing the    |
+  |      |actual directive so that they have local scope.              |
+  |      |Added -F= alias to -F: for FindSymbol operation              |
+  |      |-FQ no longer masks -F: operation                            |
+  |      |Changed max command-line -D symbol definitions from 10 to 100|
+  |      |Made 'Assembled' line formatting uniform in all cases        |
+  |      |Added TPX and TXP internal macros for TPA/TAP with X register|
+  |      |Augmented -F: option when numeric to find 1st use of address |
+  | 9.69 |BugFix: #IFDEF processing always false on empty symbol       |
+  |      |BugFix: Added error if expression operand is empty string    |
+  |      |Added 'Elapsed time' display next to 'files processed'       |
+  |      |Added CALL, JSR, and BSR max stack depth checking            |
+  |      |Shortened warning message: Missing first operand in ...      |
+  |      |Added auto-fitting of 'Assembled' message to screen width    |
+  |      |Added :WIDTH internal symbol to return the width of screen   |
+  |      |Added warning 'Redundant AIS with zero operand'              |
+  |      |Added -FH option to force hidden macros in listings          |
+  | 9.68 |Updated help screen to include internal symbols              |
+  |      |Improved long name matching                                  |
+  |      |Made the default -I option equal to ?2;?1;?a;?f              |
+  |      |BugFix: v9.65 case-insensitive compare in Windows            |
+  |      |Changed default tabsize to 10 to match proposed coding style |
+  |      |BugFix: Only MSET has a #charset special merge option        |
+  |      |BugFix: Use platform specific path delimiter in -I option    |
+  |      |-FQ+ now also inhibits #HINT directive output                |
+  |      |Added default include path in -I option if * is used empty   |
+  |      |Added -FE option to convert warnings to errors               |
+  |      |Changed default -LC option to No                             |
+  | 9.67 |Added command option -F:symbol to find symbol (re)definitions|
+  |      |Added #ELSE IFxxx capability                                 |
+  |      |Added command option -FW to make free (non-error) warnings   |
+  |      |Added #HINT directive (like #MESSAGE but non-maskable)       |
+  |      |BugFix: Honored -T option for #MESSAGE directives also       |
+  |      |BugFix: -MMU option command-line processing                  |
+  | 9.66 |BugFix: Some macro processing occurred even inside false IFs |
+  | 9.65 |BugFix: v9.63 path matching was wrong for many cases         |
+  | 9.63 |Hide Fossil (?F)/Asm (?A) root dir from listings             |
+  |      |Added better examples to -I option in help screen            |
   | 9.62 |Added O (offset) and M (macro) indicator in listing          |
   |      |Added dual address display in listing (actual and offset)    |
   |      |Added ORG second parameter to allow separation of S19 address|
@@ -450,118 +204,362 @@ Version History
   |      |BugFix: #USES now ignores filename case under Windows        |
   |      |BugFix: Checking ?F and ?A now uses OR logic instead of AND  |
   |      |BugFix: Added ChDir(GetPath(path)) in List() for Linux case  |
-  | 9.63 |Hide Fossil (?F)/Asm (?A) root dir from listings             |
-  |      |Added better examples to -I option in help screen            |
-  | 9.65 |BugFix: v9.63 path matching was wrong for many cases         |
-  | 9.66 |BugFix: Some macro processing occurred even inside false IFs |
-  | 9.67 |Added command option -F:symbol to find symbol (re)definitions|
-  |      |Added #ELSE IFxxx capability                                 |
-  |      |Added command option -FW to make free (non-error) warnings   |
-  |      |Added #HINT directive (like #MESSAGE but non-maskable)       |
-  |      |BugFix: Honored -T option for #MESSAGE directives also       |
-  |      |BugFix: -MMU option command-line processing                  |
-  | 9.68 |Updated help screen to include internal symbols              |
-  |      |Improved long name matching                                  |
-  |      |Made the default -I option equal to ?2;?1;?a;?f              |
-  |      |BugFix: v9.65 case-insensitive compare in Windows            |
-  |      |Changed default tabsize to 10 to match proposed coding style |
-  |      |BugFix: Only MSET has a #charset special merge option        |
-  |      |BugFix: Use platform specific path delimiter in -I option    |
-  |      |-FQ+ now also inhibits #HINT directive output                |
-  |      |Added default include path in -I option if * is used empty   |
-  |      |Added -FE option to convert warnings to errors               |
-  |      |Changed default -LC option to No                             |
-  | 9.69 |BugFix: #IFDEF processing always false on empty symbol       |
-  |      |BugFix: Added error if expression operand is empty string    |
-  |      |Added 'Elapsed time' display next to 'files processed'       |
-  |      |Added CALL, JSR, and BSR max stack depth checking            |
-  |      |Shortened warning message: Missing first operand in ...      |
-  |      |Added auto-fitting of 'Assembled' message to screen width    |
-  |      |Added :WIDTH internal symbol to return the width of screen   |
-  |      |Added warning 'Redundant AIS with zero operand'              |
-  |      |Added -FH option to force hidden macros in listings          |
-  | 9.70 |Added #ENDP, ENDP & :MAXPROC to allow nested proc definitions|
-  |      |BugFix: Define ENDP and ENDM labels before processing the    |
-  |      |actual directive so that they have local scope.              |
-  |      |Added -F= alias to -F: for FindSymbol operation              |
-  |      |-FQ no longer masks -F: operation                            |
-  |      |Changed max command-line -D symbol definitions from 10 to 100|
-  |      |Made 'Assembled' line formatting uniform in all cases        |
-  |      |Added TPX and TXP internal macros for TPA/TAP with X register|
-  |      |Augmented -F: option when numeric to find 1st use of address |
-  | 9.71 |REMACRO now keeps previous definition even of special ? macro|
-  |      |Improved error precision by referring to exact directive name|
-  |      |Updated help screen to add TPX and TXP internal macros       |
-  | 9.72 |Added -LLn option to use a non-default label size up to      |
-  |      |MAX_LABEL_LENGTH. This option is global and cannot be saved. |
-  |      |Added #MAXLABEL directive to specify new max label length.   |
-  |      |Added :MAXLABEL internal symbol to get the max label length. |
-  |      |#PUSH/#PULL now save/restore the value of :MAXLABEL          |
-  |      |#MESSAGE and #HINT now show the macro line when inside macros|
-  | 9.73 |Added -FX non-saveable option to enable macro line # display |
-  |      |in ERROR, WARNING, MESSAGE and HINT directives (default: Off)|
-  |      |-F: option now also displays the related value               |
-  |      |-F: option too now honors the newly added -FX option         |
-  |      |Help screen shows default -I option as DEFAULT_INCLUDE_PATH  |
-  | 9.74 |Allowed !RMB or !DS to prevent warning about overlap         |
-  |      |Added #S19WRITE directive that writes messages to S19 file   |
-  |      |Added #S19RESET directive to forget all used S19 addr ranges |
-  | 9.75 |#FATAL no longer aborts all assemblies, only the current one |
-  |      |Allowed Escape to break out of a long repeater loop          |
-  |      |BugFix: Added recognition of \, as alias to • in macro calls |
-  | 9.76 |MAP files when ?A or ?F root is present uses relative paths  |
-  |      |Absolute path is used when -U option is given                |
-  |      |BugFix: RMB first defines label; allows its use in expression|
-  |      |Added -FI debugging option to show included filenames        |
-  |      |Altered the default segment addresses for more practical use |
-  | 9.77 |BugFix: In -X+ mode, ignore * after a push instruction       |
-  |      |If '*' in FindSymbol target can be any substring of symbol   |
-  |      |BugFix: Error 'invalid binary number' once for same number   |
-  | 9.78 |Enhancement: !MRESUME does not give error                    |
-  |      |Enhancement: IF[N]DEF ORs alt-179/0166 separated conditions  |
-  |      |Added value display in 'Repeater out of range' message       |
-  |      |Added #!UNDEF to prevent 'symbol not found' warning          |
-  |      |Enhancement: EXIT accepts alt-179/0166 separated conditions  |
-  |      |Changed built-in defaults to -T+ and -C+                     |
-  |      |Added :ERRORS and :WARNINGS internal variables               |
-  | 9.79 |Added #TEMP1 :TEMP1 #TEMP2 :TEMP2 similar to #TEMP :TEMP     |
-  |      |#!DROP prevents 'macro not found' warning                    |
-  | 9.80 |BugFix: #HOMEDIR first changes to the current file's path    |
-  |      |Improvement: #INCLUDE displays normalized path with -FI hint |
-  |      |Improvement: Added { ... } expressions in #INCLUDE paths     |
-  |      |Improvement: MTRIM error now displays actual problem text    |
-  |      |Improvement: Added AIS and AIX out-of-range warnings         |
-  | 9.81 |Added OS8 extra instruction which does SWI followed by FAR   |
-  |      |#![M]EXPORT does not give warning on undefined label         |
-  | 9.82 |Evaluate { ... } expressions w/out errors for informational  |
-  |      |directives inside macros                                     |
-  | 9.83 |CreateMap -MTA does not export byte size for missing labels  |
-  |      |Added option -WW to save configuration with license removed  |
-  |      |Optimized -U option processing                               |
-  |      |Allowed FCS to be an empty string as it creates trailing zero|
-  | 9.84 |#HomeDir now also tries _ASM_ and _FOSSIL_ before failing    |
-  |      |BugFix: Failure to #Include a file keeps counter unchanged   |
-  | 9.85 |BugFix: Correct MMU implementation of OS8 extra instruction  |
-  |      |Warning 'P&E MAP files may not support more than 127 files'  |
-  |      |Added extra mnemonic TSTH (test H) as PSHH/TST 1,SP/PULH     |
-  |      |Added ... to mark incomplete sections with optional message  |
-  |      |BugFix: Define labels next to MTOP, MDO, MLOOP, and MSUSPEND |
-  |      |'Invalid SP offset' is a warning for zero but error for less |
-  |      |Remove all macro and proc local symbols from P&E map files   |
-  | 9.86 |BugFix: Correct implementation of empty string FCS case      |
-  | 9.87 |Improved NoICE map files and also removed proc local symbols |
-  |      |DEF without any operand now gives a more informative error   |
-  |      |Hint ... shows always and if prefixed with ! only when -D... |
-  |      |BugFix: Spaces between #EXPORT arguments were not trimmed    |
-  | 9.88 |Default: "Free private/commercial use license (not resale)"  |
-  |      |BugFix: Changed output to stdout for #ERROR and #WARNING     |
-  |      |Changed max command-line -F option targets from 1 to 100     |
-  | 9.89 |BugFix: procname was affected even inside false conditional  |
-  |      |Show 'Found target address' hint macro name with -FX option  |
-  | 9.90 |Added :CCYCLES to return current cycles without zeroing them |
-  |      |Changed hint 'Found [re]definition of' to '[Re]defined'      |
-  | 9.91 |OR condition separator can be either alt-179/0166 or '||'    |
-  |      |Made number of warnings and errors a long for huge numbers   |
+  | 9.61 |Enhancement: -I option ?A matches special _asm_ file root    |
+  | 9.60 |Improved help screen for better fit in console window        |
+  | 9.58 |Added -FQ option to control display of line number display   |
+  |      |during assembly. Useful for IDE use.                         |
+  |      |BugFix: -E option without +/- now works again                |
+  |      |Added extra mnemonics ROLH, RORH, LSLH, and LSRH             |
+  |      |Enhancement: -I option ?F matches FOSSIL root                |
+  | 9.57 |Internal changes only                                        |
+  | 9.56 |Enhancement: ?1 in -I option means main file path            |
+  |      |             ?2 in -I option means parent file path          |
+  | 9.55 |Enhancement: #MEXPORT now uses remacro instead of macro in   |
+  |      |case of multiple exports of the same macro name.             |
+  | 9.52 |Enhancement: !BGND does not give warning (BGND does)         |
+  | 9.51 |BugFix: PUSH opsize presence suppressed redefinition warning |
+  | 9.50 |New INCLUDE search order: as is, parent path, include path   |
+  |      |BugFix: IFDEF, IFZ, IF now use PosStr() instead of Pos()     |
+  |      |Added multiple -I option directories separated by semi-colon |
+  |      |Allowed user editable -I dir list when ? is given as parm    |
+  |      |-I '*' is a placeholder for current directory definition     |
+  |      |#!IF/#!IFZ/#!IFNZ false w/out warning on undefined expression|
+  | 9.45 |Added ExpToStr formats: Fn (space-fill) and Zn (zero-fill)   |
+  |      |Added extra mnemonics INCH (increment H) & DECH (decrement H)|
+  | 9.43 |Corrected multi-operand pseudo-instructions size calculation |
+  |      |Added filename & linenumber display when canceling with ESC  |
+  |      |Added :HOUR, :MIN, :SEC for clock time                       |
+  | 9.42 |Internal changes only                                        |
+  | 9.41 |BugFix: ::LABEL does not give error in pass one              |
+  |      |Improved NEXT when no label on left to increment placeholder |
+  | 9.40 |Made #SIZE second parm optional with :PC-LABEL as default    |
+  | 9.37 |BugFix: ~n[charset]index~ can contain [ and ]                |
+  |      |Charset can now also be delimited by " or ` quotes           |
+  | 9.36 |BugFix: Added "if MacroRecording then exit" to IF/ELSE/ENDIF |
+  | 9.35 |#IFNUM now detects bin & hex as numbers                      |
+  | 9.33 |Added ~text,~ and ~,text~ placeholders.                      |
+  | 9.32 |BugFix: Added missing size from EXP file symbols             |
+  |      |"Macro already defined" message now shows only in pass one   |
+  |      |Added "Non-proc symbol redefinition" warning for PSHx        |
+  | 9.31 |BugFix in -MTA format when label is blank, size was misspaced|
+  | 9.30 |Added size info in -LSS and -MTA output formats              |
+  | 9.25 |Internal changes only                                        |
+  | 9.23 |BugFix: Added MSTOP 'USER: ' msg. Removed MERROR ExpToStr()  |
+  | 9.21 |BugFix relating to $$$ internal conversion in macros         |
+  | 9.20 |BugFix: MergeParms now uses LastMacroParm                    |
+  | 9.18 |BugFix: v9.05+ did not allow ',' in EQU etc.                 |
+  | 9.17 |Internal changes only                                        |
+  | 9.15 |MSET # now skips strings and allows quotes & parens in set   |
+  | 9.10 |Allowed embedded { ... } expressions in macro calls          |
+  | 9.05 |Added ,size option next to EQU/SET/DEF                       |
+  |      |Added MSTOP in-macro parameter to display #Error             |
+  |      |Added #SPA alias for #SPAUTO directive                       |
+  | 9.02 |BugFix: ~n[set]index~ not working for all occurrences        |
+  |      |Added ~n'set'index~ alternative                              |
+  |      |Added ,size option as 'PSHx NAME,SIZE'                       |
+  | 9.00 |BugFix: > and < over 32-bit now do not wrap-around           |
+  |      |Added ~n[set]index~ macro parameter placeholder              |
+  |      |Added MTRIM macro command                                    |
+  | 8.90 |Added #SIZE LABEL,SIZE directive & ::label internal symbol   |
+  |      |Added MSET # option to unite all parms into one              |
+  |      |Added :SPMAX, #SPAUTO, depth option                          |
+  |      |Added MSET #'charset' option                                 |
+  |      |Made :SPMAX show maximum stack depth since last :SPLIMIT set |
+  |      |Added :SPLIMIT to return the currently effective stack limit |
+  |      |Added :NN internal variable to return total macro parm count |
+  |      |Minor speedup when using -Q+ option                          |
+  | 8.80 |Added placeholder ~[n.p]~ for smart part extraction          |
+  | 8.70 |#PROC resets ~procname~ to null                              |
+  |      |#AIS without argument resets :AIS counter to zero            |
+  | 8.60 |Added MDEL in macros                                         |
+  | 8.57 |Added MOV DIR,X+ & MOV X+,DIR instruction adjustment of :TSX |
+  | 8.55 |Added :N internal variable (for number of macro parameters)  |
+  | 8.50 |BugFix: #MEMORY and #VARIABLE #OFF# did not work correctly   |
+  |      |Added "RMB overlap" warning                                  |
+  | 8.40 |BugFix: Symbols over 19 chars gave no error on redefinition  |
+  | 8.35 |Added ~filename~ ~basename~ ~path~ and ~#text~ placeholders  |
+  |      |Fixed bug with range in listing                              |
+  |      |Added #OFF# parameter to #MEMORY and #VARIABLE directives    |
+  |      |Added ProcName assignment, and ~procname~ placeholder(s)     |
+  | 8.31 |Improved code for the AAX internal macro                     |
+  | 8.30 |Allowed ALIGN to align only label to the left (if present)   |
+  |      |Added internal symbols to get current value of each segment  |
+  |      |Fixed bug with labeled ALIGN with zero                       |
+  | 8.21 |Fixed #MEXPORT by adding a new FindMacro in ASMACROS.PAS     |
+  | 8.20 |Added #REMACRO to allow renaming to an existing macro name   |
+  |      |Added ~self~ and ~text~ macro placeholders                   |
+  | 8.15 |Added MSUSPEND and MRESUME and fixed :MINDEX recursion       |
+  |      |MSTOP (with optional parm #ALL#) stops suspended macros      |
+  | 8.11 |Fixed "Used Range" percentage in case of #MEMORY use         |
+  |      |Allowed #EXPORT to come before the actual label definitions  |
+  | 8.10 |Fixed ALIGN with zero bug                                    |
+  | 8.09 |Added macro parm delimiter #PUSH/#PULL protection            |
+  | 8.08 |Added REMACRO capability                                     |
+  | 8.07 |Added MDO optional initializer expression                    |
+  |      |Added :CPU internal symbol                                   |
+  |      |Added #IFNUM and #IFNONUM to test a parm for being numeric   |
+  | 8.05 |Added MSTOP                                                  |
+  |      |Fixed long-standing bug #IFMDEF inside a macro               |
+  |      |Allowed first source line to have symbol also used by -D     |
+  | 8.04 |@macro or %macro can now start at column one                 |
+  | 8.03 |Fixed long-standing bug with #MCF[2] no-@ call               |
+  | 8.02 |Added #MCF2 mode                                             |
+  | 8.01 |First macro level inherits :TEMP from main                   |
+  | 8.00 |Added ;; comment removal from macros                         |
+  |      |Added ~macro~ and ~00~ placeholders                          |
+  |      |Added -S9 command-line option to disable S9 record           |
+  |      |Added #EXPORT directive                                      |
+  |      |Added #MEXPORT directive (for exporting macros)              |
+  |      |Changed from 'SET' to 'set' in EXP files                     |
+  |      |Fixed #MEXPORT to produce raw (fully unprocessed) macro lines|
+  |      |#MEXPORT uses preserve defined macro name case               |
+  |      |Added END INCLUDE message in #EXIT directive                 |
+  |      |Fixed #MEXPORT from within macro when -EXP-                  |
+  |      |Fixed some memory leaks related to macro use                 |
+  |      |Added :TSX internal variable                                 |
+  |      |Added :TEMP as possible label in NEXT, NEXP, SETN [#AIS]     |
+  |      |Added ALIGN pseudo-op                                        |
+  | 7.90 |Added :LINENO and :MLINENO internal variables                |
+  | 7.85 |Added recognition of * and ?* wildcards to #DROP directive   |
+  |      |Fixed MREQ with message to show correct message              |
+  | 7.83 |Added :LABEL to return length of ~label~                     |
+  | 7.82 |Added -FD command-line option for fixed date in internal vars|
+  | 7.81 |Fixed #EXIT to restore conditional file level                |
+  | 7.80 |Added #RENAME to rename a macro                              |
+  | 7.75 |Allowed @@ to #@Macro #Macro and #MCF for nested calls       |
+  | 7.72 |Allowed label next to MEXIT, etc.                            |
+  | 7.71 |Internal changes only                                        |
+  | 7.70 |Added #TEMP and :TEMP                                        |
+  |      |Non-macro :TEMP keeps its pre-macro value                    |
+  |      |Added == for IFPARM case-sensitive comparison                |
+  | 7.60 |Added MDO MLOOP :MLOOP :MEXIT MTOP/MLOOP limits              |
+  | 7.50 |Added :ANRTS & :ANRTC internal variables                     |
+  |      |Added #EXIT directive to stop #INCLUDE file at that point    |
+  |      |Added #USES#USING directives to #INCLUDE if not-yet included |
+  | 7.40 |Added MERROR (combines #Error with mexit) for macros         |
+  |      |Added MSTR to turn non-string macro parm into string         |
+  | 7.30 |Added #IFB/#IFNB aliases for #IFNOPARM/#IFPARM, respectively |
+  |      |Added MREQ for required macro parameters                     |
+  | 7.21 |Internal changes only                                        |
+  | 7.20 |Added DEF which does EQU if not already defined              |
+  |      |BugFix: Command-line symbol definitions re-set for PASS2     |
+  | 7.11 |Internal changes only                                        |
+  | 7.10 |Added :PC and :PPC (#PPC)                                    |
+  | 7.02 |Added :OCYCLES to return the previous (Old) #Cycles          |
+  |      |MSWAP now silently ignores swapping with self                |
+  | 7.01 |BugFix: Corrected cleanup of file-local macros on file change|
+  | 7.00 |Added recursive macros and #MLimit to set max depth          |
+  |      |Added MSET to change the text of a macro parm                |
+  |      |:LOOP is reset when calling self with @@                     |
+  |      |Added MDEF (similar to MSET but only #IFNOPARM)              |
+  |      |Added MSWAP (swaps any two macro parameters)                 |
+  | 6.90 |Added #IFSTR/#IFNOSTR conditional directives                 |
+  | 6.80 |Allowed upto 125 total INCLUDE files                         |
+  |      |Added #PROC, PROC and :PROC for local labels                 |
+  |      |Allowed { ... } expression in labels even outside of macros  |
+  |      |Removed @@ local labels from SYM file                        |
+  |      |Added "Number of [#]PROCs used" message in LST               |
+  | 6.70 |Internal changes only                                        |
+  | 6.61 |Ability to hide all macros macros & their definitions        |
+  | 6.60 |Added ability to hide all macro keywords                     |
+  |      |{ ... } expressions can now be nested                        |
+  | 6.50 |Internal changes only                                        |
+  | 6.45 |Added :DOW internal variable (0=Sunday)                      |
+  | 6.45 |Added MTOP                                                   |
+  | 6.42 |Did not allow negatives in ReadParm and ~n.s.l~              |
+  | 6.41 |Length :0 now works correctly                                |
+  | 6.40 |Added "Line may have been truncated" warning                 |
+  | 6.30 |Added :0 to :9 for getting length of macro parm              |
+  | 6.21 |BugFix: #HOMEDIR not saving home between passes              |
+  |      |Added #HOMEDIR without parms to restore original home        |
+  | 6.20 |Do not show #ENDIFs with -LC-                                |
+  | 6.10 |Improvement: No trailing commas when reading macro lines     |
+  |      |Added: ~@~ and ~@@~ macro placeholders                       |
+  | 6.03 |BugFix: Improved v6.02 EQU & SET BugFix                      |
+  | 6.02 |BugFix regarding EQU & SET when used with repeaters          |
+  | 6.01 |Internal changes only                                        |
+  | 6.00 |Allowed { ... } expression> anywhere in macro text           |
+  |      |BugFix: Other macro called right after #DROP                 |
+  |      |Added reset macro counters capability by calling %macro      |
+  | 5.90 |Added :INDEX for use from inside macros                      |
+  | 5.85 |:MACROLOOP -> :MACRONEST, added :MACROLOOP                   |
+  | 5.80 |Added :TOTALMACROCALLS, :MACROLOOP, :MACROINDEX              |
+  | 5.71 |"Bug" fix. spxSP no longer updated with #SPAUTO              |
+  | 5.70 |Added implicit "label set ::" next to any push instruction   |
+  |      |BugFix for space parm delimiter self-replacing               |
+  | 5.60 |Added #Cycles to (re)set :CYCLES to any value                |
+  | 5.55 |Added \, and • to re-use last macro delimiter                |
+  | 5.51 |Added 'Nested macro definition not allowed'                  |
+  | 5.50 |Internal changes only                                        |
+  | 5.40 |Added #MCF (Macros Come First) & MacroFirst                  |
+  | 5.32 |Fixed misleading MMU "Attempt to jump to page"               |
+  | 5.31 |Bug fix for ~#~ processing                                   |
+  | 5.30 |Added ~n,~ and ~,n~ macro placeholders                       |
+  |      |#PARMS SPACE makes separator a space                         |
+  | 5.25 |Added #IFSPAUTO conditional directive                        |
+  | 5.21 |Disallowed comments in #IFPARM/#IFNOPARM                     |
+  | 5.20 |Added ~label~ macro placeholder                              |
+  | 5.12 |Fixed recognition of comma in non-@ macros                   |
+  | 5.11 |Internal changes only                                        |
+  | 5.10 |Added #IFPARM with comma [,] for comparing two strings       |
+  | 5.02 |Internal changes only                                        |
+  | 5.01 |Bug fix in ',SPX' case with zero :SP                         |
+  | 5.00 |Macro calling without the @ symbol >MacroAssume              |
+  |      |Added warning "Macro repeater ignored"                       |
+  |      |Replaced #NOMACRO with #@MACRO                               |
+  | 4.90 |Internal changes only                                        |
+  | 4.81 |Internal changes only                                        |
+  | 4.80 |Automatically drop special ad-hoc '?' macro                  |
+  | 4.70 |Added mapping for macro lines and #TRACEON/#TRACEOFF         |
+  | 4.60 |Added optional macro parm for single call                    |
+  | 4.52 |Fixed nested #IF(s) in macros not counted right              |
+  | 4.51 |Internal changes only                                        |
+  | 4.50 |Internal changes only                                        |
+  | 4.40 |Internal changes only                                        |
+  | 4.30 |Made IFPARM/IFNOPARM available outside MACROS                |
+  | 4.20 |Added IFMDEF/IFNOMDEF for check macro presence               |
+  | 4.10 |Added #MLISTON/#MLISTOFF & #MLIST/#NOMLIST                   |
+  | 4.01 |Fixed local macro recognition                                |
+  | 4.00 |Added MEXIT                                                  |
+  | 4.00B|Added macro support (BETA due to significant code changes)   |
+  |      |Added [n] display for macro errors/warnings                  |
+  |      |Added IFPARM/IFNOPARM, #DROP, #PARMS                         |
+  | 3.50 |Made Assembled display not truncate long names               |
+  | 3.40 |-X option (dis-)allows simulated index modes                 |
+  |      |Added warning 'Invalid SP offset'                            |
+  | 3.33 |Added AIX instruction adjustment of TSX-based SP             |
+  | 3.30 |Added ,SPX indexing mode to use TSX-based SP                 |
+  | 3.20 |Added :SPX to return :SP-1 for #X :SPX                       |
+  | 3.15 |Negative AIS instructions reset the :AIS symbol              |
+  | 3.12 |:AIS is set to the #SP/#SP1/#SPAUTO offset                   |
+  | 3.11 |Added :AIS internal symbol and #AIS directive                |
+  |      |Added warning: Stack structure requires "AIS #?"             |
+  | 3.10 |Added stdout for displaying to the console                   |
+  | 3.03 |Added warning for SP symbols outside #SP[AUTO]               |
+  | 3.02 |#iftos corrected to match v3.01 change                       |
+  | 3.01 |Symbol :: is alias for 0-:SP when in #SP1 mode               |
+  | 3.00 |Added #PSP to update PSP value with current :SP              |
+  |      |Fixed #SPADD to not cancel SP1 mode                          |
+  |      |Added #HOMEDIR directive                                     |
+  |      |Added NEGHX extra mnemonic                                   |
+  |      |Added #iftos directive [(expr + :SP) = 1]                    |
+  | 2.50 |Added #X for X-indexed offset                                |
+  |      |Added #SPCHECK and related code                              |
+  |      |#SPAUTO with parameter #OFF# turns off SPAUTO                |
+  |      |#PUSH/#PULL now save/restore #SPCHECK value                  |
+  |      |Added :SPCHECK internal symbol returns the #SPCHECK value    |
+  |      |Added :PSP internal symbol returns (:SP-:SPCHECK)            |
+  |      |Added ,PSP (Preserved SP) indexed mode for +:psp             |
+  |      |Help screen beautified and made more complete                |
+  |      |Added :: as alias for 1-:SP for easy definition              |
+  |      |Added :SPFREE (:PSP) to return :SP-:SPCHECK                  |
+  |      |Added NEGXA extra mnemonic                                   |
+  |      |Added XGAH and XGHX extra mnemonics                          |
+  |      |Added #SPADD which adjusts :SP by a signed value             |
+  |      |Added SEXA extra mnemonic, sign-extends A into XA            |
+  | 2.40 |Added automatic SP adjustments for Push / Pull               |
+  |      |Added directives #SPAUTO (cancel with #SP)                   |
+  | 2.30 |Added PSHXA and PULXA internal macros                        |
+  |      |Removed :1 alias for :SP1                                    |
+  | 2.22 |Fixed OptRtsXX warning for CALL/RTC cases                    |
+  | 2.20 |Change SP offset processing and fixed rare bug               |
+  | 2.12 |Added ,ASP (Absolute SP) indexed mode does -:SP1             |
+  |      |Added ,LSP (Local SP) indexed mode does -:SP                 |
+  | 2.11 |Bug fix in #SP/#SP1 processing - word -> long                |
+  | 2.10 |Added :1 internal symbol (alias for :SP1) ***REMOVED LATER***|
+  | 2.02 |Added :SP1 internal symbol to return the zero-based SP offset|
+  | 2.01 |Added #SP exp to offset SP indexed instructions              |
+  |      |Added :SP internal symbol to return the one-based SP offset  |
+  | 2.00 |Added #SP1 and #SP directives                                |
+  |      |Added ABS (Absolute Value of A) internal macro               |
+  | 1.80 |Added :AB (AddressBytes) internal symbol                     |
+  |      |#PUSH and #PULL save and restore CurrentSeg                  |
+  |      |Fixed cross-page jumping warnings                            |
+  |      |Added :PAGE_START & :PAGE_END internal symbols               |
+  | 1.70 |Made Date an atomic operation for consistency                |
+  |      |Added #UNDEF and made EXP use 'SET', not 'EQU'               |
+  |      |EXP only exports during PASS1                                |
+  |      |Allowed strings up to long in EQUs                           |
+  |      |Division by zero in { ... } expressions shows ???            |
+  |      |(S)igned { ... } expressions auto-adjust by size             |
+  |      |Added { ... } formats up to (9) for 32-bit                   |
+  |      |#WARN and #NOWARN control warnings from code                 |
+  | 1.60 |Corrected error message "Symbol does not start"              |
+  | 1.59 |Added :CYCLES for counting cycles                            |
+  | 1.58 |Added option -U to define output directory                   |
+  | 1.57 |Conditionals IF, IFZ, IFNZ are 32-bit correct                |
+  | 1.56 |Conditional directives now use full 32-bit word              |
+  | 1.55 |Operator ]] returns the high word, [[ low word               |
+  | 1.54 |Added CRC at end of listing file                             |
+  | 1.53 |Fixed LONG bug                                               |
+  | 1.52 |Added LONG for 32-bit constant data                          |
+  |      |Added 32-bit label definitions                               |
+  | 1.51 |Added PUSH and PULL extras                                   |
+  | 1.50 |Internal changes only                                        |
+  | 1.49 |BugFix: SET was updating label sequence                      |
+  | 1.48 |Made TP option usable with console output                    |
+  | 1.47 |Made TP option usable with common ERR files                  |
+  | 1.46 |Added RESET extra instruction for forcing reset              |
+  | 1.45 |Internal changes only                                        |
+  | 1.44 |#PULL now flushes S19 if forceS2 state changes               |
+  | 1.43 |"MMU is disabled" converted to Error                         |
+  | 1.42 |Added #S2 (-S2+) and #S1 (-S2-) directives                   |
+  | 1.41 |Made S2 appear only in MMU or ForceS2 mode                   |
+  | 1.40 |Operator [[ returns the low word                             |
+  |      |Allowed 24-bit constant strings                              |
+  |      |Made S19CRC use linear address when -Z enabled               |
+  | 1.39 |CRC and S19CRC counters initialized for pass 2               |
+  | 1.38 |Added S2/S8, CALL/RTC, #MMU/NOMMU, FAR                       |
+  |      |Added option -MMU[+/-]                                       |
+  |      |Added { ... } formats (5) and (6) for 24-bit                 |
+  |      |Added option -S2 for forcing S2 production                   |
+  |      |Added option -Z[+/-] for linear addresses S19                |
+  |      |Added #IFMMU and #IFNOMMU                                    |
+  |      |When MMU is off, CALL -> JSR and RTC -> RTC &                |
+  |      |-J option and #JUMP #CALL to control the same                |
+  | 1.37 |Added S19CRC and made it display in summary                  |
+  | 1.36 |Added error for unresolved { ... } expression                |
+  | 1.35 |Added { ... } expression recognition in EQU strings          |
+  | 1.34 |Added CRC display in completion status line                  |
+  | 1.33 |#CRC shows error for undefined symbols                       |
+  | 1.32 |Added #CRC directive and :CRC internal symbol                |
+  | 1.31 |Added SETN pseudo-op                                         |
+  | 1.30 |Improved #VARIABLE violation message                         |
+  | 1.29 |Q option also disables #Message output                       |
+  | 1.28 |Added NEXP pseudo-op                                         |
+  | 1.27 |NEXT expression evaluates as Integer. Added show error.      |
+  | 1.26 |Added optional expression to NEXT                            |
+  | 1.25 |Added system variables YEAR, MONTH, and DATE                 |
+  | 1.24 |Allowed repeaters to be expressions                          |
+  | 1.23 |Added #VARIABLE directive                                    |
+  | 1.22 |Added NEXT pseudo-op                                         |
+  | 1.21 |Added { ... } format modifiers (1) thru (4)                  |
+  | 1.20 |Change default format for embedded expressions               |
+  | 1.19 |Added expression evaluation in strings                       |
+  | 1.18 |Added expression evaluation in #Message etc                  |
+  | 1.17 |Added SET pseudo-instruction                                 |
+  | 1.16 |Added PSHCC and PULCC extra instructions                     |
+  | 1.15 |Optimized AAX for 1 less byte, 2 less cycles                 |
+  | 1.14 |Fixed bug with remaining Integer() parts                     |
+  | 1.13 |Internal changes only                                        |
+  | 1.12 |Added extra mnemonic XGAX (exchange A with X)                |
+  | 1.11 |Optimized LSLHX from 8/14 to 6/10 bytes/cycles               |
+  | 1.10 |Made #PUSH/#PULL save/restore #HCSON/#HCSOFF                 |
+  | 1.09 |Fixed cycle counts and DBNZ ,x mode recognition              |
+  |      |Fixed bugs with EOR                                          |
+  | 1.08 |Use shorter indexed modes when possible                      |
+  | 1.07 |Fixed bug with STHX ??,sp code                               |
+  | 1.06 |Added support for HCS08 (#HCSON/OFF #IF[N]HCS)               |
+  | 1.05 |Fixed cycle counts for several instructions                  |
+  | 1.04 |Added THX and TXH extras                                     |
+  |      |Added LSLHX extra (for multiplying HX by two)                |
+  |      |Added ADDHX #nnnn extra                                      |
+  | 1.03 |Added errorlevel 5 for "no files found"                      |
+  | 1.02 |Added AAX extra to add A to H:X                              |
+  |      |Added INX and DEX extras for INCX and DECX                   |
+  | 1.01 |Added = as synonym to EQU                                    |
+  |      |Changed VECTORS segment default to $FFDE                     |
+  | 1.00 |Original (based on ASM5 v1.04) Started: 2001-07-06           |
   +------+-------------------------------------------------------------+
 ```
 
