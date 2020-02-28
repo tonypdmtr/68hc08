@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: February 13, 2020 for ASM8 v9.91*
+*Latest Manual Update: February 28, 2020 for ASM8 v9.92*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -78,6 +78,7 @@ Version History
 
 ```
   +------+-------------------------------------------------------------+
+  | 9.92 |Added extra mnemonics `ASLH` (alias for `LSLH`), and `ASRH`  |
   | 9.91 |OR condition separator can be either alt-179/0166 or '||'    |
   |      |Made number of warnings and errors a long for huge numbers   |
   | 9.90 |Added :CCYCLES to return current cycles without zeroing them |
@@ -2239,6 +2240,8 @@ used just like normal instructions, but NOT like user-defined macros.
 |`AAX`              |Add A to H:X<br><br>Same as:<br><br>`PSHA` / `TXA` / `ADD 1,SP` / `TAX` / `THA` / `ADC #0` / `TAH` / `PULA`<br><br>_(Last updated in v8.31 for one byte smaller size and fewer cycles)_
 |`ABS`              |Absolute value of A (Note: value `$80` does not change)<br><br>Same as: `TSTA` / `BPL ?` / `NEGA` / `?`
 |`ADDHX #wordval`   |Add immediate value to HX _useful for table offset adjustment_<br>Same as:<br><br>`PSHA` / `TXA` / `ADD #LSB` / `TAX` / `THA` / `ADC #MSB` / `TAH` / `PULA`
+|`ASLH`             |Same as: `PSHH` / `ASL 1,ASP` / `PULH`
+|`ASRH`             |Same as: `PSHH` / `ASR 1,ASP` / `PULH`
 |`CLRHX`            |Same as: `CLRH` / `CLRX`
 |`CMPA operand`     |Same as: `CMP operand`
 |`CMPX operand`     |Same as: `CPX operand`
@@ -2779,5 +2782,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.91, February 13, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.92, February 28, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
