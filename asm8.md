@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: February 28, 2020 for ASM8 v9.92*
+*Latest Manual Update: March 13, 2020 for ASM8 v9.93*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -78,6 +78,7 @@ Version History
 
 ```
   +------+-------------------------------------------------------------+
+  | 9.93 |Undefined macro call starting with ! is ignored without error|
   | 9.92 |Added extra mnemonics `ASLH` (alias for `LSLH`), and `ASRH`  |
   | 9.91 |OR condition separator can be either alt-179/0166 or '||'    |
   |      |Made number of warnings and errors a long for huge numbers   |
@@ -900,6 +901,13 @@ Macros
     force all macro counters (`:MINDEX`, `:INDEX`, `:LOOP`), except for
     `:MACRONEST`, for the specific macro to reset, as if you had dropped and
     recreated the macro.
+
+-   A possibly undefined macro can be called by prefixing the macro name with `!`
+    Example: `@!macro` will call `macro` only if it is defined.
+    It is equivalent to the sequence:<br>
+    `#ifmdef macro`<br>
+    `@macro`<br>
+    `#endif`
 
 -   During invocation, the macro name may be followed by a comma and any
     non-alphanumeric single character (if more characters found, only the first
@@ -2780,7 +2788,7 @@ RegExp text parser as the File Format. Then fill out the screen that appears as
 follows:
 `([0-9A-F]+) +([0-9]+) +([0-9]+) +([^ ]+) +([1-9][0-9]*)`
 
-![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
+![FreeMASTER](3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.92, February 28, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.93, March 13, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
