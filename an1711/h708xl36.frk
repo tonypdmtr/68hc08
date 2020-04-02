@@ -1,0 +1,722 @@
+;*******************************************************************************
+;                    HC708XL36 Part Specific Framework
+;*******************************************************************************
+; File Name: H708XL36.FRK                    Copyright (c) Motorola 1994
+;
+; Current Revision: 1.6
+; Current Release Level: PA
+; Current Revision Release Date: 12/29/95
+;
+; Current Release Written By: David Yoder
+;                             Motorola CSIC Applications - Austin, Texas
+;
+; Assembled Under: CASM08 Version: 3.06
+;                                IASM08
+;
+; Framework Description:
+;             This framework was generated using the MC68HC708XL36 technical
+;             summary as a reference.
+;*******************************************************************************
+; Update History:
+; Rev:      Author:     Date:        Description of Change:
+; ----      -------     -----        ----------------------
+; PA  1.0   Chretien    03/14/94     Original Release
+; PA  1.1   Johnson     07/27/94     Modified framework description to
+;                                    include device technical summary
+; PA  1.2   Johnson     11/30/94     Ported to MASM 4.9
+; PA  1.3   Yoder       12/09/94     Changed EPROM, RAM equates to match
+;                                       the device technical summary
+; PA  1.4   Yoder       07/07/95     Changed COPC to COPCTL to match the
+;                                       technical summary Rev. 1
+; PA  1.5   Yoder       12/29/95     Changed TOE to TOIE to match the
+;                                       technical summary Rev. 1
+; PA  1.6   Yoder       02/18/97     Converted back to CASM (.bit: -> bit.:)
+; PA  1.7   Yoder       04/14/97     Changed PTx to PORTx to match technical
+;                                       data rev 0
+; PA  1.8   Yoder       04/17/97     Modified CONFIG (old MOR) to match
+;                                       technical data rev 0
+;*******************************************************************************
+; Motorola reserves the right to make changes without further notice to any
+; product herein to improve reliability, function, or design. Motorola does
+; not assume any liability arising out of the application or use of any
+; product, circuit, or software described herein; neither does it convey any
+; license under its patent rights nor the rights of others. Motorola
+; products are not designed, intended, or authorized for use as components
+; in systems intended for surgical implant into the body, or other
+; applications intended to support life, or for any other application in
+; which the failure of the Motorola product could create a situation where
+; personal injury or death may occur. Should Buyer purchase or use Motorola
+; products for any such intended or unauthorized application, Buyer shall
+; indemnify and hold Motorola and its officers, employees, subsidiaries,
+; affiliates, and distributors harmless against all claims, costs, damages,
+; and expenses, and reasonable attorney fees arising out of, directly or
+; indirectly, any claim of personal injury or death associated with such
+; unintended or unauthorized use, even if such claim alleges that Motorola
+; was negligent regarding the design or manufacture of the part. Motorola
+; and the Motorola Logo are registered trademarks of Motorola Inc.
+;*******************************************************************************
+;                            Register Equates
+;*******************************************************************************
+
+PORTA              def        $0000        ;Port A Data Register
+PORTB              def        $0001        ;Port B Data Register
+PORTC              def        $0002        ;Port C Data Register
+PORTD              def        $0003        ;Port D Data Register
+DDRA               def        $0004        ;Port A Data Direction Register
+DDRB               def        $0005        ;Port B Data Direction Register
+DDRC               def        $0006        ;Port C Data Direction Register
+DDRD               def        $0007        ;Port D Data Direction Register
+PORTE              def        $0008        ;Port E Data Register
+PORTF              def        $0009        ;Port F Data Register
+PORTG              def        $000A        ;Port G Data Register (Low nibble)
+PORTH              def        $000B        ;Port H Data Register (Low nibble)
+DDRE               def        $000C        ;Port E Data Direction Register
+DDRF               def        $000D        ;Port F Data Direction Register
+DDRG               def        $000E        ;Port G Data Direction (Low nibble)
+DDRH               def        $000F        ;Port H Data Direction (Low nibble)
+
+SPCR               def        $0010        ;SPI Control Register
+SPSCR              def        $0011        ;SPI Status and Control Register
+SPDR               def        $0012        ;SPI Data Register
+
+SCC1               def        $0013        ;SCI Control Register 1
+SCC2               def        $0014        ;SCI Control Register 2
+SCC3               def        $0015        ;SCI Control Register 3
+SCS1               def        $0016        ;SCI Status Register 1
+SCS2               def        $0017        ;SCI Status Register 2
+SCDR               def        $0018        ;SCI Data Register
+SCBR               def        $0019        ;SCI BAUD Rate Register
+
+ISCR               def        $001A        ;IRQ Status and Control Register
+PTDICR             def        $001B        ;Port D Interrupt Control Register
+
+PCTL               def        $001C        ;PLL Control Register
+PBWC               def        $001D        ;PLL Bandwidth Control Register
+PPG                def        $001E        ;PLL Programming Register
+
+CONFIG             def        $001F        ;Mask Option Register (EPROM byte)
+
+TSC                def        $0020        ;Timer Status and Control Register
+TDMA               def        $0021        ;Timer DMA Select Register
+TCNTH              def        $0022        ;Timer Counter High Register
+TCNTL              def        $0023        ;Timer Counter Low Register
+TMODH              def        $0024        ;Timer Counter Modulo High Register
+TMODL              def        $0025        ;Timer Counter Modulo Low  Register
+
+TSC0               def        $0026        ;Timer Ch. 0 Status and Control Reg.
+TCH0H              def        $0027        ;Timer Ch. 0 High Register
+TCH0L              def        $0028        ;Timer Ch. 0 Low Register
+
+TSC1               def        $0029        ;Timer Ch. 1 Status and Control Reg.
+TCH1H              def        $002A        ;Timer Ch. 1 High Register
+TCH1L              def        $002B        ;Timer Ch. 1 Low Register
+
+TSC2               def        $002C        ;Timer Ch. 2 Status and Control Reg.
+TCH2H              def        $002D        ;Timer Ch. 2 High Register
+TCH2L              def        $002E        ;Timer Ch. 2 Low Register
+
+TSC3               def        $002F        ;Timer Ch. 3 Status and Control Reg.
+TCH3H              def        $0030        ;Timer Ch. 3 High Register
+TCH3L              def        $0031        ;Timer Ch. 3 Low Register
+
+D0SH               def        $0034        ;DMA Ch. 0 Source High Register
+D0SL               def        $0035        ;DMA Ch. 0 Source Low Register
+D0DH               def        $0036        ;DMA Ch. 0 Destination High Register
+D0DL               def        $0037        ;DMA Ch. 0 Destination Low Register
+D0C                def        $0038        ;DMA Ch. 0 Control Register
+D0BL               def        $0039        ;DMA Ch. 0 Block Length Register
+D0BC               def        $003B        ;DMA Ch. 0 Byte Count Register
+
+D1SH               def        $003C        ;DMA Ch. 1 Source High Register
+D1SL               def        $003D        ;DMA Ch. 1 Source Low Register
+D1DH               def        $003E        ;DMA Ch. 1 Destination High Register
+D1DL               def        $003F        ;DMA Ch. 1 Destination Low Register
+D1C                def        $0040        ;DMA Ch. 1 Control Register
+D1BL               def        $0041        ;DMA Ch. 1 Block Length Register
+D1BC               def        $0043        ;DMA Ch. 1 Byte Count Register
+
+D2SH               def        $0044        ;DMA Ch. 2 Source High Register
+D2SL               def        $0045        ;DMA Ch. 2 Source Low Register
+D2DH               def        $0046        ;DMA Ch. 2 Destination High Register
+D2DL               def        $0047        ;DMA Ch. 2 Destination Low Register
+D2C                def        $0048        ;DMA Ch. 2 Control Register
+D2BL               def        $0049        ;DMA Ch. 2 Block Length Register
+D2BC               def        $004B        ;DMA Ch. 2 Byte Count Register
+
+DC1                def        $004C        ;DMA Control Register 1
+DSC                def        $004D        ;DMA Status and Control Register
+DC2                def        $004E        ;DMA Control Register 2
+
+EPCR               def        $004F        ;EPROM Control Register
+
+SCFG               def        $FE00        ;SIM Configuration Register
+SRSR               def        $FE01        ;SIM Reset Status Register
+
+LVISR              def        $FE0F        ;LVI Status and Control Register
+
+COPCTL             def        $FFFF        ;COP Control Register
+
+;*******************************************************************************
+;                              Bit Equates
+;*******************************************************************************
+
+; Output Data Registers (Port A-F -> $00, $01, $02, $03, $08, $09)
+
+BIT7.              def        %10000000    ;Pin 7 Output Value
+BIT6.              def        %01000000    ;Pin 6 Output Value
+BIT5.              def        %00100000    ;Pin 5 Output Value
+BIT4.              def        %00010000    ;Pin 4 Output Value
+BIT3.              def        %00001000    ;Pin 3 Output Value
+BIT2.              def        %00000100    ;Pin 2 Output Value
+BIT1.              def        %00000010    ;Pin 1 Output Value
+BIT0.              def        %00000001    ;Pin 0 Output Value
+
+Bit7               def        7            ;Pin 7 Output Value
+Bit6               def        6            ;Pin 6 Output Value
+Bit5               def        5            ;Pin 5 Output Value
+Bit4               def        4            ;Pin 4 Output Value
+Bit3               def        3            ;Pin 3 Output Value
+Bit2               def        2            ;Pin 2 Output Value
+Bit1               def        1            ;Pin 1 Output Value
+Bit0               def        0            ;Pin 0 Output Value
+
+; Data Direction Registers (DDR A-F -> $04, $05, $06, $07, $0C, $0D)
+
+DDR7.              def        %10000000    ;Data Direction Bit 7
+DDR6.              def        %01000000    ;Data Direction Bit 6
+DDR5.              def        %00100000    ;Data Direction Bit 5
+DDR4.              def        %00010000    ;Data Direction Bit 4
+DDR3.              def        %00001000    ;Data Direction Bit 3
+DDR2.              def        %00000100    ;Data Direction Bit 2
+DDR1.              def        %00000010    ;Data Direction Bit 1
+DDR0.              def        %00000001    ;Data Direction Bit 0
+
+DDR7               def        7            ;Data Direction Bit 7
+DDR6               def        6            ;Data Direction Bit 6
+DDR5               def        5            ;Data Direction Bit 5
+DDR4               def        4            ;Data Direction Bit 4
+DDR3               def        3            ;Data Direction Bit 3
+DDR2               def        2            ;Data Direction Bit 2
+DDR1               def        1            ;Data Direction Bit 1
+DDR0               def        0            ;Data Direction Bit 0
+
+; SPI Control Register (SPCR -> $0010)
+
+SPRIE.             def        %10000000    ;SPI Receive Interrupt Enable
+DMAS.              def        %01000000    ;DMA Select
+SPMSTR.            def        %00100000    ;SPI Master Enable
+CPOL.              def        %00010000    ;SPI Clock Polarity
+CPHA.              def        %00001000    ;SPI Clock Phase
+SPWOM.             def        %00000100    ;SPI Wired-or Mode Enable
+SPE.               def        %00000010    ;SPI Enable
+SPTIE.             def        %00000001    ;SPI Transmit Interrupt Enable
+
+SPRIE              def        7            ;SPI Receive Interrupt Enable
+DMAS               def        6            ;DMA Select
+SPMSTR             def        5            ;SPI Master Enable
+CPOL               def        4            ;SPI Clock Polarity
+CPHA               def        3            ;SPI Clock Phase
+SPWOM              def        2            ;SPI Wired-or Mode Enable
+SPE                def        1            ;SPI Enable
+SPTIE              def        0            ;SPI Transmit Interrupt Enable
+
+; SPI Status and Control Register (SPSCR -> $0011)
+
+SPRF.              def        %10000000    ;SPI Receiver Full Flag
+OVRF.              def        %00100000    ;SPI Overflow Error Flag
+MODF.              def        %00010000    ;SPI Mode Fault Flag
+SPTE.              def        %00001000    ;SPI Transmit Data Register Empty
+SPR1.              def        %00000010    ;SPI Rate Select 1
+SPR0.              def        %00000001    ;SPI Rate Select 0
+
+SPRF               def        7            ;SPI Receiver Full Flag
+OVRF               def        5            ;SPI Overflow Error Flag
+MODF               def        4            ;SPI Mode Fault Flag
+SPTE               def        3            ;SPI Transmit Data Register Empty
+SPR1               def        1            ;SPI Rate Select 1
+SPR0               def        0            ;SPI Rate Select 0
+
+; SCI Control Register 1 (SCC1 -> $0013)
+
+LOOPS.             def        %10000000    ;SCI Loop Mode Select
+ENSCI.             def        %01000000    ;SCI System and BAUD gen. Enable
+M.                 def        %00010000    ;SCI Character Length
+WAKE.              def        %00001000    ;SCI Wakeup Method
+ILTY.              def        %00000100    ;SCI Idle Line Type
+PEN.               def        %00000010    ;SCI Parity Check Enable
+PTY.               def        %00000001    ;SCI Parity Type Select
+
+LOOPS              def        7            ;SCI Loop Mode Select
+ENSCI              def        6            ;SCI System and BAUD gen. Enable
+M                  def        4            ;SCI Character Length
+WAKE               def        3            ;SCI Wakeup Method
+ILTY               def        2            ;SCI Idle Line Type
+PEN                def        1            ;SCI Parity Check Enable
+PTY                def        0            ;SCI Parity Type Select
+
+; SCI Control Register 2 (SCC2 -> $0014)
+
+SCTIE.             def        %10000000    ;SCI Transmit Interrupt Enable
+TCIE.              def        %01000000    ;SCI Transmit Complete Int. Enable
+SCRIE.             def        %00100000    ;SCI Receive Interrupt Enable
+ILIE.              def        %00010000    ;SCI Idle Line Interrupt Enable
+TE.                def        %00001000    ;SCI Transmitter Enable
+RE.                def        %00000100    ;SCI Receiver Enable
+RWU.               def        %00000010    ;SCI Receiver Wakeup Enable
+SBK.               def        %00000001    ;SCI Send Break
+
+SCTIE              def        7            ;SCI Transmit Interrupt Enable
+TCIE               def        6            ;SCI Transmit Complete Int. Enable
+SCRIE              def        5            ;SCI Receive Interrupt Enable
+ILIE               def        4            ;SCI Idle Line Interrupt Enable
+TE                 def        3            ;SCI Transmitter Enable
+RE                 def        2            ;SCI Receiver Enable
+RWU                def        1            ;SCI Receiver Wakeup Enable
+SBK                def        0            ;SCI Send Break
+
+; SCI Control Register 3 (SCC3 -> $0015)
+
+R8.                def        %10000000    ;SCI Bit 8 Received
+T8.                def        %01000000    ;SCI Bit 8 Transmitted
+DMARE.             def        %00100000    ;DMA - SCI Receive Interrupt Enable
+DMATE.             def        %00010000    ;DMA - SCI Transmit Interrupt Enable
+ORIE.              def        %00001000    ;SCI Overrun Interrupt Enabled
+NEIE.              def        %00000100    ;SCI Noise Error Interrupt Enable
+FEIE.              def        %00000010    ;SCI Framing Error Interrupt Enable
+PEIE.              def        %00000001    ;SCI Parity Error Interrupt Enable
+
+R8                 def        7            ;SCI Bit 8 Received
+T8                 def        6            ;SCI Bit 8 Transmitted
+DMARE              def        5            ;DMA - SCI Receive Interrupt Enable
+DMATE              def        4            ;DMA - SCI Transmit Interrupt Enable
+ORIE               def        3            ;SCI Overrun Interrupt Enabled
+NEIE               def        2            ;SCI Noise Error Interrupt Enable
+FEIE               def        1            ;SCI Framing Error Interrupt Enable
+PEIE               def        0            ;SCI Parity Error Interrupt Enable
+
+; SCI Status Register 1  (SCS1 -> $0016)
+
+SCTE.              def        %10000000    ;SCI Transmit Data Register Empty
+TC.                def        %01000000    ;SCI Transmission Complete
+SCRF.              def        %00100000    ;SCI Receive Data Register Full
+IDLE.              def        %00010000    ;SCI Receiver Idle Flag
+OR.                def        %00001000    ;SCI Receiver Overrun Flag
+NF.                def        %00000100    ;SCI Noise Flag
+FE.                def        %00000010    ;SCI Framing Error Flag
+PE.                def        %00000001    ;SCI Parity Error Flag
+
+SCTE               def        7            ;SCI Transmit Data Register Empty
+TC                 def        6            ;SCI Transmission Complete
+SCRF               def        5            ;SCI Receive Data Register Full
+IDLE               def        4            ;SCI Receiver Idle Flag
+OR                 def        3            ;SCI Receiver Overrun Flag
+NF                 def        2            ;SCI Noise Flag
+FE                 def        1            ;SCI Framing Error Flag
+PE                 def        0            ;SCI Parity Error Flag
+
+; SCI Status Register 2 (SCS2 -> $0017)
+
+BKF.               def        %00000010    ;SCI Break Flag
+RPF.               def        %00000001    ;SCI Reception in Progress Flag
+
+BKF                def        1            ;SCI Break Flag
+RPF                def        0            ;SCI Reception in Progress Flag
+
+; SCI Baud Rate Register (SCBR -> $0019)
+
+SCP1.              def        %00100000    ;SCI Baud Rate Prescaler Bit 1
+SCP0.              def        %00010000    ;SCI Baud Rate Prescaler Bit 0
+SCR2.              def        %00000100    ;SCI Baud Rate Select Bit 2
+SCR1.              def        %00000010    ;SCI Baud Rate Select Bit 1
+SCR0.              def        %00000001    ;SCI Baud Rate Select Bit 0
+
+SCP1               def        5            ;SCI Baud Rate Prescaler Bit 1
+SCP0               def        4            ;SCI Baud Rate Prescaler Bit 0
+SCR2               def        2            ;SCI Baud Rate Select Bit 2
+SCR1               def        1            ;SCI Baud Rate Select Bit 1
+SCR0               def        0            ;SCI Baud Rate Select Bit 0
+
+; IRQ Status and Control Register (ISCR -> $001A)
+
+PIN2.              def        %10000000    ;IRQ2 Pin Logic Level
+ACK2.              def        %01000000    ;IRQ2 Interrupt Request Acknowledge
+IMASK2.            def        %00100000    ;IRQ2 Interrupt Mask
+MODE2.             def        %00010000    ;IRQ2 Edge Only or Edge and Level
+PMASK2.            def        %00001000    ;Port D Interrupt Mask
+ACK1.              def        %00000100    ;IRQ1 Interrupt Request Acknowledge
+IMASK1.            def        %00000010    ;IRQ1 Interrupt Mask
+MODE1.             def        %00000001    ;IRQ1 Edge Only or Edge and Level
+
+PIN2               def        7            ;IRQ2 Pin Logic Level
+ACK2               def        6            ;IRQ2 Interrupt Request Acknowledge
+IMASK2             def        5            ;IRQ2 Interrupt Mask
+MODE2              def        4            ;IRQ2 Edge Only or Edge and Level
+PMASK2             def        3            ;Port D Interrupt Mask
+ACK1               def        2            ;IRQ1 Interrupt Request Acknowledge
+IMASK1             def        1            ;IRQ1 Interrupt Mask
+MODE1              def        0            ;IRQ1 Edge Only or Edge and Level
+
+; Port D Interrupt Control Register (PTDICR -> $001B)
+
+PTD7IE.            def        %10000000    ;Pin 7 Interrupt Enable and Pullup On
+PTD6IE.            def        %01000000    ;Pin 6 Interrupt Enable and Pullup On
+PTD5IE.            def        %00100000    ;Pin 5 Interrupt Enable and Pullup On
+PTD4IE.            def        %00010000    ;Pin 4 Interrupt Enable and Pullup On
+PTD3IE.            def        %00001000    ;Pin 3 Interrupt Enable and Pullup On
+PTD2IE.            def        %00000100    ;Pin 2 Interrupt Enable and Pullup On
+PTD1IE.            def        %00000010    ;Pin 1 Interrupt Enable and Pullup On
+PTD0IE.            def        %00000001    ;Pin 0 Interrupt Enable and Pullup On
+
+PTD7IE             def        7            ;Pin 7 Interrupt Enable and Pullup On
+PTD6IE             def        6            ;Pin 6 Interrupt Enable and Pullup On
+PTD5IE             def        5            ;Pin 5 Interrupt Enable and Pullup On
+PTD4IE             def        4            ;Pin 4 Interrupt Enable and Pullup On
+PTD3IE             def        3            ;Pin 3 Interrupt Enable and Pullup On
+PTD2IE             def        2            ;Pin 2 Interrupt Enable and Pullup On
+PTD1IE             def        1            ;Pin 1 Interrupt Enable and Pullup On
+PTD0IE             def        0            ;Pin 0 Interrupt Enable and Pullup On
+
+; PLL Control Register (PCTL -> $001C)
+
+PLLIE.             def        %10000000    ;PLL Lock Bit Interrupt Enable
+PLLF.              def        %01000000    ;PLL Locked Flag
+PLLON.             def        %00100000    ;PLL Enable
+BCS.               def        %00010000    ;Bus Clock Select
+
+PLLIE              def        7            ;PLL Lock Bit Interrupt Enable
+PLLF               def        6            ;PLL Locked Flag
+PLLON              def        5            ;PLL Enable
+BCS                def        4            ;Bus Clock Select
+
+; PLL Bandwidth Control Register (PBWC -> $001D)
+
+AUTO.              def        %10000000    ;PLL Auto bandwidth control
+LOCK.              def        %01000000    ;PLL Lock Status Flag
+ACQ_.              def        %00100000    ;PLL Track or Acquisition mode
+
+AUTO               def        7            ;PLL Auto bandwidth control
+LOCK               def        6            ;PLL Lock Status Flag
+ACQ_               def        5            ;PLL Track or Acquisition mode
+
+; PLL Programming Register (PPG -> $001E)
+
+MUL7.              def        %10000000    ;Multiplier Select Bit 7
+MUL6.              def        %01000000    ;Multiplier Select Bit 6
+MUL5.              def        %00100000    ;Multiplier Select Bit 5
+MUL4.              def        %00010000    ;Multiplier Select Bit 4
+VRS7.              def        %00001000    ;VCO Range Select Bit 7
+VRS6.              def        %00000100    ;VCO Range Select Bit 6
+VRS5.              def        %00000010    ;VCO Range Select Bit 5
+VRS4.              def        %00000001    ;VCO Range Select Bit 4
+
+MUL7               def        7            ;Multiplier Select Bit 7
+MUL6               def        6            ;Multiplier Select Bit 6
+MUL5               def        5            ;Multiplier Select Bit 5
+MUL4               def        4            ;Multiplier Select Bit 4
+VRS7               def        3            ;VCO Range Select Bit 7
+VRS6               def        2            ;VCO Range Select Bit 6
+VRS5               def        1            ;VCO Range Select Bit 5
+VRS4               def        0            ;VCO Range Select Bit 4
+
+; Mask Option Register (CONFIG -> $001F)
+
+COPRS              def        %10000000    ;
+LVISTOP            def        %01000000    ;
+LVIRSTD            def        %00100000    ;
+LVIPWRD            def        %00010000    ;
+SSREC              def        %00001000    ;
+STOP               def        %00000010    ;STOP Instruction Enable
+COPD               def        %00000001    ;COP DISable! <-------------
+
+; Timer Status and Control Register (TSC -> $0020)
+
+TOF.               def        %10000000    ;Timer Overflow Flag
+TOIE.              def        %01000000    ;Timer Overflow Interrupt Enable
+TSTOP.             def        %00100000    ;Timer Stop
+TRST.              def        %00010000    ;Timer Reset
+PS2.               def        %00000100    ;Timer Prescaler Bit 2
+PS1.               def        %00000010    ;Timer Prescaler Bit 1
+PS0.               def        %00000001    ;Timer Prescaler Bit 0
+
+TOF                def        7            ;Timer Overflow Flag
+TOIE               def        6            ;Timer Overflow Interrupt Enable
+TSTOP              def        5            ;Timer Stop
+TRST               def        4            ;Timer Reset
+PS2                def        3            ;Timer Prescaler Bit 2
+PS1                def        1            ;Timer Prescaler Bit 1
+PS0                def        0            ;Timer Prescaler Bit 0
+
+; Timer DMA Select Register (TDMA -> $0021)
+
+DMA3S.             def        %00001000    ;DMA Channel 3 Select
+DMA2S.             def        %00000100    ;DMA Channel 2 Select
+DMA1S.             def        %00000010    ;DMA Channel 1 Select
+DMA0S.             def        %00000001    ;DMA Channel 0 Select
+
+DMA3S              def        3            ;DMA Channel 3 Select
+DMA2S              def        2            ;DMA Channel 2 Select
+DMA1S              def        1            ;DMA Channel 1 Select
+DMA0S              def        0            ;DMA Channel 0 Select
+
+; Timer Ch. 0 Status and Control Register (TSC0 -> $0026)
+
+CH0F.              def        %10000000    ;Timer Ch. 0 Flag
+CH0IE.             def        %01000000    ;Timer Ch. 0 Interrupt Enable
+MS0B.              def        %00100000    ;Timer Ch. 0 Mode Select B
+MS0A.              def        %00010000    ;Timer Ch. 0 Mode Select A
+ELS0B.             def        %00001000    ;Timer Ch. 0 Edge/Level Select B
+ELS0A.             def        %00000100    ;Timer Ch. 0 Edge/Level Select A
+TOV0.              def        %00000010    ;Timer Ch. 0 Toggle on Overflow
+CH0MAX.            def        %00000001    ;Timer Ch. 0 PWM 100% duty Cycle
+
+CH0F               def        7            ;Timer Ch. 0 Flag
+CH0IE              def        6            ;Timer Ch. 0 Interrupt Enable
+MS0B               def        5            ;Timer Ch. 0 Mode Select B
+MS0A               def        4            ;Timer Ch. 0 Mode Select A
+ELS0B              def        3            ;Timer Ch. 0 Edge/Level Select B
+ELS0A              def        2            ;Timer Ch. 0 Edge/Level Select A
+TOV0               def        1            ;Timer Ch. 0 Toggle on Overflow
+CH0MAX             def        0            ;Timer Ch. 0 PWM 100% Duty Cycle
+
+; Timer Ch. 1 Status and Control Register (TSC1 -> $0029)
+
+CH1F.              def        %10000000    ;Timer Ch. 1 Flag
+CH1IE.             def        %01000000    ;Timer Ch. 1 Interrupt Enable
+MS1A.              def        %00010000    ;Timer Ch. 1 Mode Select A
+ELS1B.             def        %00001000    ;Timer Ch. 1 Edge/Level Select B
+ELS1A.             def        %00000100    ;Timer Ch. 1 Edge/Level Select A
+TOV1.              def        %00000010    ;Timer Ch. 1 Toggle on Overflow
+CH1MAX.            def        %00000001    ;Timer Ch. 1 PWM 100% Duty Cycle
+
+CH1F               def        7            ;Timer Ch. 1 Flag
+CH1IE              def        6            ;Timer Ch. 1 Interrupt Enable
+MS1A               def        4            ;Timer Ch. 1 Mode Select A
+ELS1B              def        3            ;Timer Ch. 1 Edge/Level Select B
+ELS1A              def        2            ;Timer Ch. 1 Edge/Level Select A
+TOV1               def        1            ;Timer Ch. 1 Toggle on Overflow
+CH1MAX             def        0            ;Timer Ch. 1 PWM 100% Duty Cycle
+
+; Timer Ch. 2 Status and Control Register (TSC2 -> $002C)
+
+CH2F.              def        %10000000    ;Timer Ch. 2 Flag
+CH2IE.             def        %01000000    ;Timer Ch. 2 Interrupt Enable
+MS2B.              def        %00100000    ;Timer Ch. 2 Mode Select B
+MS2A.              def        %00010000    ;Timer Ch. 2 Mode Select A
+ELS2B.             def        %00001000    ;Timer Ch. 2 Edge/Level Select B
+ELS2A.             def        %00000100    ;Timer Ch. 2 Edge/Level Select A
+TOV2.              def        %00000010    ;Timer Ch. 2 Toggle on Overflow
+CH2MAX.            def        %00000001    ;Timer Ch. 2 PWM 100% Duty Cycle
+
+CH2F               def        7            ;Timer Ch. 2 Flag
+CH2IE              def        6            ;Timer Ch. 2 Interrupt Enable
+MS2B               def        5            ;Timer Ch. 2 Mode Select B
+MS2A               def        4            ;Timer Ch. 2 Mode Select A
+ELS2B              def        3            ;Timer Ch. 2 Edge/Level Select B
+ELS2A              def        2            ;Timer Ch. 2 Edge/Level Select A
+TOV2               def        1            ;Timer Ch. 2 Toggle on Overflow
+CH2MAX             def        0            ;Timer Ch. 2 PWM 100% Duty Cycle
+
+; Timer Ch. 3 Status and Control Register (TSC3 -> $002F)
+
+CH3F.              def        %10000000    ;Timer Ch. 3 Flag
+CH3IE.             def        %01000000    ;Timer Ch. 3 Interrupt Enable
+MS3A.              def        %00010000    ;Timer Ch. 3 Mode Select A
+ELS3B.             def        %00001000    ;Timer Ch. 3 Edge/Level Select B
+ELS3A.             def        %00000100    ;Timer Ch. 3 Edge/Level Select A
+TOV3.              def        %00000010    ;Timer Ch. 3 Toggle on Overflow
+CH3MAX.            def        %00000001    ;Timer Ch. 3 PWM 100% Duty Cycle
+
+CH3F               def        7            ;Timer Ch. 3 Flag
+CH3IE              def        6            ;Timer Ch. 3 Interrupt Enable
+MS3A               def        4            ;Timer Ch. 3 Mode Select A
+ELS3B              def        3            ;Timer Ch. 3 Edge/Level Select B
+ELS3A              def        2            ;Timer Ch. 3 Edge/Level Select A
+TOV3               def        1            ;Timer Ch. 3 Toggle on Overflow
+CH3MAX             def        0            ;Timer Ch. 3 PWM 100% Duty Cycle
+
+; DMA Channel Control Registers (D0C-D2C -> $0038, $0040, $0048)
+
+SDC3.              def        %10000000    ;DMA Source/Dest Add. Control
+SDC2.              def        %01000000    ;DMA Source/Dest Add. Control
+SDC1.              def        %00100000    ;DMA Source/Dest Add. Control
+SDC0.              def        %00010000    ;DMA Source/Dest Add. Control
+BWC.               def        %00001000    ;DMA Byte/Word Control
+DTS2.              def        %00000100    ;DMA Transfer Initiate Source
+DTS1.              def        %00000010    ;DMA Transfer Initiate Source
+DTS0.              def        %00000001    ;DMA Transfer Initiate Source
+
+SDC3               def        7            ;DMA Source/Dest Add. Control
+SDC2               def        6            ;DMA Source/Dest Add. Control
+SDC1               def        5            ;DMA Source/Dest Add. Control
+SDC0               def        4            ;DMA Source/Dest Add. Control
+BWC                def        3            ;DMA Byte/Word Control
+DTS2               def        2            ;DMA Transfer Initiate Source
+DTS1               def        1            ;DMA Transfer Initiate Source
+DTS0               def        0            ;DMA Transfer Initiate Source
+
+; DMA Control Register 1 (DC1 -> $004C)
+
+BB1.               def        %10000000    ;Bus Bandwidth Control 1
+BB0.               def        %01000000    ;Bus Bandwidth Control 2
+TEC2.              def        %00100000    ;DMA Ch. 2 Transfer Enable
+IEC2.              def        %00010000    ;DMA Ch. 2 Interrupt Enable
+TEC1.              def        %00001000    ;DMA Ch. 1 Transfer Enable
+IEC1.              def        %00000100    ;DMA Ch. 1 Interrupt Enable
+TEC0.              def        %00000010    ;DMA Ch. 0 Transfer Enable
+IEC0.              def        %00000001    ;DMA Ch. 0 Interrupt Enable
+
+BB1                def        7            ;Bus Bandwidth Control 1
+BB0                def        6            ;Bus Bandwidth Control 2
+TEC2               def        5            ;DMA Ch. 2 Transfer Enable
+IEC2               def        4            ;DMA Ch. 2 Interrupt Enable
+TEC1               def        3            ;DMA Ch. 1 Transfer Enable
+IEC1               def        2            ;DMA Ch. 1 Interrupt Enable
+TEC0               def        1            ;DMA Ch. 0 Transfer Enable
+IEC0               def        0            ;DMA Ch. 0 Interrupt Enable
+
+; DMA Status and Control Register (DSC -> $004D)
+
+DMAP.              def        %10000000    ;DMA Priority
+L2.                def        %01000000    ;DMA Ch. 1 Loop Enable
+L1.                def        %00100000    ;DMA Ch. 2 Loop Enable
+L0.                def        %00010000    ;DMA Ch. 3 Loop Enable
+DMAWE.             def        %00001000    ;DMA WAIT Enable
+IFC2.              def        %00000100    ;DMA Ch. 1 Interrupt Flag
+IFC1.              def        %00000010    ;DMA Ch. 2 Interrupt Flag
+IFC0.              def        %00000001    ;DMA Ch. 3 Interrupt Flag
+
+DMAP               def        7            ;DMA Priority
+L2                 def        6            ;DMA Ch. 1 Loop Enable
+L1                 def        5            ;DMA Ch. 2 Loop Enable
+L0                 def        4            ;DMA Ch. 3 Loop Enable
+DMAWE              def        3            ;DMA WAIT Enable
+IFC2               def        2            ;DMA Ch. 1 Interrupt Flag
+IFC1               def        1            ;DMA Ch. 2 Interrupt Flag
+IFC0               def        0            ;DMA Ch. 3 Interrupt Flag
+
+; EPROM Control Register (EPCR -> $004F)
+
+EPCPD.             def        %10000000    ;EPROM Charge Pump Disable
+ELAT.              def        %00000100    ;EPROM Latch Control
+EPGM.              def        %00000001    ;EPROM Program Control
+
+EPCPD              def        7            ;EPROM Charge Pump Disable
+ELAT               def        2            ;EPROM Latch Control
+EPGM               def        0            ;EPROM Program Control
+
+; SIM Configuration Register (SCFG -> $FE00)
+
+SDLY.              def        %00000001    ;Short Delay
+SDLY               def        0
+
+; SIM Reset Status Register (SRS -> $FE01)
+
+LVI.               def        %10000000    ;Last RESET by Low Voltage Inhibit
+PIN.               def        %01000000    ;Last RESET by Reset Pin
+COP.               def        %00100000    ;Last RESET by COP
+ILOP.              def        %00010000    ;Last RESET by Illegal Opcode
+ILAD.              def        %00001000    ;Last RESET by Illegal Address
+
+LVI                def        7            ;Last RESET by Low Voltage Inhibit
+PIN                def        6            ;Last RESET by Reset Pin
+COP                def        5            ;Last RESET by COP
+ILOP               def        4            ;Last RESET by Illegal Opcode
+ILAD               def        3            ;Last RESET by Illegal Address
+
+; LVI Status and Control Register (LVISCR -> $FE0F)
+
+LVIOUT.            def        %10000000    ;VDD <= LVItrip
+LVILCK.            def        %00000100    ;LVISCR Register Write Protected
+LVIPWR.            def        %00000010    ;Power Applied to LVI Module
+LVIRST.            def        %00000001    ;LVI Reset Enabled
+
+LVIOUT             def        7            ;VDD <= LVItrip
+LVILCK             def        2            ;LVISCR Regsiter Write Protected
+LVIPWR             def        1            ;Power Applied to LVI Module
+LVIRST             def        0            ;LVI Reset Enabled
+
+;*******************************************************************************
+;                           Memory Map Equates
+;*******************************************************************************
+
+RAM                def        $0050
+EPROM              def        $6E00
+
+Vectors            def        $FFE0
+IRQ2_INT           def        $FFE0
+KeyPad_INT         def        $FFE0
+SCITrans_INT       def        $FFE2
+SCIRec_INT         def        $FFE4
+SCIError_INT       def        $FFE6
+SPITrans_INT       def        $FFE8
+SPIRec_INT         def        $FFEA
+TIMOver_INT        def        $FFEC
+TIMCh3_INT         def        $FFEE
+TIMCh2_INT         def        $FFF0
+TIMCh1_INT         def        $FFF2
+TIMCh0_INT         def        $FFF4
+DMA_INT            def        $FFF6
+PLL_INT            def        $FFF8
+IRQ1_INT           def        $FFFA
+SWI_INT            def        $FFFC
+RESET              def        $FFFE
+
+;*******************************************************************************
+;                      RESET and Interrupt Vectors
+;
+; For any interrupts used, the ORG and DW statement given below must be
+; placed in the routine using the interrupt.
+;*******************************************************************************
+;                 org     Vectors
+;
+;                 org     IRQ2_INT
+;                 dw      IRQ2_SVR
+;
+;                 org     KeyPad_INT
+;                 dw      KeyPad_SVR
+;
+;                 org     SCITrans_INT
+;                 dw      SCITrans_SVR
+;
+;                 org     SCIRec_INT
+;                 dw      SCIRec_SVR
+;
+;                 org     SCIError_INT
+;                 dw      SCIError_SVR
+;
+;                 org     SPITrans_INT
+;                 dw      SPITrans_SVR
+;
+;                 org     SPIRec_INT
+;                 dw      SPIRec_SVR
+;
+;                 org     TIMOver_INT
+;                 dw      TIMOver_SVR
+;
+;                 org     TIMCh3_INT
+;                 dw      TIMCh3_SVR
+;
+;                 org     TIMCH2_INT
+;                 dw      TIMCh2_SVR
+;
+;                 org     TIMCh1_INT
+;                 dw      TIMCh1_SVR
+;
+;                 org     TIMCh0_INT
+;                 dw      TIMCh0_SVR
+;
+;                 org     DMA_INT
+;                 dw      DMA_SVR
+;
+;                 org     PLL_INT
+;                 dw      PLL_SVR
+;
+;                 org     IRQ1_INT
+;                 dw      IRQ1_SVR
+;
+;                 org     SWI_INT
+;                 dw      SWI_SVR
+;
+;                 org     RESET
+;                 dw      Start
+;*******************************************************************************
