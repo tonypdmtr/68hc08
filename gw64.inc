@@ -175,22 +175,16 @@ PDBCH2DLYBL         equ       $0035,1             ;PDB Channel 2 Delay B Low Reg
                     @bitnum   PDBCH2CRL_BOS1,3    ;Channel 2 Trigger B Output Select, bit 1
                     @bitnum   PDBCH2CRL_AOS0,4    ;Channel 2 Trigger A Output Select, bit 0
                     @bitnum   PDBCH2CRL_AOS1,5    ;Channel 2 Trigger A Output Select, bit 1
-
-;-------------------------------------------------------------------------------
-
+          ;-------------------------------------- ;MMU related
 PPAGE               equ       $0038,1             ;Program Page Register
-
 LAP2                equ       $0039,1             ;Linear Address Pointer Register 2
 LAP1                equ       $003A,1             ;Linear Address Pointer Register 1
 LAP0                equ       $003B,1             ;Linear Address Pointer Register 0
-
 LWP                 equ       $003C,1             ;Linear Word Post Increment Register
 LBP                 equ       $003D,1             ;Linear Byte Post Increment Register
 LB                  equ       $003E,1             ;Linear Byte Register
 LAPAB               equ       $003F,1             ;Linear Address Pointer Add Byte Register
-
-;-------------------------------------------------------------------------------
-
+          ;--------------------------------------
 ADC0SC1A            equ       $0040,1             ;Status and Control Register 1A
 ADC0SC1B            equ       $0041,1             ;Status and Control Register 1B
 ADC0CFG1            equ       $0042,1             ;Configuration Register 1

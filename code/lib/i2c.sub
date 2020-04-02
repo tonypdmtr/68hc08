@@ -58,16 +58,6 @@ I2C_DATA            @pin      PORTA,5
                     #Message  I2C: P{I2C_CLK}.{I2C_CLK.}=Clock, P{I2C_DATA}.{I2C_DATA.}=Data
 
 ;*******************************************************************************
-; Macros
-;*******************************************************************************
-
-?delay              macro
-          #ifmdef I2C_ClockDelay
-                    @I2C_ClockDelay               ;optional extra delay
-          #endif
-                    endm
-
-;*******************************************************************************
 ?_OBJECT_?
 ;*******************************************************************************
 ; Purpose: Initialize I2C and send the START condition to the I2C device
@@ -80,7 +70,7 @@ I2C_DATA            @pin      PORTA,5
 
 I2C_Start           proc
                     @Input    I2C_CLK,I2C_DATA    ;both lines start high
-                    @?delay                       ;time before new transmission is >1.3 usec
+                    @!I2C_ClockDelay              ;time before new transmission is >1.3 usec
 ;                   bra       I2C_RepeatedStart
 
 ;*******************************************************************************
@@ -89,14 +79,14 @@ I2C_Start           proc
 
 I2C_RepeatedStart   proc
                     !jsr      ?DataHigh           ;set data-line high
-                    @?delay                       ;optional extra delay (is it needed?)
+                    @!I2C_ClockDelay              ;optional extra delay (is it needed?)
                     !jsr      ?ClkHigh            ;clock-line to '1'
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     !jsr      ?DataLow            ;data line goes from high to low
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
           ;-------------------------------------- ;get ready for first transfer
                     !jsr      ?ClkLow             ;clock starts low for data transfers
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     rtc
 
 ;*******************************************************************************
@@ -110,11 +100,11 @@ I2C_RepeatedStart   proc
 
 I2C_Stop            proc
                     !jsr      ?DataLow            ;data line starts low
-                    @?delay                       ;optional extra delay (is it needed?)
+                    @!I2C_ClockDelay              ;optional extra delay (is it needed?)
                     !jsr      ?ClkHigh            ;while clock is high...
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     !jsr      ?DataHigh           ;... data line goes from low to high
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     rtc
 
 ;*******************************************************************************
@@ -138,19 +128,19 @@ OneBit@@            !jsr      ?DataHigh           ;a ONE bit
                     brn       *                   ;(optional) for timing symmetry of 0 & 1 cases
 
 Clock@@             !jsr      ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     bsr       ?ClkLow             ;set clock-line to '0'
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     dbnzx     Loop@@              ;one less bit to send
 
                     pulxa                         ;restore user registers
           ;-------------------------------------- ;get the acknowledge bit
                     @Input    I2C_DATA            ;input for receipt of acknowledge
                     !jsr      ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
-                    @?delay                       ;optional extra delay (is it needed after clock sync?)
+                    @!I2C_ClockDelay              ;optional extra delay (is it needed after clock sync?)
                     @ReadPin  I2C_DATA            ;acknowledge? (bit = 0)
                     bsr       ?ClkLow             ;set clock-line to '0'
-                    @?delay
+                    @!I2C_ClockDelay              ;optional extra delay
           ;--------------------------------------
                     rtc
 
@@ -172,10 +162,10 @@ I2C_GetChar         proc
                     @Input    I2C_DATA            ;release IIC data line
 
 Loop@@              !jsr      ?ClkHighSync        ;set clock-line to '1' wait for slave to be ready
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     @ReadPin  I2C_DATA            ;adjust Carry according to Data bit
                     bsr       ?ClkLow             ;set clock-line to '0'
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     rol       ans@@,sp            ;shift-in just read data-bit
                     bcc       Loop@@              ;repeat until flag comes out
 
@@ -187,10 +177,10 @@ Loop@@              !jsr      ?ClkHighSync        ;set clock-line to '1' wait fo
                     bsr       ?DataHigh           ;put a '1' on the data line (NACK)
 
 PutAck@@            bsr       ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
                     bsr       ?ClkLow             ;set clock-line to '0'
                     @Input    I2C_DATA            ;leave data line as input (high due to pullup)
-                    @?delay                       ;optional extra delay
+                    @!I2C_ClockDelay              ;optional extra delay
           ;--------------------------------------
                     pula                          ;A = received byte
                     clc                           ;(for convenience when calling multiple times)

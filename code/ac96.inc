@@ -263,9 +263,7 @@ TPM2C1SC            equ       $0068,1             ;TPM2 Timer Channel 1 Status a
 TPM2C1V             equ       $0069,2             ;TPM2 Timer Channel 1 Value Register
 TPM2C1VH            equ       $0069,1             ;TPM2 Timer Channel 1 Value Register High
 TPM2C1VL            equ       $006A,1             ;TPM2 Timer Channel 1 Value Register Low
-
-;--- MMU related ---
-
+          ;-------------------------------------- ;MMU related
 PPAGE               equ       $78,1
 LAP2                equ       $79,1
 LAP1                equ       $7A,1
@@ -275,9 +273,7 @@ LBP                 equ       $7D,1
 LB                  equ       $7E,1
 LAPAB               equ       $7F,1
 LAP210              equ       LAP2,3              ;alias for LAP2 .. LAP0
-
-;---
-
+          ;--------------------------------------
 SRS                 equ       $1800,1             ;System Reset Status Register
 COP                 equ       SRS,1               ;for "STA COP"
 

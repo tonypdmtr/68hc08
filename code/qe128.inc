@@ -263,9 +263,7 @@ TPM3C5SC            equ       $74,1               ;TPM3 channel 5 status and con
 TPM3C5V             equ       $75,2               ;TPM3 channel 5 value register
 TPM3C5VH            equ       $75,1               ;TPM3 channel 5 value register (high)
 TPM3C5VL            equ       $76,1               ;TPM3 channel 5 value register (low)
-
-;--- MMU related ---
-
+          ;-------------------------------------- ;MMU related
 PPAGE               equ       $78,1
 LAP2                equ       $79,1
 LAP1                equ       $7A,1
@@ -275,9 +273,7 @@ LBP                 equ       $7D,1
 LB                  equ       $7E,1
 LAPAB               equ       $7F,1
 LAP210              equ       LAP2,3              ;alias for LAP2 .. LAP0
-
-;---
-
+          ;--------------------------------------
 SRS                 equ       $1800,1             ;SIM reset status register
 COP                 equ       SRS,1               ;for "STA COP"
 

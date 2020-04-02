@@ -1276,7 +1276,7 @@ PushV               macro     variable[ SizeOf(var)][ 'newname']
                     merror    Constant ~#1~ ({~#1~}) bigger than ~2~ byte(s)
               #endif
             #endif
-                    #Message  ~0~ ~1~ ({~2~*8}-bit)
+                    @@Msg     ~0~ ~1~ ({~2~*8}-bit)
                     mexit
           #endif
           #ifnb ~1,~
@@ -1288,7 +1288,7 @@ PushV               macro     variable[ SizeOf(var)][ 'newname']
           #if ~2~ < 0
                     merror    Negative size (~1~): ~2~
           #endif
-                    #Message  ~0~ ~1~ ({~2~*8}-bit)
+                    @@Msg     ~0~ ~1~ ({~2~*8}-bit)
                     #ifnb ~text~
                     mset      0,~text~,~2~
                     #endif
@@ -1343,7 +1343,7 @@ PullV               macro     Variable[ SizeOf(Variable)]
           #if ~2~ < 0
                     merror    Negative size (~1~): ~2~
           #endif
-                    #Message  ~0~ ~1~ ({~2~*8}-bit)
+                    @@Msg     ~0~ ~1~ ({~2~*8}-bit)
           #if ~2~ = 1                             ;;single-byte variable case
           #ifb ~1.1.1~ = .                        ;;but not for pointers
             #ifparm ~'~,1~'.1.3~ = ,sp            ;;for SP and SPX only
