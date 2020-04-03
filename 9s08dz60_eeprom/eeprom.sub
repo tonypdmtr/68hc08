@@ -1,0 +1,449 @@
+;*******************************************************************************
+;* Module    : EEPROM.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Routines to program the EEPROM of 9S08 DZ, or compatible
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2018 by Tony Papadimitriou <tonyp@acm.org>
+;* Note(s)   : This version tested on 9S08DZ32.
+;*           :
+;*           : Synopsis -- The following calls are currently available:
+;*           :
+;*           : EE_Write       - Program a single EEPROM location
+;*           : EE_Erase       - Erase a single EEPROM page by address
+;*           : EE_ErasePage   - Erase a single EEPROM page by page #
+;*           : EE_Normalize   - Normalize address to start of EEPROM page
+;*           : EE_CopyBlock   - Copy a block from A to B in EEPROM
+;*           : EE_PageToPtr   - Return address for given EEPROM page #
+;*           :
+;* History   : 11.11.16 v1.00 Original (based on 2011.06.21 LIB/FLASH.SUB)
+;*           : 11.11.16       Added PSHCC and PULCC around RAM routine call
+;*           : 12.06.12       Moved ?RAM_Code_End after RTS
+;*           : 13.01.24       Changed :AnRTS => Done@@
+;*           : 13.09.24 v1.01 Simpified FCDIV initialization in ?StackRoutine [-7 bytes]
+;*           : 15.05.15       Adapted to latest sema lock/unlock parameter passing scheme
+;*           : 15.05.17       Added recognition of MTOS_SEMA_NEST conditional
+;*           : 15.05.27       Added '@cop #SAVE#' KickCop proc creation
+;*           : 17.10.01       Removed use of deprecated _push_ macro call
+;*           : 18.04.26 v1.02 Optimized ?StackRoutine by using ?PullOut [-2 bytes]
+;*           : 18.04.30       Optimized ?StackRoutine for no PSHCC/PULCC [-12 bytes]
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+DZ32
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+                    #ROM
+#endif ;------------------------------------------------------------------------
+          #ifnhcs
+                    #Fatal    EEPROM.SUB requires 9S08 MCU (#HcsOn directive)
+          #endif
+;*******************************************************************************
+
+
+;*******************************************************************************
+; Macros
+;*******************************************************************************
+
+EE_SelectPage       macro     0|1
+                    mreq      1:0|1
+                    psha
+                    lda       FCNFG
+          #ifparm ~#1~ = 1
+                    ora       #EPGSEL_|Bit4_
+          #else
+                    and       #EPGSEL_^NOT
+                    ora       #Bit4_
+          #endif
+                    sta       FCNFG
+                    pula
+                    endm
+
+;-------------------------------------------------------------------------------
+; On small (4-byte) EE page size, goto given address, else fall thru
+
+IfSmallEEPageGoto   macro     BranchAddress
+                    mreq      1:BranchAddress
+                    psha
+                    lda       FOPT
+                    bit       #EPGMOD_            ;are we in 4-byte or 8-byte mode?
+                    pula
+                    beq       ~1~                 ;go calculate for 4-byte mode
+                    endm
+
+;-------------------------------------------------------------------------------
+;*******************************************************************************
+; EEPROM programming command codes
+
+?mByteProg          equ       $20                 ;Byte programming
+?mPageErase         equ       $40                 ;Page/Sector erase
+;?mBlank            equ       $05                 ;Blank check
+;?mBurstProg        equ       $25                 ;Burst programming
+;?mMassErase        equ       $41                 ;Mase erase
+;?mEraseAbort       equ       $47                 ;Erase Abort
+
+;*******************************************************************************
+;*                          PROGRAM CODE
+;*******************************************************************************
+?_OBJECT_?
+;*******************************************************************************
+; Purpose: RAM routine to do the job we can't do from EEPROM
+; Input  : A = value to program
+; Output : None
+; Note(s): This routine is modified in RAM by its loader at zero-based offsets
+;        : @1, @2 (?FlashAddress) and @4 (?FlashCommand)
+;        : Stack needed: 20 bytes + 2 for JSR
+
+?RAM_Code           proc
+                    sta       $FFFF               ;Step 1 - Latch data/address
+?FlashAddress       equ       *-?RAM_Code-2,2     ;$FFFF (@1,@2) replaced with actual address during RAM copying
+
+                    lda       #?mByteProg         ;mByteProg (@4) replaced with actual command during RAM copying
+?FlashCommand       equ       *-?RAM_Code-1,1
+                    sta       FCMD                ;Step 2 - Write command to FCMD
+
+                    lda       #FCBEF_             ;Step 3 - Write FCBEF_ in FSTAT
+                    sta       FSTAT
+
+                    lsra                          ;min delay before checking FSTAT (four bus cycles)
+                                                  ;instead of NOP (moves FCBEF -> FCCF for later BIT)
+Loop@@              bit       FSTAT               ;Step 4 - Wait for completion
+                    beq       Loop@@              ;check FCCF_ for completion
+                    rts                           ;after exit, check FSTAT for FPVIOL and FACCERR
+?RAM_Code_End
+                    #size     ?RAM_Code
+
+;*******************************************************************************
+; Purpose: Program an internal EEPROM location
+; Input  : HX -> EEPROM memory location to program
+;        : A = value to write
+; Output : None
+; Note(s):
+
+EE_Write            macro     [Address],[Value]
+                    #push
+                    #spauto   :sp
+          #ifparm ~2~
+                    psha
+                    lda       ~2~
+          #endif
+          #ifparm ~1~
+                    pshhx
+                    ldhx      ~1~
+          #endif
+                    call      ~0~
+          #ifparm ~1~
+                    pulhx
+          #endif
+          #ifparm ~2~
+                    pula
+          #endif
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+EE_Write            proc
+                    push
+                    cbeq      x+,??PullSuccess    ;value already there, no need to update
+                    lda       #?mByteProg         ;command to execute
+;                   bra       ?StackRoutine
+
+;*******************************************************************************
+; Purpose: Copy RAM_Execute routine to stack (read backwards so it turns out correctly)
+; Input  : HX -> Flash memory location
+;        : A = EEPROM command to perform
+; Output : None
+; Note(s): Destroys all registers
+
+                    #spauto
+
+?StackRoutine       proc
+                    #temp     1
+addr@@              next      :temp,2
+val@@               next      :temp
+          ;---------------------------------------------------------------------
+          ;Prepare the EEPROM memory for programming
+          ;FCLK must fall between 150-200KHz [FCLK=FBUS/(DIV+1)] and DIV=0..63
+
+;                   ldx       FCDIV               ;(redundant check)
+;                   bmi       DoFSTAT@@
+
+                    ldx       #FLASH_CLK_VALUE    ;required to allow further
+                    stx       FCDIV               ;access to Flash programming
+;DoFSTAT@@
+                    ldx       #FPVIOL_|FACCERR_   ;clear possible errors
+                    stx       FSTAT
+          ;---------------------------------------------------------------------
+                    #ais
+
+                    ldhx      #?RAM_Code_End      ;HX -> end of routine
+Loop@@              aix       #-1                 ;one less routine byte to process
+                    psha      code@@
+                    psha                          ;save the command byte
+                    lda       ,x                  ;get code byte
+                    sta       code@@,sp           ;save it on stack
+                    pula                          ;A = cascaded command byte
+                    cphx      #?RAM_Code          ;are we done?
+                    bhi       Loop@@
+
+                    #spadd    ::?RAM_Code-1       ;account for stacked routine
+
+                    tsx                           ;HX -> routine's start in RAM
+                    sta       ?FlashCommand,x     ;save command within LDA #?? instruction
+
+                    lda       addr@@,spx          ;save H within STA $FFxx instruction
+                    sta       ?FlashAddress,x
+
+                    lda       addr@@+1,spx        ;save X within STA $xxFF instruction
+                    sta       ?FlashAddress+1,x
+
+                    tpa
+                    psha                          ;save CCR[I]
+                    sei                           ;disable interrupts
+                    @cop                          ;reset COP (for maximum tolerance)
+                    lda       val@@,spx           ;get value to write (don't care for erase)
+                    jsr       ,x                  ;execute RAM routine to perform Flash command
+                    pula                          ;restore CCR[I]
+                    tap
+
+                    ais       #:ais               ;de-allocate temporaries
+
+                    lda       FSTAT
+                    bit       #FPVIOL_|FACCERR_
+                    beq       ?PullSuccess
+
+                    sec                           ;indicate "error"
+                    bra       ?PullOut            ;error code is propagated to caller
+
+;*******************************************************************************
+; Purpose: Erase an internal EEPROM page by page number
+; Input  : A = page number to erase ($00..$?F)
+; Output : None
+; Note(s):
+
+EE_ErasePage        macro     [PageNumber]
+          #ifparm ~1~
+                    #push
+                    #spauto   :sp
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+EE_ErasePage        proc
+                    push
+                    call      EE_PageToPtr        ;HX -> beginning of page
+                    call      EE_Erase            ;NOTE: Do NOT just fall thru to ?Erase
+??PullSuccess       bra       ?PullSuccess
+
+;*******************************************************************************
+; Purpose: Erase an internal EEPROM page by address
+; Input  : HX -> location within page to erase
+; Output : None
+; Note(s):
+
+EE_Erase            macro     [Address]
+          #ifparm ~1~
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    ldhx      ~1~
+                    call      ~0~
+                    pulhx
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+EE_Erase            proc
+                    push
+                    lda       #?mPageErase        ;command to execute
+                    bra       ?StackRoutine
+
+;*******************************************************************************
+; Purpose: Normalize pointer to beginning of EEPROM page
+; Input  : HX -> anywhere within EEPROM page
+; Output : HX -> beginning of EEPROM page
+; Note(s):
+
+EE_Normalize        macro     [EEPROM_Address]
+          #ifparm ~1~
+                    ldhx      ~1~
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+EE_Normalize        proc
+                    push      addr@@,2
+
+                    tsx
+                    @lsr.s    addr@@,spx          ;divide by four
+                    @lsr.s    addr@@,spx          ;
+                    @IfSmallEEPageGoto Mult@@
+                    @lsr.s    addr@@,spx          ;divide by eight total
+
+Mult@@              @lsl.s    addr@@,spx          ;multiply by four
+                    @lsl.s    addr@@,spx          ;
+                    @IfSmallEEPageGoto Done@@
+                    @lsl.s    addr@@,spx          ;multiply by eight total
+Done@@
+?PullSuccess        clc
+?PullOut            pull
+                    rtc
+
+;*******************************************************************************
+; Purpose: Copy a block of EEPROM memory from point A to point B inclusive
+; Input  : CALLERSTACK+4 -> Source Begin
+;        : CALLERSTACK+2 -> Source End
+;        : CALLERSTACK+0 -> Destination
+; Output : Stacked parameters updated, accordingly
+; Note(s): At least one byte is copied (when SourceBegin and SourceEnd are equal)
+;        : Calling sequence:
+;        :          ldhx      #SourceBegin
+;        :          pshhx
+;        :          ldhx      #SourceEnd
+;        :          pshhx
+;        :          ldhx      #Destination
+;        :          pshhx
+;        :          call      EE_CopyBlock
+;        :          ais       #6
+;        :          bcs       ProcessError
+;-------------------------------------------------------------------------------
+
+EE_CopyBlock        macro     SourceBegin,SourceEnd,Destination
+                    mreq      1,2,3:SourceBegin,SourceEnd,Destination
+                    #push
+                    #spauto   :sp
+                    pshhx
+                    #psp
+                    ldhx      ~1~
+                    pshhx
+                    @@_ldhx_, ~2~ 1,psp
+                    pshhx
+                    @@_ldhx_  ~3~
+                    pshhx
+                    call      ~0~
+                    ais       #:psp
+                    pulhx
+                    #pull
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto   :ab                 ;account for RTS/RTC
+
+EE_CopyBlock        proc
+                    @parms    .dst,.to,.from
+                    push
+
+Loop@@              ldhx      .from@@,sp          ;compare current pointer
+                    cphx      .to@@,sp            ; with ending pointer
+                    bhi       Success@@           ;if above, we're done
+
+                    lda       ,x                  ;get data to copy
+                    aix       #1                  ;bump up source pointer
+                    sthx      .from@@,sp          ;and save it
+
+                    ldhx      .dst@@,sp           ;get destination pointer
+                    call      EE_Write            ;write data to destination
+                    bcs       Done@@              ;on error, exit
+                    aix       #1                  ;bump up destination pointer
+                    sthx      .dst@@,sp           ;and save it
+                    bra       Loop@@              ;repeat for all bytes
+
+Success@@           equ       ?PullSuccess
+Done@@              equ       ?PullOut
+
+;*******************************************************************************
+; Purpose: Offset HX to the start of the requested page
+; Input  : A = EEPROM page number ($00..$?F) counting from zero
+; Output : HX -> absolute start of EEPROM page
+; Note(s):
+
+EE_PageToPtr        macro     [EEPROM_Page_Number]
+          #ifparm ~1~
+                    #push
+                    #spauto   :sp
+                    psha
+                    lda       ~1~
+                    call      ~0~
+                    pula
+                    #pull
+                    mexit
+          #endif
+                    call      ~0~
+                    endm
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
+
+EE_PageToPtr        proc
+                    push      addr@@,2
+
+                    ldx       #4                  ;EEPROM page size (4-byte mode)
+                    @IfSmallEEPageGoto Calc@@
+                    ldx       #8                  ;EEPROM page size (8-byte mode)
+
+Calc@@              mul                           ;XA = pointer
+                    stx       addr@@,sp
+                    sta       addr@@+1,sp
+
+                    bra       ?PullSuccess
+                    #sp                           ;cancel all SP offsets
+;*******************************************************************************
+                    #Exit
+;*******************************************************************************
+                    @EndStats
+
+                    @cop      #SAVE#
+
+Start               proc
+                    @rsp
+
+          ;test the various calls
+
+                    @EE_Write #EEPROM,#$AA
+                    @EE_Write #EEPROM
+                    @EE_Write ,#$AA
+                    @EE_Write
+
+                    @EE_ErasePage
+                    @EE_ErasePage #0
+
+                    @EE_Erase
+                    @EE_Erase #EEPROM
+
+                    @EE_Normalize
+                    @EE_Normalize #EEPROM+1
+
+                    @EE_CopyBlock #EEPROM,#EEPROM_END,#RAM
+                    @EE_CopyBlock, ,x 2,x 4,x
+
+                    @EE_PageToPtr
+                    @EE_PageToPtr #0
+
+                    bra       *
+
+                    @vector   Vreset,Start
