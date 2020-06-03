@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: March 13, 2020 for ASM8 v9.93*
+*Latest Manual Update: June 3, 2020 for ASM8 v9.94*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -78,6 +78,7 @@ Version History
 
 ```
   +------+-------------------------------------------------------------+
+  | 9.94 |Added :MAXTEMP, :MAXTEMP1, :MAXTEMP2 internal variables      |
   | 9.93 |Undefined macro call starting with ! is ignored without error|
   | 9.92 |Added extra mnemonics `ASLH` (alias for `LSLH`), and `ASRH`  |
   | 9.91 |OR condition separator can be either alt-179/0166 or '||'    |
@@ -1590,6 +1591,14 @@ internal symbols are defined:
      internal user-defined assembly-time variables.
      _See the directives `#TEMP`, `#TEMP1`, and `#TEMP2` for more details._
 
+-   `:MAXTEMP`, `:MAXTEMP1`, and `:MAXTEMP2` return the current maximum value
+     of their respective `:TEMP` variable.  They are reset to zero with
+     `#TEMP`, `#TEMP1`, or `#TEMP2` directives, respectively.
+     They are preserved with respect to macros the same as with `:TEMP`
+     variables.  When entering a macro, these variables are initialized to the
+     current value of their respective `:TEMP` variable, and restore their
+     previous value on exiting the macro.
+
 -   `:TEXT` returns the length of the current text of the `~text~` macro
      parameter _only from within macros_.
 
@@ -2788,7 +2797,7 @@ RegExp text parser as the File Format. Then fill out the screen that appears as
 follows:
 `([0-9A-F]+) +([0-9]+) +([0-9]+) +([^ ]+) +([1-9][0-9]*)`
 
-![FreeMASTER](3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
+![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.93, March 13, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.94, June 3, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
