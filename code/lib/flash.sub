@@ -62,12 +62,12 @@ FLASH_DATA_SIZE     def       60288
 ;        : @1, @2 (?FlashAddress) and @4 (?FlashCommand)
 ;        : Stack needed: 20 bytes + 2 for JSR
 
-?RAM_Code           proc
+?RAM_Execute        proc
                     sta       $FFFF               ;Step 1 - Latch data/address
-?FlashAddress       equ       *-?RAM_Code-2,2     ;$FFFF (@1,@2) replaced with actual address during RAM copying
+?FlashAddress       equ       *-?RAM_Execute-2,2  ;$FFFF (@1,@2) replaced with actual address during RAM copying
 
                     lda       #?mByteProg         ;mByteProg (@4) replaced with actual command during RAM copying
-?FlashCommand       equ       *-?RAM_Code-1,1     ;offset into command byte
+?FlashCommand       equ       *-?RAM_Execute-1,1  ;offset into command byte
                     sta       FCMD                ;Step 2 - Write command to FCMD
 
                     lda       #FCBEF_             ;Step 3 - Write FCBEF_ in FSTAT
@@ -77,9 +77,9 @@ FLASH_DATA_SIZE     def       60288
                                                   ;instead of NOP (moves FCBEF -> FCCF for later BIT)
 Loop@@              bit       FSTAT               ;Step 4 - Wait for completion
                     beq       Loop@@              ;check FCCF_ for completion
-                    rts                           ;after exit, check FSTAT for FPVIOL and FACCERR
-?RAM_Code_End
-                    #size     ?RAM_Code
+?RAM_Execute_End    rts                           ;after exit, check FSTAT for FPVIOL and FACCERR
+
+                    #size     ?RAM_Execute
 
 ;*******************************************************************************
 ; Purpose: Program an internal Flash location
@@ -107,9 +107,7 @@ Flash_Write         macro     [Address],[Value]
           #endif
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto
 
 Flash_Write         proc
@@ -130,7 +128,7 @@ Flash_Write         proc
                     lda       #?mByteProg         ;command to execute
 ;                   bra       ?StackRoutine
 
-;-------------------------------------------------------------------------------
+;*******************************************************************************
 ; Purpose: Copy RAM_Execute routine to stack (read backwards so it turns out correctly)
 ; Input  : HX -> Flash memory location
 ;        : A = Flash command to perform
@@ -143,7 +141,7 @@ Flash_Write         proc
                     #temp     ::
 addr@@              next      :temp,2
 val@@               next      :temp
-          ;---------------------------------------------------------------------
+          ;--------------------------------------
           ;Prepare the Flash memory for programming
           ;FCLK must fall between 150-200KHz [FCLK=FBUS/(DIV+1)] and DIV=0..63
 
@@ -155,22 +153,19 @@ val@@               next      :temp
 ;DoFSTAT@@
                     ldx       #FPVIOL_|FACCERR_   ;clear possible errors
                     stx       FSTAT
-          ;---------------------------------------------------------------------
+          ;--------------------------------------
+                    ldhx      #[[?RAM_Execute_End ;HX -> end of routine
 
-                    #ais
-
-                    ldhx      #[[?RAM_Code_End    ;HX -> end of routine
-
-Loop@@              psha      code@@
+Loop@@              psha      code@@              ;save command for later use by RAM routine
+                    psha
+                    lda       ,x
+                    sta       code@@,sp
+                    pula
                     aix       #-1                 ;one less routine byte to process
-                    psha                          ;save the command byte
-                    lda       ,x                  ;get code byte
-                    sta       code@@,sp           ;save it on stack
-                    pula                          ;A = cascaded command byte
-                    cphx      #[[?RAM_Code        ;are we done?
-                    bhi       Loop@@              ;repeat for all bytes
+                    cphx      #[[?RAM_Execute     ;are we done?
+                    bhs       Loop@@
 
-                    #spadd    ::?RAM_Code-1       ;account for stacked routine
+                    #spadd    ::?RAM_Execute-1    ;account for stacked routine
 
                     tsx                           ;HX -> routine's start in RAM
                     sta       ?FlashCommand,x     ;save command within LDA #?? instruction
@@ -218,9 +213,7 @@ Flash_ErasePage     macro     [PageNumber]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto
 
 Flash_ErasePage     proc
@@ -250,14 +243,11 @@ Flash_Erase         macro     [Address]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto
 
 Flash_Erase         proc
                     push
-
           #ifdef HighRegs
                     cphx      #HighRegs
                     blo       Cont@@
@@ -282,25 +272,19 @@ Flash_Normalize     macro     [FlashAddress]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto
 
 Flash_Normalize     proc
                     push      addr@@,2
-                    #ais
-
-                    pshh
-                    txa
+                    pshh                          ;TOS = MSB
+                    txa                           ;A = LSB
                     tsx
                     and       #[FLASH_PAGE_MASK
                     sta       addr@@+1,spx
-
-                    pula
+                    pula                          ;A = MSB
                     and       #]FLASH_PAGE_MASK
                     sta       addr@@,spx
-
 ?PullSuccess        clc
 ?PullOut            pull
                     rtc
@@ -322,7 +306,6 @@ Flash_Normalize     proc
 ;        :          call      Flash_CopyBlock
 ;        :          ais       #6
 ;        :          bcs       ProcessError
-;-------------------------------------------------------------------------------
 
 Flash_CopyBlock     macro     SourceBegin,SourceEnd,Destination
                     mreq      1,2,3:SourceBegin,SourceEnd,Destination
@@ -341,9 +324,7 @@ Flash_CopyBlock     macro     SourceBegin,SourceEnd,Destination
                     pulhx
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto   :ab                 ;account for RTS/RTC
 
 Flash_CopyBlock     proc
@@ -389,9 +370,7 @@ Flash_CopyPage      macro     [SourcePage,DestinationPage]
                     pulxa
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto
 
 Flash_CopyPage      proc
@@ -436,27 +415,25 @@ Flash_PageToPtr     macro     [FlashPageNumber]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto
 
 Flash_PageToPtr     proc
                     psha      pg@@
-                    pshhx     addr@@
+                    pshhx     ans@@
                     #ais
 
           #ifz ]FLASH_PAGE_SIZE
                     ldx       #FLASH_PAGE_SIZE
                     mul                           ;XA = pointer
-                    stx       addr@@,sp
-                    sta       addr@@+1,sp
+                    stx       ans@@,sp
+                    sta       ans@@+1,sp
           #else
                     ldx       #]FLASH_PAGE_SIZE
                     mul                           ;XA = pointer
                     tsx
-                    sta       addr@@,spx
-                    clr       addr@@+1,spx
+                    sta       ans@@,spx
+                    clr       ans@@+1,spx
           #endif
                     bra       ?PullSuccess
 

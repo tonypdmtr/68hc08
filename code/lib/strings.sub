@@ -83,7 +83,6 @@ AAX                 rtc
 
                     #Uses     string/upcase.sub
 ?_OBJECT_?
-
 ;*******************************************************************************
 ; Purpose: Copy an ASCIZ string
 ; Input  : HX -> Source ASCIZ string

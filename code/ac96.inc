@@ -875,10 +875,8 @@ FLASH_END           equ       ROM_END
 FLASH_END           set       BOOTROM-1
           #endif
 
-#ifndef MHZ
-  #ifndef KHZ
+#ifndef MHZ¦KHZ
 HZ                  def       16777216            ;Cyclone 32768*512
-  #endif
 #endif
 ;-------------------------------------------------------------------------------
 ; Vectors
@@ -941,7 +939,11 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
 
                     @?
 
+          #ifdef PEMICRO
+PPAGE0              equ       $00<16+:PAGE_START  ;(compatible with P&E Micro programmers)
+          #endif
 PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
+          #endif
 PPAGE1              equ       $01<16+:PAGE_START
 PPAGE2              equ       $02<16+:PAGE_START
 PPAGE3              equ       $03<16+:PAGE_START
@@ -970,7 +972,7 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
                     #DATA
 
 
-          #ifndef BOOT
+          #ifndef BOOT¦NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
 

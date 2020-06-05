@@ -151,6 +151,7 @@
 ;*           : 19.11.26 v2.25 EndStats macro now adds ?HANDLER_CYCLES display
 ;*           : 20.02.12 v2.26 Added Msg macro to silence debugging messages
 ;*           :                unless SHOW_ALL_MESSAGES is defined
+;*           : 20.06.04 v2.27 Simplified ReadPin macro
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -1828,13 +1829,20 @@ Pin                 macro     [[PinName,]PORT[,BitNumber]]
               #ifb ~text~
                     merror    PORT parm required on first use
               #endif
+                    #temp
+              #ifdef ~text~.
                     #temp     ~text~.+1
+              #endif
 ~label~             set       ~text~
 ~label~.            equ       {:temp}
 ~label~_            equ       1<~label~.
                     mset      0,~label~
           #endif
           #ifb ~label~
+            #if :n = 1
+                    mset      0,~1~
+                    mexit
+            #endif
                     mreq      1,2:PinName,PORT[,BitNumber]
                     mdef      3,0
                     mset      0,~1~
@@ -1900,11 +1908,8 @@ ExpPin              macro     PinName[,PinName]*
 ; Read the status of a PIN into the CCR[C]
 
 ReadPin             macro     PinName
-          #ifb ~2~
-                    !brset    ~1~.,~1~,:pc+3
-          #else
-                    !brset    ~1~,~2~,:pc+3
-          #endif
+                    mdef      2,~1'.'~
+                    !brset    ~1'.'~.,~2~,:pc+3
                     endm
 
 ;*******************************************************************************

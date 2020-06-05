@@ -855,11 +855,9 @@ FLASH_END           set       BOOTROM-1
 
 SERIAL_NUMBER       def       $FFA0               ;start of optional S/N (FFA0-FFAD)
 
-#ifndef MHZ
-  #ifndef KHZ
+#ifndef MHZ¦KHZ
 HZ                  def       8000000             ;8MHz PEMicro Simulator
 ;HZ                 def       15552000            ;243KHz (IRG) *64
-  #endif
 #endif
 
 BDIV                def       1                   ;actually GB60 does not have a BDIV option
@@ -876,7 +874,7 @@ BDIV                def       1                   ;actually GB60 does not have a
                     #DATA
 
 
-          #ifndef BOOT
+          #ifndef BOOT¦NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
 

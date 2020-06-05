@@ -906,10 +906,8 @@ FLASH_END           set       BOOTROM-1
 
 SERIAL_NUMBER       equ       $FFC0               ;start of optional S/N
 
-#ifndef MHZ
-  #ifndef HZ
+#ifndef MHZ¦HZ
 KHZ                 def       16000               ;16.0 MHz internal oscillator
-  #endif
 #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
@@ -921,7 +919,7 @@ KHZ                 def       16000               ;16.0 MHz internal oscillator
                     #DATA
 
 
-          #ifndef BOOT
+          #ifndef BOOT¦NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
 

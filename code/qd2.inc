@@ -481,10 +481,8 @@ RAM                 set       BOOTRAM_END         ;start of 4096 byte RAM
 FLASH_START         equ       EEPROM_END+1
 FLASH_END           equ       ROM_END
 
-#ifndef MHZ
- #ifndef HZ
+#ifndef MHZ¦HZ
 KHZ                 def       16000               ;16 MHz internal oscillator
- #endif
 #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
@@ -495,7 +493,7 @@ KHZ                 def       16000               ;16 MHz internal oscillator
 
                     #DATA
 
-
+          #ifndef NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
                              ; 00000000
@@ -503,7 +501,7 @@ KHZ                 def       16000               ;16 MHz internal oscillator
                              ; ||+++-------------- FPS2..FPS1 Flash Protect Size Selects
                              ; |+----------------- FPDIS - Flash Protection Disable
                              ; +------------------ FPOPEN - Non-protected memory can be altered
-
+          #endif
           #ifndef NVOPT_VALUE
                     #Message  Using default NVOPT_VALUE (no vector redirection)
           #endif
@@ -517,10 +515,10 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
                              ; ||++++------------- Not Used (Always 0)
                              ; |+----------------- FNORED - Vector Redirection Disable (No Redirection)
                              ; +------------------ KEYEN - Backdoor key mechanism enable
-
+          #ifndef NO_CODE
                     org       NVOPT               ;NV flash options byte
                     fcb       NVOPT_VALUE         ;NVFEOPT transfers to FOPT on reset
-
+          #endif
 ;                   org       NVICGTRIM           ;NV ICG Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.

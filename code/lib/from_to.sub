@@ -26,6 +26,9 @@ QE128
                     #MapOff
 #endif ;------------------------------------------------------------------------
 ?_OBJECT_?
+;*******************************************************************************
+; Macros
+;*******************************************************************************
 
 FromTo              macro     [#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]DestRoutine
                     mreq      1,2,3,4,5:[#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]DestRoutine
@@ -84,9 +87,7 @@ data_size@@         next      :temp,2             ;data size
 
                     push
                     #ais
-
-          ;initialize local work variables
-
+          ;-------------------------------------- ;initialize local work variables
                     ldhx      .src_data@@,sp
                     pshhx     .src_data@@         ;local copy of source pointer
 
@@ -95,10 +96,10 @@ data_size@@         next      :temp,2             ;data size
 
                     ldhx      data_size@@,sp
                     pshhx     data_size@@         ;local copy of size counter
-
-          ;for each iteration call the user source and destination routines
-          ;with the appropriate values in RegHX and RegA
-
+          ;--------------------------------------
+          ; For each iteration call the user source and destination routines
+          ; with the appropriate values in RegHX and RegA
+          ;--------------------------------------
 Loop@@              ldhx      #RetSource@@
                     pshhx                         ;stack return address
                     ldhx      .src_rtn@@,sp
@@ -138,9 +139,7 @@ RetDest@@           ldhx      .dst_data@@,sp
 ;*******************************************************************************
                     @EndStats
                     #Message  Cycles: {:cycles}+
-
                     #MapOn
-
                     #ROM
 
 MyData              fcc       'Copy this data block to RAM'
