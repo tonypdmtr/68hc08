@@ -1901,10 +1901,8 @@ FLASH_END           set       BOOTROM-1
 
 SERIAL_NUMBER       equ       $FFA0               ;start of optional S/N (FFA0-FFAD)
 
-#ifndef MHZ
-  #ifndef KHZ
+#ifndef MHZ¦KHZ
 HZ                  def       16777216            ;Cyclone default 32768*512
-  #endif
 #endif
 ;----------------------+------------+-------------------------------------------
 ; Reference range      | FLL factor | DCO range
@@ -1925,7 +1923,11 @@ MAX_FLASH_KHZ       def       1000
 
                     @?
 
+          #ifdef PEMICRO
+PPAGE0              equ       $00<16+:PAGE_START  ;(compatible with P&E Micro programmers)
+          #endif
 PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
+          #endif
 PPAGE1              equ       $01<16+:PAGE_START
 PPAGE2              equ       $02<16+:PAGE_START
 PPAGE3              equ       $03<16+:PAGE_START
@@ -1966,7 +1968,7 @@ HighRegs_End        equ       $195F,1             ;end of high page registers
                     #DATA
 
 
-          #ifndef BOOT
+          #ifndef BOOT¦NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
 

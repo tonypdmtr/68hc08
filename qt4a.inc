@@ -109,7 +109,7 @@ COPCTL              equ       $FFFF,1             ;COP Control Register (low byt
 COP                 equ       COPCTL,1            ;for "STA COP"
 
                     #MEMORY   CONFIG1 CONFIG2
-
+          #ifndef NO_CODE
                     #SEG1
 
           ; THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
@@ -118,7 +118,7 @@ COP                 equ       COPCTL,1            ;for "STA COP"
 
                     org       FLBPR
                     fcb       FLBPR_MASK          ;QT needs this as flash programmed
-
+          #endif
                     #ROM
 
           ; BUILT-IN ROM FLASH PROGRAMMING ROUTINES
@@ -147,10 +147,8 @@ Virq                equ       $FFFA               ;/IRQ vector
 Vswi                equ       $FFFC               ;SWI vector
 Vreset              equ       $FFFE               ;/RESET
 
-#ifndef MHZ
-          #ifndef HZ
+#ifndef MHZ¦HZ
 KHZ                 def       12800               ;12.8 MHz internal oscillator
-          #endif
 #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc

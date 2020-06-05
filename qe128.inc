@@ -18,23 +18,16 @@
                     #Uses     tboot/tboot_qe128.exp
           #endif
 
-
-          #ifdef OS8PRELOADED
-                    #Undef    OS8PRELOADED
-          #endif
-#endif
-
-#ifdef OS8PRELOADED
+                    #!Undef   OS8PRELOADED
+#else ifdef OS8PRELOADED
                     #Message  BootROM with OS8 pre-loaded
-
           #ifndef BOOTROM
-  #ifexists bootrom.exp
+            #ifexists bootrom.exp
                     #Uses     bootrom.exp
-  #else
+            #else
                     #Uses     bootrom/bootrom.exp
-  #endif
+            #endif
           #endif
-
 #endif
 
 _QE_                def       128
@@ -969,10 +962,8 @@ FLASH_END           equ       ROM_END
 FLASH_END           set       BOOTROM-1
           #endif
 
-#ifndef MHZ
-  #ifndef KHZ
+#ifndef MHZ¦KHZ
 HZ                  def       16777216            ;Cyclone 32768*512
-  #endif
 #endif
 ;-------------------------------------------------------------------------------
 ; Vectors
@@ -1028,8 +1019,11 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
                     endm
 
                     @?
-
+          #ifdef PEMICRO
+PPAGE0              equ       $00<16+:PAGE_START  ;(compatible with P&E Micro programmers)
+          #endif
 PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
+          #endif
 PPAGE1              equ       $01<16+:PAGE_START
 PPAGE2              equ       $02<16+:PAGE_START
 PPAGE3              equ       $03<16+:PAGE_START
@@ -1094,8 +1088,7 @@ DMX_                equ       ~3~<DMX32.
                     #DATA
 
 
-#ifndef OS8PRELOADED
-          #ifndef BOOT
+#ifndef OS8PRELOADED¦BOOT¦NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
                     #Message  NVPROT: {?NVPROT_MASK>1(h)} means {128+{?NVPROT_MASK>1-127(h)}} KB available to user
@@ -1112,7 +1105,6 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
 
                     org       NVOPT               ;NV flash options byte
                     fcb       NVOPT_VALUE         ;NVFEOPT transfers to FOPT on reset
-          #endif
 #endif
 ;                   org       NVICSTRIM           ;NV ICS Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
