@@ -1021,7 +1021,7 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
                     @?
           #ifdef PEMICRO
 PPAGE0              equ       $00<16+:PAGE_START  ;(compatible with P&E Micro programmers)
-          #endif
+          #else
 PPAGE0              equ       $80<16+:PAGE_START  ;$80 instead of $00 on purpose (equivalent but unambiguous)
           #endif
 PPAGE1              equ       $01<16+:PAGE_START
