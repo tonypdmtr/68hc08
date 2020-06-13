@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: June 3, 2020 for ASM8 v9.94*
+*Latest Manual Update: June 11, 2020 for ASM8 v9.95*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -78,6 +78,7 @@ Version History
 
 ```
   +------+-------------------------------------------------------------+
+  | 9.95 |Improvement: Label may be followed by comment without spaces |
   | 9.94 |Added :MAXTEMP, :MAXTEMP1, :MAXTEMP2 internal variables      |
   | 9.93 |Undefined macro call starting with ! is ignored without error|
   | 9.92 |Added extra mnemonics `ASLH` (alias for `LSLH`), and `ASRH`  |
@@ -2480,7 +2481,7 @@ Local Symbols
 
 All symbols that begin with a question mark [`?`] are considered to be local.
 Local symbols are local on a per-file basis. Each `INCLUDE` file (as well as the
-main file) can have its own locals that will not interfere with similarly named
+main file) can have its own locals that will not interfere with same named
 symbols of the remaining participating files.
 
 This has two advantages:
@@ -2496,6 +2497,73 @@ outside.
 
 _Note_: You can also have procedure-local symbols. See the `#PROC` and `PROC`
 directives for details.
+
+Using `BSR`, `JSR`, and `CALL` instructions efficiently
+--------------------------------------------------------------------------------
+
+Although the assembler does not restrict the programmer what instructions to use
+when calling subroutines, the following advice will help you keep your sanity
+in larger applications, so make it a habit to always do so in your programs.
+
+Use `BSR` and `JSR` instructions exclusively for calling file local subroutines.
+File local subroutine names start with `?`.  And, if the appropriate ASM8 option
+is turned on, you'll be warned to change `JSR` to `BSR` when the distance is
+close enough, saving a byte for each change.  Or use `!JSR` to avoid warning.
+Make sure to terminate those subroutines with the `RTS` instruction.
+
+Use `CALL` instructions to call global subroutines, i.e., subroutines with names
+not beginning with `?`.  Important: Global subroutines can be defined in the
+same file they are used or some other file.  What makes a subroutine global is
+its name, not where it is defined.  Make sure to terminate those subroutines
+with `RTC` instructions.
+
+If you follow this advice, NEVER assume a same file subroutine can be called
+with `BSR` or `JSR`.  Look at the name instead.  If it starts with `?` use
+`BSR` or `JSR`, otherwise use `CALL`.  If you change a subroutine from global
+to local or vice-versa, make the necessary changes to all calls and don't
+forget to change the return instruction, also.  Alternatively, add a wrapper
+subroutine so that your subroutine can effectively be called either way;
+locally, by using the `?` beginning name, and globally, otherwise.  Two entry
+points.  Like so:
+
+```
+Global              proc
+                    bsr       ?Local
+                    rtc
+
+?Local              proc
+                    ...
+                    rts
+```
+
+The `CALL` instruction is normally only available in MMU equipped variants of
+9S08 MCUs.  But, by default, the assembler will automatically convert `CALL`
+and `RTC` to `JSR` and `RTS`, respectively when `#NoMMU` mode option is given.
+It will also not issue warnings when the target gets too close for a `BSR`
+instruction.
+
+This makes your code 100% compatible with both MMU and non-MMU variants.
+All you need is to use the `#MMU` or `#NoMMU` directive, respectively.
+(Usually, this is done inside the MCU specific include file, only once.)
+
+If using ASM8's automatic stack offset adjustments (highly recommended),
+your global subroutines will look like:
+
+```
+                    #spauto   :ab
+GlobalSub           proc
+                    ...
+                    rtc
+```
+
+while the local subroutines will look like:
+
+```
+                    #spauto   2
+?LocalSub           proc
+                    ...
+                    rts
+```
 
 Marking big blocks as comments
 --------------------------------------------------------------------------------
@@ -2799,5 +2867,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.94, June 3, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.95, June 11, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
