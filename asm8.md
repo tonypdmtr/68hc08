@@ -2527,11 +2527,11 @@ locally, by using the `?` beginning name, and globally, otherwise.  Two entry
 points.  Like so:
 
 ```
-Global              proc
-                    bsr       ?Local
+Sub                 proc
+                    bsr       ?Sub
                     rtc
 
-?Local              proc
+?Sub                proc
                     ...
                     rts
 ```
@@ -2551,7 +2551,7 @@ your global subroutines will look like:
 
 ```
                     #spauto   :ab
-GlobalSub           proc
+Sub                 proc
                     ...
                     rtc
 ```
@@ -2560,7 +2560,7 @@ while the local subroutines will look like:
 
 ```
                     #spauto   2
-?LocalSub           proc
+?Sub                proc
                     ...
                     rts
 ```
