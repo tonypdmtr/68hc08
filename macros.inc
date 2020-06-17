@@ -152,6 +152,7 @@
 ;*           : 20.02.12 v2.26 Added Msg macro to silence debugging messages
 ;*           :                unless SHOW_ALL_MESSAGES is defined
 ;*           : 20.06.04 v2.27 Simplified ReadPin macro
+;*           : 20.06.17 v2.28 Removed cbeq macro and rewrote cbne to use only cbeq
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -2042,49 +2043,37 @@ Toggle              macro     PinName[,PinName]*
                     endm
 
 ;*******************************************************************************
-; CBEQ for any address (not quite as true as it may affect the CCR)
-
-cbeq                macro     CompareVariable[,Index],Address
-          #ifparm ~3~
-                    !cbeq     ~@~
-                    mexit
-          #endif
-          #ifparm ~1~ = x+
-                    !cbeq     ~@~
-                    mexit
-          #endif
-          #ifz ~1~&$FFFFFF00
-                    !cbeq     ~@~
-                    mexit
-          #endif
-          #ifparm ~2~ = *
-                    mset      2,{*}
-          #endif
-                    cmpa      ~1~
-                    beq       ~2~
-                    endm
-
-;*******************************************************************************
-; CBEQA complement (not quite as true as it affects the CCR)
+; CBEQA complement
 
 cbnea               macro     CompareTarget,Address
           #ifparm ~2~ = *
                     mset      2,{*}
           #endif
-                    cmpa      ~1~
-                    bne       ~2~
-                    endm
+                    cbeqa     ~1~,Done$$$
+                    bra       ~2~
+Done$$$             endm
 
 ;*******************************************************************************
-; CBEQX complement (not quite as true as it affects the CCR)
+; CBEQ  complement
+
+cbne                macro     CompareTarget,Address
+          #ifparm ~2~ = *
+                    mset      2,{*}
+          #endif
+                    cbeq      ~1~,Done$$$
+                    bra       ~2~
+Done$$$             endm
+
+;*******************************************************************************
+; CBEQX complement
 
 cbnex               macro     CompareTarget,Address
           #ifparm ~2~ = *
                     mset      2,{*}
           #endif
-                    cmpx      ~1~
-                    bne       ~2~
-                    endm
+                    cbeqx     ~1~,Done$$$
+                    bra       ~2~
+Done$$$             endm
 
 ;*******************************************************************************
 
