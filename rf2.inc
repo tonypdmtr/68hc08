@@ -17,10 +17,8 @@ _RF_                def       2                   ;Tells us a RF type device is 
 
 COP                 def       $FFFF,1
 
-#ifndef KHZ
-  #ifndef MHZ
+#ifndef KHZ¦MHZ
 HZ                  def       9830400             ;9.8304 MHz internal oscillator
-  #endif
 #endif
 
 ; MEMORY
@@ -150,15 +148,15 @@ ICGMRVALUE          def       HZ/307200
 
                     @port     ,,,,,,BRKA,BRKE
 
+          #ifndef NO_CODE
           ; THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
 
                     #MEMORY   FLBPR
-
                     #ppc
                     org       FLBPR
                     fcb       FLBPR_MASK          ;RF needs this as flash programmed
                     org       :ppc
-
+          #endif
                     #ROM
 
 ; BUILT-IN ROM FLASH PROGRAMMING ROUTINES
