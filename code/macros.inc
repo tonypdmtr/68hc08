@@ -153,6 +153,7 @@
 ;*           :                unless SHOW_ALL_MESSAGES is defined
 ;*           : 20.06.04 v2.27 Simplified ReadPin macro
 ;*           : 20.06.17 v2.28 Removed cbeq macro and rewrote cbne to use only cbeq
+;*           : 20.07.15 v2.29 Added CopyPin macro to copy pin state to another pin
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -1912,6 +1913,17 @@ ReadPin             macro     PinName
                     mdef      2,~1'.'~
                     !brset    ~1'.'~.,~2~,:pc+3
                     endm
+
+;*******************************************************************************
+; Copy pin state to another pin
+
+CopyPin             macro     FromPin,ToPin
+                    @@ReadPin ~1~                 ;;read source pin
+                    bcc       _0$$$               ;;if low, go copy it
+                    @@bset    ~2~                 ;;else, make target high
+                    bra       Done$$$             ;;we're done
+_0$$$               @@bclr    ~2~                 ;;make target low
+Done$$$             endm
 
 ;*******************************************************************************
 ; Set pull-up for given PIN(s)
