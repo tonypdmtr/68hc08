@@ -1,0 +1,39 @@
+;*******************************************************************************
+;* Module    : CHARSETS.SUB
+;* Programmer: Tony Papadimitriou <tonyp@acm.org>
+;* Purpose   : Character set related routine(s)
+;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
+;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Original  : http://www.aspisys.com/code/hc08/charsets.html
+;* Note(s)   : Use: #Include charsets.sub
+;* History   : 13.11.04 v1.00 Original (Started on 2013.11.04)
+;*******************************************************************************
+
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
+
+;*******************************************************************************
+; Purpose: Test whether a char is part of a char-set
+; Input  : HX -> ASCIZ of char set
+;        : A = (non-zero) char to test
+; Output : Carry Clear on success, Carry Set on Error
+; Note(s):
+                    #spauto
+
+IsCharInSet         proc
+                    pshhx
+Loop@@              tst       ,x                  ;ASCIZ terminator?
+                    sec                           ;indicate "not found"
+                    beq       Done@@              ;and exit
+                    clc                           ;indicate "found"
+                    cbeq      x+,Done@@           ;if match, exit
+                    bra       Loop@@              ;repeat
+Done@@              pulhx
+                    rtc
+
+;*******************************************************************************
+                    #sp
+;*******************************************************************************
