@@ -994,7 +994,11 @@ Done@@              lda       #FPVIOL_|FACCERR_
                     #Include  checkout.inc
                     fcc       ']'
           #endif
-                    fcs       ' {HZ/1000(3)} MHz'
+                    fcc       ' {HZ/1000(3)} MHz'
+          #ifmmu
+                    fcc       ' MMU'
+          #endif
+                    fcb       0                   ;ASCII terminator
 
 ;*******************************************************************************
 ; Purpose: Initialize the MCU with default settings
