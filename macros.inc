@@ -1918,8 +1918,7 @@ ReadPin             macro     PinName
 ; Copy pin state to another pin
 
 CopyPin             macro     FromPin,ToPin
-                    @@ReadPin ~1~                 ;;read source pin
-                    bcc       _0$$$               ;;if low, go copy it
+                    @@brclr   ~1~,_0$$$           ;;if source low, go copy a low
                     @@bset    ~2~                 ;;else, make target high
                     bra       Done$$$             ;;we're done
 _0$$$               @@bclr    ~2~                 ;;make target low
