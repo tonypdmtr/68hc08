@@ -30,10 +30,14 @@
 ;*           : 17.10.01       Removed use of deprecated _push_ macro call
 ;*           : 18.02.11       Added FLASH_TEST_FIRST condition for safer writes [+6 bytes]
 ;*           : 18.04.30       Optimized ?StackRoutine for no PSHCC/PULCC [-12 bytes]
+;*           : 20.07.21       Removed warnings from non-GB60 stand-alone assembly
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
+          #ifdef GB60
 FLASH_DATA_SIZE     def       60288
+          #endif
+FLASH_DATA_SIZE     def       1024
                     #ListOff
                     #Uses     mcu.inc
                     #ListOn
