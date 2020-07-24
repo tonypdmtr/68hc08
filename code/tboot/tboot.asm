@@ -54,7 +54,7 @@ SCI                 def       1                   ;SCI to use (1 or 2)
 ;-------------------------------------------------------------------------------
           #ifdef QE128
 BOOTROM             def       $F800               ;QE128 version is a bit larger
-          #else ifdef DZ32¦DZ60
+          #else ifdef DZ32¦DZ60¦AC96
 BOOTROM             def       $FA00               ;DZ has different Flash protection
           #endif
 BOOTROM             def       $FC00
@@ -280,11 +280,11 @@ CTS_LINE            @pin      PORTC,7             ;/CTS is output from MCU
 #endif
 
 ?                   macro
-          #ifparm ~1~ = 1                         ;if SCI1
-            #ifdef SCIBDH                         ;but unnumbered SCI case
-                    mset      1                   ;remove number
-            #endif
+          #ifndef SCI~1~BDH                       ;if required SCI does not exist
+                    mset      1                   ;remove number (assuming SCI1)
+?MY_SCI             equ       1                   ;assume SCI1
           #endif
+?MY_SCI             def       ~1~                 ;assume user's SCI
                     #Message  Using SCI~1~
 ?SCIBDH             equ       SCI~1~BDH,1
 ?SCIBDL             equ       SCI~1~BDL,1
@@ -314,7 +314,7 @@ CTS_LINE            @pin      PORTC,7             ;/CTS is output from MCU
 ?MY_BPS_RATE        def       bps_max
 
                     #Hint     ==================================================
-                    #Hint     >>> Actual SCI speed: {BUS_HZ/16/?MY_BPS_RATE} bps <<<
+                    #Hint     >>> Actual SCI{?MY_SCI} speed: {BUS_HZ/16/?MY_BPS_RATE} bps <<<
                     #Hint     ==================================================
 
 ;*******************************************************************************
@@ -671,7 +671,7 @@ NextByte@@          ldhx      ?address
                     sthx      ?address
                     dbnz      ?length,Loop@@      ;One less byte to read
 ;-------------------------------------------------------------------------------
-DoCRC@@             bsr       ?ReadHex            ;Get CRC byte
+DoCRC@@             !jsr      ?ReadHex            ;Get CRC byte
                     bcs       ?Error              ;if something wrong, get out with error
 
                     com       ?line_crc           ;Get one's complement of final CRC value
@@ -1291,37 +1291,30 @@ Fail@@              equ       ?No
 
 ?EraseFlash         proc
           #ifdef PPAGE
-                    clr       PPAGE
-
-NewPage@@           ldhx      #:PAGE_START        ;user firmware's first page
-
+                    clr       PPAGE               ;start from first page
+NewPage@@           ldhx      #:PAGE_START        ;lower MMU page boundary
 Loop@@              pshhx
-                    jsr       ?FlashErase
+                    jsr       ?FlashErase         ;erase this page
                     pulhx
 ;;;;;;;;;;;;;;;;;;; bne       Fail@@
-
-                    aix       #FLASH_PAGE_SIZE
-
-                    cphx      #:PAGE_END
+                    aix       #FLASH_PAGE_SIZE    ;HX -> next page
+                    cphx      #:PAGE_END          ;end of MMU page window?
                     blo       Loop@@              ;repeat for all Flash pages
-
-                    inc       PPAGE
+                    inc       PPAGE               ;go to next page
                     tst       PPAGE               ;required, INC result CCR[Z] is invalid
                     bne       NewPage@@           ;repeat for all PPAGEs
-
 ;                   clc                           ;indicate "no error" (valid since BLO fall thru)
                     rts
           #else ;---------------------------------------------------------------
                     ldhx      #FLASH_START        ;user firmware's first page
-
 Loop@@              pshhx
-                    jsr       ?FlashErase
+                    jsr       ?FlashErase         ;erase this page
                     pulhx
                     bne       Fail@@
-
-                    @aix      #FLASH_PAGE_SIZE
+                    aix       #FLASH_PAGE_SIZE    ;HX -> next page
                     cphx      #BOOTROM            ;user firmware's last page
                     blo       Loop@@              ;repeat for all Flash pages
+;                   clc                           ;indicate "no error" (implied by BLO fall thru)
                     rts
 
 Fail@@              equ       ?No
