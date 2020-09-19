@@ -24,6 +24,10 @@
 ;*           : 16.06.12       Added clearing of destination during CopyTo [+14 bytes]
 ;*           :                Clear the full destination memory [+3 bytes]
 ;*           : 16.07.31       Optimized CopyTo proc [-6 bytes]
+;*           : 20.09.12       Added CopyToZ macro to treat destination as ASCIZ [TESTED]
+;*           :                Added CCR[C] parm to CopyTo function for ASCIZ[0]/normal[1] destination [+11 bytes]
+;*           : 20.09.13       BugFix: CopyTo single-byte destination case [+7 bytes]
+;*           :                BugFix: CopyTo did not initialize local len@@ in normal case [+1 byte]
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -31,7 +35,9 @@
                     #Uses     mcu.inc
                     #ListOn
                     #Cycles
+          #ifndef MAP
                     #MapOff
+          #endif
 #endif ;------------------------------------------------------------------------
           #ifnhcs
                     #Error    Coded for 9S08 only
@@ -137,7 +143,31 @@ CopyTo              macro     Variable
                     @@lea     ~1~                 ;;HX -> destination variable
                     sthx      1,psp               ;;save it on stack
                     pull
+                    sec                           ;;indicate normal target
                     call      ~0~
+                    ais       #:ais
+                    #pull
+                    endm
+
+;*******************************************************************************
+; Save into ASCIZ variable - Copy RegA bytes from RegHX -> location to given ASCIZ variable
+
+CopyToZ             macro     ASCIZ_variable
+                    mset      #
+                    mreq      1:ASCIZ_variable (in which to save)
+                    @@_not_#_ ~1~
+                    #push
+                    #spauto   :sp
+                    ais       #-3                 ;;make room for parms
+                    #psp
+                    push
+                    lda       #::~1,~             ;;get destination byte length
+                    sta       3,psp               ;;save length of destination
+                    @@lea     ~1~                 ;;HX -> destination variable
+                    sthx      1,psp               ;;save it on stack
+                    pull
+                    clc                           ;;indicate ASCIZ target
+                    call      CopyTo
                     ais       #:ais
                     #pull
                     endm
@@ -149,33 +179,49 @@ CopyTo              macro     Variable
 ;        : A = number of bytes
 ;        : TOS+2 = size of "to" location
 ;        : TOS -> "to" location
+;        : CCR[C] = 0: ASCIZ target (guarantees last byte is always zero)
+;        : CCR[C] = 1: Normal target
 ; Output : None
 ; Note(s):
                     #spauto   :ab
 
 CopyTo              proc
+                    @parms    .dst,dstlen         ;-> "to" and length of "to"
                     push
                     #ais
+                    pshhx     .src@@              ;save source pointer
+                    psha      len@@               ;will receive actual copy length
+                    tsx                           ;HX -> stack frame
+          ;--------------------------------------
+                    psha
+                    lda       dstlen@@,spx
+                    sta       len@@,spx
+                    pula
+          ;--------------------------------------
+;                   tst       dstlen@@,spx        ;(does not affect CCR[C])
+                    beq       Done@@              ;nothing to save (also, won't save to constants)
+                    bcs       Go@@                ;normal target, no special treatment
 
-                    @parms    .dst,dstlen         ;-> "to" and length of "to"
+                    dec       len@@,spx           ;adjust for ASCIZ terminator
+                    bne       Go@@                ;if at least one char to copy, go
 
-                    @MinA     dstlen@@,sp         ;not more than destination size
-                    cbeqa     #0,Done@@           ;nothing to save (also, won't save to constants)
-          ;-------------------------------------- ;clear the full destination memory
-                    #psp
-                    psha      srclen@@
-                    pshhx     .src@@
-
-                    lda       dstlen@@,sp         ;(RegA counter rather than decrement len@@,sp directly)
+                    ldhx      .dst@@,sp           ;otherwise 1-byte case, so just
+                    clr       ,x                  ;put the ASCIZ terminator
+                    bra       Done@@              ;and get out
+          ;--------------------------------------
+Go@@                @MinA     len@@,spx           ;not more than destination size
+                    sta       len@@,spx           ;update length to use
+          ;-------------------------------------- ;clear destination memory regardless of source size
+                    lda       dstlen@@,spx        ;(RegA counter rather than decrement dstlen@@,sp directly)
                     ldhx      .dst@@,sp
 ClrLoop@@           clr       ,x
                     aix       #1
                     dbnza     ClrLoop@@
           ;--------------------------------------
-                    @Copy     .src@@,sp .dst@@,sp srclen@@,sp
-                    ais       #:psp
-
-Done@@              pull
+                    @Copy     .src@@,sp .dst@@,sp len@@,sp
+          ;--------------------------------------
+Done@@              ais       #:ais
+                    pull
                     rtc
 
                     #sp
@@ -202,6 +248,7 @@ Start               proc
                     ldhx      #Source
                     lda       #::Source
                     @CopyTo   destination
+                    @CopyToZ  destination
 
                     @Copy     Source destination #::Source
 ;                   @Copy     1,x 2,ax 3,spx      ;test X-based indexed modes
