@@ -112,8 +112,6 @@ Save@@
                     ldhx      .str@@,sp           ;HX -> most recent substring
                     sthx      .ans@@,sp           ;save as answer
           #else
-                    tsx
-
                     lda       .str@@,spx
                     sta       .ans@@,spx
 
