@@ -1095,9 +1095,8 @@ lea                 macro
             #else
                     psha
                     lda       ~[1.-1]~
-                    psha
                     ldx       ~[1.-2]~
-                    pulh
+                    tah
                     pula
             #endif
                     mexit
@@ -1108,9 +1107,8 @@ lea                 macro
             #else
                     psha
                     lda       ~[1.-1]~
-                    psha
                     ldx       ~[1.-2]~
-                    pulh
+                    tah
                     pula
             #endif
                     mexit
@@ -1154,9 +1152,8 @@ lea                 macro
             #else
                     psha
                     lda       ~[1.-1]~
-                    psha
                     ldx       ~[1.-2]~
-                    pulh
+                    tah
                     pula
             #endif
                     mexit
