@@ -72,14 +72,16 @@ Loop@@              bsr       ?DelayBitTime       ;delay one bit time
                     #spauto
                               #Cycles :temp
 ?DelayBitTime       proc
-                    psha
-                    lda       #DELAY@@
+                    pshhx
+                    ldhx      #DELAY@@
                     brn       *                   ;for timing symmetry with ?DelayHalfBitTime
                               #Cycles
 Loop@@              @cop
-                    dbnza     Loop@@
+                    aix       #-1
+                    cphx      #0
+                    bne       Loop@@
                               #temp :cycles
-                    pula
+                    pulhx
                     rts
 
 ?CYCLES             equ       :ocycles+:cycles
@@ -95,8 +97,8 @@ DELAY@@             equ       ?bps_value-?CYCLES/:temp
                     #spauto
 
 ?DelayHalfBitTime   proc
-                    psha
-                    lda       #DELAY@@
+                    pshhx
+                    ldhx      #DELAY@@
                     bra       ?DelayBitTime_Loop
 
 DELAY@@             equ       ?bps_value/2-?CYCLES/:temp

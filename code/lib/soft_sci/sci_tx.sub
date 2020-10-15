@@ -77,13 +77,15 @@ Cont@@              bsr       ?DelayBitTime       ;delay one bit time
                     #spauto
                               #Cycles :temp
 ?DelayBitTime       proc
-                    psha
-                    lda       #DELAY@@
+                    pshhx
+                    ldhx      #DELAY@@
                               #Cycles
 Loop@@              @cop
-                    dbnza     Loop@@
+                    aix       #-1
+                    cphx      #0
+                    bne       Loop@@
                               #temp :cycles
-                    pula
+                    pulhx
                     rts
 
 DELAY@@             equ       ?bps_value-:cycles-:ocycles/:temp
