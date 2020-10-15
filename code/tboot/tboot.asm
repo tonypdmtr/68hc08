@@ -38,7 +38,7 @@
   #Hint * RXINV............: SCI RX line inverted
   #Hint * TXINV............: SCI TX line inverted
   #Hint * BPS..............: BPS = 3/12/24/48/96/192/384/576(00)
-  #Hint * SCI..............: SCI = 1 (SCI1) or 2 (SCI2)
+  #Hint * SCI..............: SCI = (SCI)1 or (SCI)2 or SoftSCI (-1)
   #Hint * ENABLE_RUN.......: Enable [R]un command
   #Hint * DISABLE_IRQ......: Disable IRQ pin test
   #Hint * DISABLE_SURE.....: Disable 'Sure?' message
@@ -50,7 +50,7 @@
 BOOTROM_VERSION     def       118                 ;version as x.xx
 ;-------------------------------------------------------------------------------
 
-SCI                 def       1                   ;SCI to use (1 or 2)
+SCI                 def       1                   ;SCI to use (1 or 2, -1=Software)
 ;-------------------------------------------------------------------------------
           #ifdef QE128
 BOOTROM             def       $F800               ;QE128 version is a bit larger
@@ -152,6 +152,7 @@ BDIV                def       1
           #ifdef QD2¦QD4
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
+SCI                 set       -1
             #ifdef QD2
                     #ListOff
                     #Uses     qd2.inc
@@ -160,22 +161,6 @@ BDIV                def       1
                     #ListOff
                     #Uses     qd4.inc
                     #ListOn
-            #endif
-            #ifnz SCI
-SCI_TX_PIN          @pin      PORTA,1
-SCI_RX_PIN          @pin      PORTA,2
-              #ifdef BPS
-BPS_RATE            equ       BPS
-              #endif
-                    #push
-                    #MCF
-                    org       BOOTROM
-                    #Uses     lib/soft_sci/sci_rx.sub
-                    #Uses     lib/soft_sci/sci_tx.sub
-BOOTROM             set       *
-                    #pull
-?GetChar            equ       SCI_GetChar
-?PutChar            equ       SCI_PutChar
             #endif
           #endif
 ;-------------------------------------------------------------------------------
@@ -235,6 +220,18 @@ APP_CODE_END        def       BOOTROM-1
                     #ROM
                     org       BOOTROM
 
+;*******************************************************************************
+#if SCI < 0
+SCI_TX_PIN          def
+SCI_RX_PIN          def
+              #ifdef BPS
+BPS_RATE            equ       BPS
+              #endif
+                    #Uses     lib/soft_sci/sci_rx.sub
+                    #Uses     lib/soft_sci/sci_tx.sub
+?GetChar            equ       SCI_GetChar
+?PutChar            equ       SCI_PutChar
+#endif
 ;*******************************************************************************
 ; Macros
 ;*******************************************************************************
