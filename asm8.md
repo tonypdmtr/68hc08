@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: October 26, 2020 for ASM8 v9.97*
+*Latest Manual Update: October 27, 2020 for ASM8 v9.97*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -616,7 +616,7 @@ Command-Line Syntax and Options
 
 | Option   | Default   | Description|
 |:---------|:---------:|:-------------------------------------------------------|
-| `-Bname` | `        `|Use 'name' as the base name for generated files, just once.  If an optional extension is given which must not be one of the standard ASM8 extensions (.S19, .LST, .MAP, .SYM, .EXP, .ERR) then that extension will be used instead of S19 for the object file.
+| `-Bname` | `        `|Use 'name' as the base name for generated files, just once.  If an optional extension is given which must not be one of the standard ASM8 extensions (.LST, .MAP, .SYM, .EXP, .ERR) then that extension will be used instead of S19 for the object file.
 | `-C[±]  `| `-C-     `|Label case sensitivity: + = case sensitive<br>_See also_ `#CASEON` and `#CASEOFF`
 | `-Dlabel`| `[:expr] `|Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbols are always uppercase (regardless of -C option). If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase.<br>Cannot be saved with -W.
 | `-E[±]  `| `-E-     `|Generate *.ERR file (one for each file assembled).* .ERR files are not generated for file(s) that do not contain errors.
@@ -2869,5 +2869,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.97, October 26, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v9.97, October 27, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
