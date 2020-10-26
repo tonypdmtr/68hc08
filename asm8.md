@@ -616,7 +616,7 @@ Command-Line Syntax and Options
 
 | Option   | Default   | Description|
 |:---------|:---------:|:-------------------------------------------------------|
-| `-Bname` | `        `|Use 'name' as the base name for generated files, just once.
+| `-Bname` | `        `|Use 'name' as the base name for generated files, just once.  If an optional extension is given which must not be one of the standard ASM8 extensions (.S19, .LST, .MAP, .SYM, .EXP, .ERR) then that extension will be used instead of S19 for the object file.
 | `-C[±]  `| `-C-     `|Label case sensitivity: + = case sensitive<br>_See also_ `#CASEON` and `#CASEOFF`
 | `-Dlabel`| `[:expr] `|Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbols are always uppercase (regardless of -C option). If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase.<br>Cannot be saved with -W.
 | `-E[±]  `| `-E-     `|Generate *.ERR file (one for each file assembled).* .ERR files are not generated for file(s) that do not contain errors.
