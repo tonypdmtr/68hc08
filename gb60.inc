@@ -785,14 +785,18 @@ Vlvd                next      :temp,2             ;low voltage detect vector
 Virq                next      :temp,2             ;IRQ pin vector
 Vswi                next      :temp,2             ;SWI vector
 Vreset              next      :temp,2             ;reset vector
-
+;-------------------------------------------------------------------------------
 ; Aliases for certain vectors
-
+;-------------------------------------------------------------------------------
 Vtpmovf             equ       Vtpm1ovf,2
 Vtpmch2             equ       Vtpm1ch2,2
 Vtpmch1             equ       Vtpm1ch1,2
 Vtpmch0             equ       Vtpm1ch0,2
 
+Vscitx              equ       Vsci1tx,2
+Vscirx              equ       Vsci1rx,2
+Vscierr             equ       Vsci1err,2
+;-------------------------------------------------------------------------------
 TRUE_ROM            equ       $1080               ;start of 60K flash (extra ROM)
 
 ;-------------------------------------------------------------------------------
@@ -836,8 +840,8 @@ ROM_END             def       $FFAF               ;end of all flash (before NV r
 ROM_END             set       BOOTROM-1
 #endif
 
-RAM                 def       $0080               ;start of 4096 byte RAM
-RAM_END             def       $00FF               ;last zero-page RAM location
+RAM                 def       $80                 ;start of 4096 byte RAM
+RAM_END             def       $FF                 ;last zero-page RAM location
 
 XRAM                equ       $0100
 XRAM_END            def       $107F               ;last true RAM location
@@ -910,7 +914,7 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
 
           #if EEPROM < HighRegs
                     #MEMORY   EEPROM    HighRegs-1
@@ -921,7 +925,7 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
           #endif
 
           #ifdef RVECTORS
-                    #MEMORY   RVECTORS  RVECTORS|$00FF
+                    #MEMORY   RVECTORS  RVECTORS|$FF
           #endif
 
           #ifdef CRC_LOCATION

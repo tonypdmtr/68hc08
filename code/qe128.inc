@@ -938,7 +938,7 @@ ROM                 set       HighRegs_End+1
 
 SERIAL_NUMBER       equ       $FFA0               ;start of optional S/N (FFA0-FFAD)
 
-RAM                 equ       $0080               ;start of 8KB fragmented RAM
+RAM                 equ       $80                 ;start of 8KB fragmented RAM
 RAM_END             equ       HighRegs-1          ;last RAM location
 
 XRAM                equ       HighRegs_End+1
@@ -1133,10 +1133,10 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
           #ifnz FLASH_DATA_SIZE
                     #MEMORY   EEPROM EEPROM_END
           #endif
           #ifdef RVECTORS
-                    #MEMORY   RVECTORS  RVECTORS|$00FF
+                    #MEMORY   RVECTORS  RVECTORS|$FF
           #endif

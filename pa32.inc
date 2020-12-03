@@ -55,19 +55,19 @@ _PA32_              def       *
 ; Memory Map and Interrupt Vectors
 ;******************************************
 
-PORTA               equ       $0000,1             ;PORT_PTAD - Port A Data Register
-PORTB               equ       $0001,1             ;PORT_PTBD - Port B Data Register
-PORTC               equ       $0002,1             ;PORT_PTCD - Port C Data Register
-PORTD               equ       $0003,1             ;PORT_PTDD - Port D Data Register
-PORTE               equ       $0004,1             ;PORT_PTED - Port E Data Register
+PORTA               equ       $00,1               ;PORT_PTAD - Port A Data Register
+PORTB               equ       $01,1               ;PORT_PTBD - Port B Data Register
+PORTC               equ       $02,1               ;PORT_PTCD - Port C Data Register
+PORTD               equ       $03,1               ;PORT_PTDD - Port D Data Register
+PORTE               equ       $04,1               ;PORT_PTED - Port E Data Register
 
-ADCSC1              equ       $0010,1             ;ADC_SC1 - Status and Control Register 1
+ADCSC1              equ       $10,1               ;ADC_SC1 - Status and Control Register 1
 
                     @bitnum   ADCO,5              ;Continuous Conversion Enable
                     @bitnum   AIEN,6              ;Interrupt Enable
                     @bitnum   COCO,7              ;Conversion Complete Flag
 
-ADCSC2              equ       $0011,1             ;ADC_SC2 - Status and Control Register 2
+ADCSC2              equ       $11,1               ;ADC_SC2 - Status and Control Register 2
 
                     @bitnum   FFULL,2             ;Result FIFO full
                     @bitnum   FEMPTY,3            ;Result FIFO empty
@@ -76,7 +76,7 @@ ADCSC2              equ       $0011,1             ;ADC_SC2 - Status and Control 
                     @bitnum   ADTRG,6             ;Conversion Trigger Select
                     @bitnum   ADACT,7             ;Conversion Active
 
-ADCCFG              equ       $0012,1             ;ADC_SC3 - Status and Control Register 3
+ADCCFG              equ       $12,1               ;ADC_SC3 - Status and Control Register 3
 
                     @bitnum   ADICLK0,0           ;Input Clock Select, bit 0
                     @bitnum   ADICLK1,1           ;Input Clock Select, bit 1
@@ -87,7 +87,7 @@ ADCCFG              equ       $0012,1             ;ADC_SC3 - Status and Control 
                     @bitnum   ADIV1,6             ;Clock Divide Select, bit 1
                     @bitnum   ADLPC,7             ;Low-Power Configuration
 
-ADC_SC4             equ       $0013,1             ;Status and Control Register 4
+ADC_SC4             equ       $13,1               ;Status and Control Register 4
 
                     @bitnum   AFDEP0,0            ;FIFO Depth enables the FIFO function and sets the depth of FIFO. When AFDEP is cleared,
                     @bitnum   AFDEP1,1            ;FIFO Depth enables the FIFO function and sets the depth of FIFO. When AFDEP is cleared,
@@ -95,22 +95,22 @@ ADC_SC4             equ       $0013,1             ;Status and Control Register 4
                     @bitnum   ACFSEL,5            ;Compare function select OR/AND when the FIFO function is enabled (AFDEP > 0) .When this bit
                     @bitnum   ASCANE,6            ;FIFO Scan Mode Enable
 
-ADCR                equ       $0014,2             ;ADC_R - Data Result Register
-ADCRH               equ       $0014,1             ;ADC_RH - Conversion Result High Register
-ADCRL               equ       $0015,1             ;ADC_RL - Conversion Result Low Register
+ADCR                equ       $14,2               ;ADC_R - Data Result Register
+ADCRH               equ       $14,1               ;ADC_RH - Conversion Result High Register
+ADCRL               equ       $15,1               ;ADC_RL - Conversion Result Low Register
 
-ADCCV               equ       $0016,2             ;ADC_CV - Compare Value Register
-ADCCVH              equ       $0016,1             ;ADC_CVH - Compare Value High Register
-ADCCVL              equ       $0017,1             ;ADC_CVL - Compare Value Low Register
+ADCCV               equ       $16,2               ;ADC_CV - Compare Value Register
+ADCCVH              equ       $16,1               ;ADC_CVH - Compare Value High Register
+ADCCVL              equ       $17,1               ;ADC_CVL - Compare Value Low Register
 
-MTIMSC              equ       $0018,1             ;MTIM0_SC - MTIM Status and Control Register
+MTIMSC              equ       $18,1               ;MTIM0_SC - MTIM Status and Control Register
 
                     @bitnum   MTIM_TSTP,4         ;MTIM Counter Stop
                     @bitnum   MTIM_TRST,5         ;MTIM Counter Reset
                     @bitnum   MTIM_TOIE,6         ;MTIM Overflow Interrupt Enable
                     @bitnum   MTIM_TOF,7          ;MTIM Overflow Flag
 
-MTIMCLK             equ       $0019,1             ;MTIM0_CLK - MTIM Clock Configuration Register
+MTIMCLK             equ       $19,1               ;MTIM0_CLK - MTIM Clock Configuration Register
 
                     @bitnum   MTIM_PS0,0          ;Clock Source Prescaler, bit 0
                     @bitnum   MTIM_PS1,1          ;Clock Source Prescaler, bit 1
@@ -119,10 +119,10 @@ MTIMCLK             equ       $0019,1             ;MTIM0_CLK - MTIM Clock Config
                     @bitnum   MTIM_CLKS0,4        ;Clock Source Select, bit 0
                     @bitnum   MTIM_CLKS1,5        ;Clock Source Select, bit 1
 
-MTIMCNT             equ       $001A,1             ;MTIM0_CNT - MTIM Counter Register
-MTIMMOD             equ       $001B,1             ;MTIM0_MOD - MTIM Modulo Register
+MTIMCNT             equ       $1A,1               ;MTIM0_CNT - MTIM Counter Register
+MTIMMOD             equ       $1B,1               ;MTIM0_MOD - MTIM Modulo Register
 
-FTM0_SC             equ       $0020,1             ;Status and Control
+FTM0_SC             equ       $20,1               ;Status and Control
 
                     @bitnum   PS0,0               ;Prescale Factor Selection, bit 0
                     @bitnum   PS1,1               ;Prescale Factor Selection, bit 1
@@ -133,20 +133,20 @@ FTM0_SC             equ       $0020,1             ;Status and Control
                     @bitnum   TOIE,6              ;Timer Overflow Interrupt Enable
                     @bitnum   TOF,7               ;Timer Overflow Flag
 
-FTM0_CNT            equ       $0021,2             ;FTM0 Timer Counter Register
-FTM0_CNTH           equ       $0021,1             ;Counter High
-FTM0_CNTL           equ       $0022,1             ;Counter Low
-FTM0_MOD            equ       $0023,2             ;FTM0 Timer Counter Modulo Register
-FTM0_MODH           equ       $0023,1             ;Modulo High
-FTM0_MODL           equ       $0024,1             ;Modulo Low
-FTM0_C0SC           equ       $0025,1             ;Channel Status and Control
-FTM0_C0V            equ       $0026,2             ;FTM0 Timer Channel 0 Value Register
-FTM0_C0VH           equ       $0026,1             ;Channel Value High
-FTM0_C0VL           equ       $0027,1             ;Channel Value Low
-FTM0_C1SC           equ       $0028,1             ;Channel Status and Control
-FTM0_C1V            equ       $0029,2             ;FTM0 Timer Channel 1 Value Register
-FTM0_C1VH           equ       $0029,1             ;Channel Value High
-FTM0_C1VL           equ       $002A,1             ;Channel Value Low
+FTM0_CNT            equ       $21,2               ;FTM0 Timer Counter Register
+FTM0_CNTH           equ       $21,1               ;Counter High
+FTM0_CNTL           equ       $22,1               ;Counter Low
+FTM0_MOD            equ       $23,2               ;FTM0 Timer Counter Modulo Register
+FTM0_MODH           equ       $23,1               ;Modulo High
+FTM0_MODL           equ       $24,1               ;Modulo Low
+FTM0_C0SC           equ       $25,1               ;Channel Status and Control
+FTM0_C0V            equ       $26,2               ;FTM0 Timer Channel 0 Value Register
+FTM0_C0VH           equ       $26,1               ;Channel Value High
+FTM0_C0VL           equ       $27,1               ;Channel Value Low
+FTM0_C1SC           equ       $28,1               ;Channel Status and Control
+FTM0_C1V            equ       $29,2               ;FTM0 Timer Channel 1 Value Register
+FTM0_C1VH           equ       $29,1               ;Channel Value High
+FTM0_C1VL           equ       $2A,1               ;Channel Value Low
 
                     @bitnum   ELSA,2              ;Edge or Level Select
                     @bitnum   ELSB,3              ;Edge or Level Select
@@ -171,21 +171,21 @@ TPM0C1V             equ       FTM0_C1V,::FTM0_C1V
 TPM0C1VH            equ       FTM0_C1VH,::FTM0_C1VH
 TPM0C1VL            equ       FTM0_C1VL,::FTM0_C1VL
 
-FTM1_SC             equ       $0030,1             ; FTM1_SC - Status and Control
-FTM1_CNT            equ       $0031,2             ; FTM1_CNT - FTM1 Timer Counter Register
-FTM1_CNTH           equ       $0031,1             ; FTM1_CNTH - Counter High
-FTM1_CNTL           equ       $0032,1             ; FTM1_CNTL - Counter Low
-FTM1_MOD            equ       $0033,2             ; FTM1_MOD - FTM1 Timer Counter Modulo Register
-FTM1_MODH           equ       $0033,1             ; FTM1_MODH - Modulo High
-FTM1_MODL           equ       $0034,1             ; FTM1_MODL - Modulo Low
-FTM1_C0SC           equ       $0035,1             ; FTM1_C0SC - Channel Status and Control
-FTM1_C0V            equ       $0036,2             ; FTM1_C0V - FTM1 Timer Channel 0 Value Register
-FTM1_C0VH           equ       $0036,1             ; FTM1_C0VH - Channel Value High
-FTM1_C0VL           equ       $0037,1             ; FTM1_C0VL - Channel Value Low
-FTM1_C1SC           equ       $0038,1             ; FTM1_C1SC - Channel Status and Control
-FTM1_C1V            equ       $0039,2             ; FTM1_C1V - FTM1 Timer Channel 1 Value Register
-FTM1_C1VH           equ       $0039,1             ; FTM1_C1VH - Channel Value High
-FTM1_C1VL           equ       $003A,1             ; FTM1_C1VL - Channel Value Low
+FTM1_SC             equ       $30,1               ; FTM1_SC - Status and Control
+FTM1_CNT            equ       $31,2               ; FTM1_CNT - FTM1 Timer Counter Register
+FTM1_CNTH           equ       $31,1               ; FTM1_CNTH - Counter High
+FTM1_CNTL           equ       $32,1               ; FTM1_CNTL - Counter Low
+FTM1_MOD            equ       $33,2               ; FTM1_MOD - FTM1 Timer Counter Modulo Register
+FTM1_MODH           equ       $33,1               ; FTM1_MODH - Modulo High
+FTM1_MODL           equ       $34,1               ; FTM1_MODL - Modulo Low
+FTM1_C0SC           equ       $35,1               ; FTM1_C0SC - Channel Status and Control
+FTM1_C0V            equ       $36,2               ; FTM1_C0V - FTM1 Timer Channel 0 Value Register
+FTM1_C0VH           equ       $36,1               ; FTM1_C0VH - Channel Value High
+FTM1_C0VL           equ       $37,1               ; FTM1_C0VL - Channel Value Low
+FTM1_C1SC           equ       $38,1               ; FTM1_C1SC - Channel Status and Control
+FTM1_C1V            equ       $39,2               ; FTM1_C1V - FTM1 Timer Channel 1 Value Register
+FTM1_C1VH           equ       $39,1               ; FTM1_C1VH - Channel Value High
+FTM1_C1VL           equ       $3A,1               ; FTM1_C1VL - Channel Value Low
 
 TPM1SC              equ       FTM1_SC,::FTM1_SC
 TPM1CNT             equ       FTM1_CNT,::FTM1_CNT
@@ -203,7 +203,7 @@ TPM1C1V             equ       FTM1_C1V,::FTM1_C1V
 TPM1C1VH            equ       FTM1_C1VH,::FTM1_C1VH
 TPM1C1VL            equ       FTM1_C1VL,::FTM1_C1VL
 
-ACMP_CS             equ       $002C,1             ;ACMP Control and Status Register
+ACMP_CS             equ       $2C,1               ;ACMP Control and Status Register
 
                     @bitnum   ACMOD0,0            ;ACMP MOD, bit 0
                     @bitnum   ACMOD1,1            ;ACMP MOD, bit 1
@@ -214,14 +214,14 @@ ACMP_CS             equ       $002C,1             ;ACMP Control and Status Regis
                     @bitnum   HYST,6              ;Analoy Comparator Hystersis Selection
                     @bitnum   ACE,7               ;Analog Comparator Enable
 
-ACMP_C0             equ       $002D,1             ;ACMP Control Register 0
+ACMP_C0             equ       $2D,1               ;ACMP Control Register 0
 
                     @bitnum   ACNSEL0,0           ;ACMP Negative Input Select, bit 0
                     @bitnum   ACNSEL1,1           ;ACMP Negative Input Select, bit 1
                     @bitnum   ACPSEL0,4           ;ACMP Positive Input Select, bit 0
                     @bitnum   ACPSEL1,5           ;ACMP Positive Input Select, bit 1
 
-ACMP_C1             equ       $002E,1             ;ACMP Control Register 1
+ACMP_C1             equ       $2E,1               ;ACMP Control Register 1
 
                     @bitnum   DACVAL0,0           ;DAC Output Level Selection, bit 0
                     @bitnum   DACVAL1,1           ;DAC Output Level Selection, bit 1
@@ -232,13 +232,13 @@ ACMP_C1             equ       $002E,1             ;ACMP Control Register 1
                     @bitnum   DACREF,6            ;DAC Reference Select
                     @bitnum   DACEN,7             ;DAC Enable
 
-ACMP_C2             equ       $002F,1             ;ACMP Control Register 2
+ACMP_C2             equ       $2F,1               ;ACMP Control Register 2
 
                     @bitnum   ACIPE0,0
                     @bitnum   ACIPE1,1
                     @bitnum   ACIPE2,2
 
-IRQSC               equ       $003B,1             ;IRQ_SC - Interrupt Pin Request Status and Control Register
+IRQSC               equ       $3B,1               ;IRQ_SC - Interrupt Pin Request Status and Control Register
 
                     @bitnum   IRQMOD,0            ;IRQ Detection Mode
                     @bitnum   IRQIE,1             ;IRQ Interrupt Enable
@@ -248,8 +248,8 @@ IRQSC               equ       $003B,1             ;IRQ_SC - Interrupt Pin Reques
                     @bitnum   IRQEDG,5            ;Interrupt Request (IRQ) Edge Select
                     @bitnum   IRQPDD,6            ;Interrupt Request (IRQ) Pull Device Disable
 
-KBI0_SC             equ       $003C,1             ;KBI0_SC - KBI Status and Control Register
-KBI1_SC             equ       $003D,1             ;KBI1_SC - KBI Status and Control Register
+KBI0_SC             equ       $3C,1               ;KBI0_SC - KBI Status and Control Register
+KBI1_SC             equ       $3D,1               ;KBI1_SC - KBI Status and Control Register
 
 KBISC               equ       KBI0_SC,1           ;KBI0_SC - KBI Status and Control Register
 KBI2SC              equ       KBI1_SC,1           ;KBI1_SC - KBI Status and Control Register
@@ -259,7 +259,7 @@ KBI2SC              equ       KBI1_SC,1           ;KBI1_SC - KBI Status and Cont
                     @bitnum   KBACK,2             ;KBI Acknowledge
                     @bitnum   KBF,3               ;KBI Interrupt Flag
 
-IPC_SC              equ       $003E,1             ;IPC Status and Control Register
+IPC_SC              equ       $3E,1               ;IPC Status and Control Register
 
                     @bitnum   IPM0,0              ;Interrupt Priority Mask, bit 0
                     @bitnum   IPM1,1              ;Interrupt Priority Mask, bit 1
@@ -268,7 +268,7 @@ IPC_SC              equ       $003E,1             ;IPC Status and Control Regist
                     @bitnum   PSE,5               ;Pseudo Stack Empty
                     @bitnum   IPCE,7              ;Interrupt Priority Controller Enable
 
-IPC_IPMPS           equ       $003F,1             ;Interrupt Priority Mask Pseudo Stack Register
+IPC_IPMPS           equ       $3F,1               ;Interrupt Priority Mask Pseudo Stack Register
 
                     @bitnum   IPM00,0             ;Interrupt Priority Mask pseudo stack position 0, bit 0
                     @bitnum   IPM01,1             ;Interrupt Priority Mask pseudo stack position 0, bit 1
@@ -1127,8 +1127,8 @@ XROM_END            equ       $FFAF               ;some more code/data
 
                     @?                            ;calculate NVPROT_MASK value
 
-RAM                 equ       $0040               ;start of 4KB RAM
-RAM_END             equ       $00FF               ;last zero-page RAM location
+RAM                 equ       $40                 ;start of 4KB RAM
+RAM_END             equ       $FF                 ;last zero-page RAM location
 
 XRAM                equ       $0100
 XRAM_END            equ       $103F               ;last RAM location
@@ -1227,7 +1227,7 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
                     #MEMORY   NV_FSEC
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
           #ifdef CRC_LOCATION
                     #MEMORY   CRC_LOCATION CRC_LOCATION+1
           #endif

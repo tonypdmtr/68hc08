@@ -145,29 +145,29 @@ HighRegs_End        equ       $18FF               ;end of high page registers
 
 ; **** Input/Output (I/O) Ports ************************************************
 
-PORTA               equ       $0000,1             ;Port A Data Register
-DDRA                equ       $0001,1             ;Port A Data Direction Register
+PORTA               equ       $00,1               ;Port A Data Register
+DDRA                equ       $01,1               ;Port A Data Direction Register
 
-PORTB               equ       $0002,1             ;Port B Data Register
-DDRB                equ       $0003,1             ;Port B Data Direction Register
+PORTB               equ       $02,1               ;Port B Data Register
+DDRB                equ       $03,1               ;Port B Data Direction Register
 
-PORTC               equ       $0004,1             ;Port C Data Register
-DDRC                equ       $0005,1             ;Port C Data Direction Register
+PORTC               equ       $04,1               ;Port C Data Register
+DDRC                equ       $05,1               ;Port C Data Direction Register
 
-PORTD               equ       $0006,1             ;Port D Data Register
-DDRD                equ       $0007,1             ;Port D Data Direction Register
+PORTD               equ       $06,1               ;Port D Data Register
+DDRD                equ       $07,1               ;Port D Data Direction Register
 
-PORTE               equ       $0008,1             ;Port E Data Register
-DDRE                equ       $0009,1             ;Port E Data Direction Register
+PORTE               equ       $08,1               ;Port E Data Register
+DDRE                equ       $09,1               ;Port E Data Direction Register
 
-PORTF               equ       $000A,1             ;Port F Data Register
-DDRF                equ       $000B,1             ;Port F Data Direction Register
+PORTF               equ       $0A,1               ;Port F Data Register
+DDRF                equ       $0B,1               ;Port F Data Direction Register
 
-PORTG               equ       $000C,1             ;Port G Data Register
-DDRG                equ       $000D,1             ;Port G Data Direction Register
+PORTG               equ       $0C,1               ;Port G Data Register
+DDRG                equ       $0D,1               ;Port G Data Direction Register
 
-ACMP1SC             equ       $000E,1             ;ACMP1 Status and Control Register
-ACMP2SC             equ       $000F,1             ;ACMP2 Status and Control Register
+ACMP1SC             equ       $0E,1               ;ACMP1 Status and Control Register
+ACMP2SC             equ       $0F,1               ;ACMP2 Status and Control Register
 
                     @bitnum   ACMOD0,0            ;Analog Comparator Mode Bit 0
                     @bitnum   ACMOD1,1            ;Analog Comparator Mode Bit 1
@@ -178,28 +178,28 @@ ACMP2SC             equ       $000F,1             ;ACMP2 Status and Control Regi
                     @bitnum   ACBGS,6             ;Analog Comparator Bandgap Select
                     @bitnum   ACME,7              ;Analog Comparator Module Enable
 
-ADCSC1              equ       $0010,1             ;Status and Control Register 1
+ADCSC1              equ       $10,1               ;Status and Control Register 1
 
                     @bitnum   ADCO,5              ;Continuous Conversion Enable - ADCO is used to enable continuous conversions
                     @bitnum   AIEN,6              ;Interrupt Enable - AIEN is used to enable conversion complete interrupts. When COCO becomes set while AIEN is high, an interrupt is asserted
                     @bitnum   COCO,7              ;Conversion Complete Flag
 
-ADCSC2              equ       $0011,1             ;Status and Control Register 2
+ADCSC2              equ       $11,1               ;Status and Control Register 2
 
                     @bitnum   ACFGT,4             ;Compare Function Greater Than Enable
                     @bitnum   ACFE,5              ;Compare Function Enable - ACFE is used to enable the compare function
                     @bitnum   ADTRG,6             ;Conversion Trigger Select-ADTRG is used to select the type of trigger to be used for initiating a conversion
                     @bitnum   ADACT,7             ;Conversion Active - ADACT indicates that a conversion is in progress. ADACT is set when a conversion is initiated and cleared when a conversion is completed or aborted
 
-ADCR                equ       $0012,2             ;Data Result Register
-ADCRH               equ       $0012,1             ;Data Result High Register
-ADCRL               equ       $0013,1             ;Data Result Low Register
+ADCR                equ       $12,2               ;Data Result Register
+ADCRH               equ       $12,1               ;Data Result High Register
+ADCRL               equ       $13,1               ;Data Result Low Register
 
-ADCCV               equ       $0014,2             ;Compare Value Register
-ADCCVH              equ       $0014,1             ;Compare Value High Register
-ADCCVL              equ       $0015,1             ;Compare Value Low Register
+ADCCV               equ       $14,2               ;Compare Value Register
+ADCCVH              equ       $14,1               ;Compare Value High Register
+ADCCVL              equ       $15,1               ;Compare Value Low Register
 
-ADCCFG              equ       $0016,1             ;Configuration Register
+ADCCFG              equ       $16,1               ;Configuration Register
 
                     @bitnum   ADICLK0,0           ;Input Clock Select Bit 0
                     @bitnum   ADICLK1,1           ;Input Clock Select Bit 1
@@ -210,11 +210,11 @@ ADCCFG              equ       $0016,1             ;Configuration Register
                     @bitnum   ADIV1,6             ;Clock Divide Select Bit 1
                     @bitnum   ADLPC,7             ;Low Power Configuration
 
-APCTL1              equ       $0017,1             ;Pin Control 1 Register
-APCTL2              equ       $0018,1             ;Pin Control 2 Register
-APCTL3              equ       $0019,1             ;Pin Control 3 Register
+APCTL1              equ       $17,1               ;Pin Control 1 Register
+APCTL2              equ       $18,1               ;Pin Control 2 Register
+APCTL3              equ       $19,1               ;Pin Control 3 Register
 
-IRQSC               equ       $001C,1             ;Interrupt request status and control register
+IRQSC               equ       $1C,1               ;Interrupt request status and control register
 
                     @bitnum   IRQMOD,0            ;IRQ Detection Mode
                     @bitnum   IRQIE,1             ;IRQ Interrupt Enable
@@ -224,7 +224,7 @@ IRQSC               equ       $001C,1             ;Interrupt request status and 
                     @bitnum   IRQEDG,5            ;IRQ Edge Select
                     @bitnum   IRQPDD,6            ;IRQ Pull Device Disable
 
-TPM1SC              equ       $0020,1             ;TPM1 Status and Control Register
+TPM1SC              equ       $20,1               ;TPM1 Status and Control Register
 
                     @bitnum   PS0,0               ;Prescale Divisor Select Bit 0
                     @bitnum   PS1,1               ;Prescale Divisor Select Bit 1
@@ -235,37 +235,37 @@ TPM1SC              equ       $0020,1             ;TPM1 Status and Control Regis
                     @bitnum   TOIE,6              ;Timer Overflow Interrupt Enable
                     @bitnum   TOF,7               ;Timer Overflow Flag
 
-TPM1CNT             equ       $0021,2             ;TPM1 Timer Counter Register
-TPM1CNTH            equ       $0021,1             ;TPM1 Timer Counter Register High
-TPM1CNTL            equ       $0022,1             ;TPM1 Timer Counter Register Low
-TPM1MOD             equ       $0023,2             ;TPM1 Timer Counter Modulo Register
-TPM1MODH            equ       $0023,1             ;TPM1 Timer Counter Modulo Register High
-TPM1MODL            equ       $0024,1             ;TPM1 Timer Counter Modulo Register Low
+TPM1CNT             equ       $21,2               ;TPM1 Timer Counter Register
+TPM1CNTH            equ       $21,1               ;TPM1 Timer Counter Register High
+TPM1CNTL            equ       $22,1               ;TPM1 Timer Counter Register Low
+TPM1MOD             equ       $23,2               ;TPM1 Timer Counter Modulo Register
+TPM1MODH            equ       $23,1               ;TPM1 Timer Counter Modulo Register High
+TPM1MODL            equ       $24,1               ;TPM1 Timer Counter Modulo Register Low
 
-TPM1C0SC            equ       $0025,1             ;TPM1 Timer Channel 0 Status and Control Register
-TPM1C0V             equ       $0026,2             ;TPM1 Timer Channel 0 Value Register
-TPM1C0VH            equ       $0026,1             ;TPM1 Timer Channel 0 Value Register High
-TPM1C0VL            equ       $0027,1             ;TPM1 Timer Channel 0 Value Register Low
-TPM1C1SC            equ       $0028,1             ;TPM1 Timer Channel 1 Status and Control Register
-TPM1C1V             equ       $0029,2             ;TPM1 Timer Channel 1 Value Register
-TPM1C1VH            equ       $0029,1             ;TPM1 Timer Channel 1 Value Register High
-TPM1C1VL            equ       $002A,1             ;TPM1 Timer Channel 1 Value Register Low
-TPM1C2SC            equ       $002B,1             ;TPM1 Timer Channel 2 Status and Control Register
-TPM1C2V             equ       $002C,2             ;TPM1 Timer Channel 2 Value Register
-TPM1C2VH            equ       $002C,1             ;TPM1 Timer Channel 2 Value Register High
-TPM1C2VL            equ       $002D,1             ;TPM1 Timer Channel 2 Value Register Low
-TPM1C3SC            equ       $002E,1             ;TPM1 Timer Channel 3 Status and Control Register
-TPM1C3V             equ       $002F,2             ;TPM1 Timer Channel 3 Value Register
-TPM1C3VH            equ       $002F,1             ;TPM1 Timer Channel 3 Value Register High
-TPM1C3VL            equ       $0030,1             ;TPM1 Timer Channel 3 Value Register Low
-TPM1C4SC            equ       $0031,1             ;TPM1 Timer Channel 4 Status and Control Register
-TPM1C4V             equ       $0032,2             ;TPM1 Timer Channel 4 Value Register
-TPM1C4VH            equ       $0032,1             ;TPM1 Timer Channel 4 Value Register High
-TPM1C4VL            equ       $0033,1             ;TPM1 Timer Channel 4 Value Register Low
-TPM1C5SC            equ       $0034,1             ;TPM1 Timer Channel 5 Status and Control Register
-TPM1C5V             equ       $0035,2             ;TPM1 Timer Channel 5 Value Register
-TPM1C5VH            equ       $0035,1             ;TPM1 Timer Channel 5 Value Register High
-TPM1C5VL            equ       $0036,1             ;TPM1 Timer Channel 5 Value Register Low
+TPM1C0SC            equ       $25,1               ;TPM1 Timer Channel 0 Status and Control Register
+TPM1C0V             equ       $26,2               ;TPM1 Timer Channel 0 Value Register
+TPM1C0VH            equ       $26,1               ;TPM1 Timer Channel 0 Value Register High
+TPM1C0VL            equ       $27,1               ;TPM1 Timer Channel 0 Value Register Low
+TPM1C1SC            equ       $28,1               ;TPM1 Timer Channel 1 Status and Control Register
+TPM1C1V             equ       $29,2               ;TPM1 Timer Channel 1 Value Register
+TPM1C1VH            equ       $29,1               ;TPM1 Timer Channel 1 Value Register High
+TPM1C1VL            equ       $2A,1               ;TPM1 Timer Channel 1 Value Register Low
+TPM1C2SC            equ       $2B,1               ;TPM1 Timer Channel 2 Status and Control Register
+TPM1C2V             equ       $2C,2               ;TPM1 Timer Channel 2 Value Register
+TPM1C2VH            equ       $2C,1               ;TPM1 Timer Channel 2 Value Register High
+TPM1C2VL            equ       $2D,1               ;TPM1 Timer Channel 2 Value Register Low
+TPM1C3SC            equ       $2E,1               ;TPM1 Timer Channel 3 Status and Control Register
+TPM1C3V             equ       $2F,2               ;TPM1 Timer Channel 3 Value Register
+TPM1C3VH            equ       $2F,1               ;TPM1 Timer Channel 3 Value Register High
+TPM1C3VL            equ       $30,1               ;TPM1 Timer Channel 3 Value Register Low
+TPM1C4SC            equ       $31,1               ;TPM1 Timer Channel 4 Status and Control Register
+TPM1C4V             equ       $32,2               ;TPM1 Timer Channel 4 Value Register
+TPM1C4VH            equ       $32,1               ;TPM1 Timer Channel 4 Value Register High
+TPM1C4VL            equ       $33,1               ;TPM1 Timer Channel 4 Value Register Low
+TPM1C5SC            equ       $34,1               ;TPM1 Timer Channel 5 Status and Control Register
+TPM1C5V             equ       $35,2               ;TPM1 Timer Channel 5 Value Register
+TPM1C5VH            equ       $35,1               ;TPM1 Timer Channel 5 Value Register High
+TPM1C5VL            equ       $36,1               ;TPM1 Timer Channel 5 Value Register Low
 
                     @bitnum   ELSxA,2             ;Edge/Level Select Bit A
                     @bitnum   ELSxB,3             ;Edge/Level Select Bit B
@@ -274,14 +274,14 @@ TPM1C5VL            equ       $0036,1             ;TPM1 Timer Channel 5 Value Re
                     @bitnum   CHxIE,6             ;Channel 0 Interrupt Enable
                     @bitnum   CHxF,7              ;Channel 0 Flag
 
-SCI1BD              equ       $0038,2             ;SCI1 Baud Rate Register
-SCI1BDH             equ       $0038,1             ;SCI1 Baud Rate Register High
+SCI1BD              equ       $38,2               ;SCI1 Baud Rate Register
+SCI1BDH             equ       $38,1               ;SCI1 Baud Rate Register High
 
                     @bitnum   RXEDGIE,6           ;RxD Input Active Edge Interrupt Enable (for RXEDGIF)
                     @bitnum   LBKDIE,7            ;LIN Break Detect Interrupt Enable (for LBKDIF)
 
-SCI1BDL             equ       $0039,1             ;SCI1 Baud Rate Register Low
-SCI1C1              equ       $003A,1             ;SCI1 Control Register 1
+SCI1BDL             equ       $39,1               ;SCI1 Baud Rate Register Low
+SCI1C1              equ       $3A,1               ;SCI1 Control Register 1
 
                     @bitnum   PT,0                ;Parity Type
                     @bitnum   PE,1                ;Parity Enable
@@ -292,7 +292,7 @@ SCI1C1              equ       $003A,1             ;SCI1 Control Register 1
                     @bitnum   SCISWAI,6           ;SCI Stops in Wait Mode
                     @bitnum   LOOPS,7             ;Loop Mode Select
 
-SCI1C2              equ       $003B,1             ;SCI1 Control Register 2
+SCI1C2              equ       $3B,1               ;SCI1 Control Register 2
 
                     @bitnum   SBK,0               ;Send Break
                     @bitnum   RWU,1               ;Receiver Wakeup Control
@@ -303,7 +303,7 @@ SCI1C2              equ       $003B,1             ;SCI1 Control Register 2
                     @bitnum   TCIE,6              ;Transmission Complete Interrupt Enable (for TC)
                     @bitnum   TIE,7               ;Transmit Interrupt Enable (for TDRE)
 
-SCI1S1              equ       $003C,1             ;SCI1 Status Register 1
+SCI1S1              equ       $3C,1               ;SCI1 Status Register 1
 
                     @bitnum   PF,0                ;Parity Error Flag
                     @bitnum   FE,1                ;Framing Error Flag
@@ -314,7 +314,7 @@ SCI1S1              equ       $003C,1             ;SCI1 Status Register 1
                     @bitnum   TC,6                ;Transmission Complete Flag
                     @bitnum   TDRE,7              ;Transmit Data Register Empty Flag
 
-SCI1S2              equ       $003D,1             ;SCI1 Status Register 2
+SCI1S2              equ       $3D,1               ;SCI1 Status Register 2
 
                     @bitnum   RAF,0               ;Receiver Active Flag
                     @bitnum   LBKDE,1             ;LIN Break Detection Enable
@@ -324,7 +324,7 @@ SCI1S2              equ       $003D,1             ;SCI1 Status Register 2
                     @bitnum   RXEDGIF,6           ;RxD Pin Active Edge Interrupt Flag
                     @bitnum   LBKDIF,7            ;LIN Break Detect Interrupt Flag
 
-SCI1C3              equ       $003E,1             ;SCI1 Control Register 3
+SCI1C3              equ       $3E,1               ;SCI1 Control Register 3
 
                     @bitnum   PEIE,0              ;Parity Error Interrupt Enable
                     @bitnum   FEIE,1              ;Framing Error Interrupt Enable
@@ -335,19 +335,19 @@ SCI1C3              equ       $003E,1             ;SCI1 Control Register 3
                     @bitnum   T8,6                ;Ninth Data Bit for Transmitter
                     @bitnum   R8,7                ;Ninth Data Bit for Receiver
 
-SCI1D               equ       $003F,1             ;SCI1 Data Register
+SCI1D               equ       $3F,1               ;SCI1 Data Register
 
-SCI2BD              equ       $0040,2             ;SCI2 Baud Rate Register
-SCI2BDH             equ       $0040,1             ;SCI2 Baud Rate Register High
-SCI2BDL             equ       $0041,1             ;SCI2 Baud Rate Register Low
-SCI2C1              equ       $0042,1             ;SCI2 Control Register 1
-SCI2C2              equ       $0043,1             ;SCI2 Control Register 2
-SCI2S1              equ       $0044,1             ;SCI2 Status Register 1
-SCI2S2              equ       $0045,1             ;SCI2 Status Register 2
-SCI2C3              equ       $0046,1             ;SCI2 Control Register 3
-SCI2D               equ       $0047,1             ;SCI2 Data Register
+SCI2BD              equ       $40,2               ;SCI2 Baud Rate Register
+SCI2BDH             equ       $40,1               ;SCI2 Baud Rate Register High
+SCI2BDL             equ       $41,1               ;SCI2 Baud Rate Register Low
+SCI2C1              equ       $42,1               ;SCI2 Control Register 1
+SCI2C2              equ       $43,1               ;SCI2 Control Register 2
+SCI2S1              equ       $44,1               ;SCI2 Status Register 1
+SCI2S2              equ       $45,1               ;SCI2 Status Register 2
+SCI2C3              equ       $46,1               ;SCI2 Control Register 3
+SCI2D               equ       $47,1               ;SCI2 Data Register
 
-MCGC1               equ       $0048,1             ;MCG Control Register 1
+MCGC1               equ       $48,1               ;MCG Control Register 1
 ICSC1               def       MCGC1,1             ;functionally equivalent to the ICSC1 of other MCUs
 
                     @bitnum   IREFSTEN,0          ;Internal Reference Stop Enable
@@ -359,7 +359,7 @@ ICSC1               def       MCGC1,1             ;functionally equivalent to th
                     @bitnum   CLKS0,6             ;Clock Source Select, bit 0
                     @bitnum   CLKS1,7             ;Clock Source Select, bit 1
 
-MCGC2               equ       $0049,1             ;MCG Control Register 2
+MCGC2               equ       $49,1               ;MCG Control Register 2
 ICSC2               def       MCGC2,1             ;functionally equivalent to the ICSC2 of other MCUs
 
                     @bitnum   EREFSTEN,0          ;External Reference Stop Enable
@@ -371,9 +371,9 @@ ICSC2               def       MCGC2,1             ;functionally equivalent to th
                     @bitnum   BDIV0,6             ;Bus Frequency Divider, bit 0
                     @bitnum   BDIV1,7             ;Bus Frequency Divider, bit 1
 
-MCGTRM              equ       $004A,1             ;MCG Trim Register
+MCGTRM              equ       $4A,1               ;MCG Trim Register
 ICSTRM              def       MCGTRM,1            ;functionally equivalent to the ICSTRM of other MCUs
-MCGSC               equ       $004B,1             ;MCG Status and Control Register
+MCGSC               equ       $4B,1               ;MCG Status and Control Register
 ICSSC               def       MCGSC,1             ;functionally equivalent to the ICSSC of other MCUs
 
                     @bitnum   FTRIM,0             ;MCG Fine Trim
@@ -385,13 +385,13 @@ ICSSC               def       MCGSC,1             ;functionally equivalent to th
                     @bitnum   LOCK,6              ;Lock Status
                     @bitnum   LOLS,7              ;Loss of Lock Status
 
-MCGC3               equ       $004C,1             ;MCG Control Register 3
+MCGC3               equ       $4C,1               ;MCG Control Register 3
 
                     @bitnum   CME,5               ;Clock Monitor Enable
                     @bitnum   PLLS,6              ;PLL Select
                     @bitnum   LOLIE,7             ;Loss of Lock Interrupt Enable
 
-SPIC1               equ       $0050,1             ;SPI Control Register 1
+SPIC1               equ       $50,1               ;SPI Control Register 1
 
                     @bitnum   LSBFE,0             ;LSB First (Shifter Direction)
                     @bitnum   SSOE,1              ;Slave Select Output Enable
@@ -402,30 +402,30 @@ SPIC1               equ       $0050,1             ;SPI Control Register 1
                     @bitnum   SPE,6               ;SPI System Enable
                     @bitnum   SPIE,7              ;SPI Interrupt Enable (for SPRF and MODF)
 
-SPIC2               equ       $0051,1             ;SPI Control Register 2
+SPIC2               equ       $51,1               ;SPI Control Register 2
 
                     @bitnum   SPC0,0              ;SPI Pin Control 0
                     @bitnum   SPISWAI,1           ;SPI Stop in Wait Mode
                     @bitnum   BIDIROE,3           ;Bidirectional Mode Output Enable
                     @bitnum   MODFEN,4            ;Master Mode-Fault Function Enable
 
-SPIBR               equ       $0052,1             ;SPI Baud Rate Register
-SPIS                equ       $0053,1             ;SPI Status Register
+SPIBR               equ       $52,1               ;SPI Baud Rate Register
+SPIS                equ       $53,1               ;SPI Status Register
 
                     @bitnum   MODF,4              ;Master Mode Fault Flag
                     @bitnum   SPTEF,5             ;SPI Transmit Buffer Empty Flag
                     @bitnum   SPRF,7              ;SPI Read Buffer Full Flag
 
-SPID                equ       $0055,1             ;SPI Data Register
+SPID                equ       $55,1               ;SPI Data Register
 
-IICA                equ       $0058               ;IIC Address Register
-IICF                equ       $0059               ;IIC Frequency Divider Register
+IICA                equ       $58                 ;IIC Address Register
+IICF                equ       $59                 ;IIC Frequency Divider Register
 
                     @bitnum   MULT0,6             ;Multiplier Factor Bit 0
                     @bitnum   MULT1,7             ;Multiplier Factor Bit 1
 
-IICC1               equ       $005A,1             ;IIC Control Register 1
-IICC                equ       $005A,1             ;IIC Control Register
+IICC1               equ       $5A,1               ;IIC Control Register 1
+IICC                equ       $5A,1               ;IIC Control Register
 
                     @bitnum   RSTA,2              ;Repeat START
                     @bitnum   TXAK,3              ;Transmit Acknowledge Enable
@@ -434,7 +434,7 @@ IICC                equ       $005A,1             ;IIC Control Register
                     @bitnum   IICIE,6             ;IIC Interrupt Enable
                     @bitnum   IICEN,7             ;IIC Enable
 
-IICS                equ       $005B,1             ;IIC Status Register
+IICS                equ       $5B,1               ;IIC Status Register
 
                     @bitnum   RXAK,0              ;Receive Acknowledge
                     @bitnum   IICIF,1             ;IIC Interrupt Flag
@@ -444,37 +444,37 @@ IICS                equ       $005B,1             ;IIC Status Register
                     @bitnum   IAAS,6              ;Addressed as a Slave
                     @bitnum   TCF,7               ;Transfer Complete Flag
 
-IICD                equ       $005C,1             ;IIC Data I/O Register
-IICC2               equ       $005D,1             ;IIC Control Register 2
+IICD                equ       $5C,1               ;IIC Data I/O Register
+IICC2               equ       $5D,1               ;IIC Control Register 2
 
                     @bitnum   ADEXT,6             ;Address Extension
                     @bitnum   GCAEN,7             ;General Call Address Enable
 
-TPM2SC              equ       $0060,1             ;TPM2 Status and Control Register
-TPM2CNT             equ       $0061,2             ;TPM2 Timer Counter Register
-TPM2CNTH            equ       $0061,1             ;TPM2 Timer Counter Register High
-TPM2CNTL            equ       $0062,1             ;TPM2 Timer Counter Register Low
-TPM2MOD             equ       $0063,2             ;TPM2 Timer Counter Modulo Register
-TPM2MODH            equ       $0063,1             ;TPM2 Timer Counter Modulo Register High
-TPM2MODL            equ       $0064,1             ;TPM2 Timer Counter Modulo Register Low
-TPM2C0SC            equ       $0065,1             ;TPM2 Timer Channel 0 Status and Control Register
-TPM2C0V             equ       $0066,2             ;TPM2 Timer Channel 0 Value Register
-TPM2C0VH            equ       $0066,1             ;TPM2 Timer Channel 0 Value Register High
-TPM2C0VL            equ       $0067,1             ;TPM2 Timer Channel 0 Value Register Low
-TPM2C1SC            equ       $0068,1             ;TPM2 Timer Channel 1 Status and Control Register
-TPM2C1V             equ       $0069,2             ;TPM2 Timer Channel 1 Value Register
-TPM2C1VH            equ       $0069,1             ;TPM2 Timer Channel 1 Value Register High
-TPM2C1VL            equ       $006A,1             ;TPM2 Timer Channel 1 Value Register Low
+TPM2SC              equ       $60,1               ;TPM2 Status and Control Register
+TPM2CNT             equ       $61,2               ;TPM2 Timer Counter Register
+TPM2CNTH            equ       $61,1               ;TPM2 Timer Counter Register High
+TPM2CNTL            equ       $62,1               ;TPM2 Timer Counter Register Low
+TPM2MOD             equ       $63,2               ;TPM2 Timer Counter Modulo Register
+TPM2MODH            equ       $63,1               ;TPM2 Timer Counter Modulo Register High
+TPM2MODL            equ       $64,1               ;TPM2 Timer Counter Modulo Register Low
+TPM2C0SC            equ       $65,1               ;TPM2 Timer Channel 0 Status and Control Register
+TPM2C0V             equ       $66,2               ;TPM2 Timer Channel 0 Value Register
+TPM2C0VH            equ       $66,1               ;TPM2 Timer Channel 0 Value Register High
+TPM2C0VL            equ       $67,1               ;TPM2 Timer Channel 0 Value Register Low
+TPM2C1SC            equ       $68,1               ;TPM2 Timer Channel 1 Status and Control Register
+TPM2C1V             equ       $69,2               ;TPM2 Timer Channel 1 Value Register
+TPM2C1VH            equ       $69,1               ;TPM2 Timer Channel 1 Value Register High
+TPM2C1VL            equ       $6A,1               ;TPM2 Timer Channel 1 Value Register Low
 
-RTCSC               equ       $006C,1             ;RTC Status and Control Register
+RTCSC               equ       $6C,1               ;RTC Status and Control Register
 
                     @bitnum   RTIE,4              ;Real-Time Interrupt Enable
                     @bitnum   RTCLKS0,5           ;Real-Time Clock Source Select, bit 0
                     @bitnum   RTCLKS1,6           ;Real-Time Clock Source Select, bit 1
                     @bitnum   RTIF,7              ;Real-Time Interrupt Flag
 
-RTCCNT              equ       $006D,1             ;RTC Counter Register
-RTCMOD              equ       $006E,1             ;RTC Modulo Register
+RTCCNT              equ       $6D,1               ;RTC Counter Register
+RTCMOD              equ       $6E,1               ;RTC Modulo Register
 
 SRS                 equ       $1800,1             ;System Reset Status Register
 COP                 equ       SRS,1               ;for "STA COP"
@@ -662,7 +662,7 @@ PTGDS               equ       $1872,1             ;Port G Drive Strength Selecti
 
 CAN_BASE            def       $1880
 
-CANCTL0             equ       CAN_BASE+$00,1      ;MSCAN Control 0 Register
+CANCTL0             equ       CAN_BASE,1          ;MSCAN Control 0 Register
 
 CAN_INITRQ          @pin      CANCTL0,0           ;Initialization Mode Request
 CAN_SLPRQ           @pin      CANCTL0,1           ;Sleep Mode Request
@@ -961,8 +961,8 @@ ROM_END             set       BOOTROM-1
 
                     @?                            ;calculate NVPROT_MASK value
 
-RAM                 def       $0080               ;start of 2KB RAM
-RAM_END             equ       $00FF               ;last zero-page RAM location
+RAM                 def       $80                 ;start of 2KB RAM
+RAM_END             equ       $FF                 ;last zero-page RAM location
 
 XRAM                equ       $0100
 XRAM_END            equ       $087F               ;last RAM location
@@ -1032,7 +1032,7 @@ NVOPT_VALUE         def       %11100010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
                     #MEMORY   EEPROM    EEPROM_END
           #ifdef CRC_LOCATION
                     #MEMORY   CRC_LOCATION CRC_LOCATION+1

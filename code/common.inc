@@ -1168,8 +1168,7 @@ lea                 macro
 gcd                 macro     a,b
           #ifz ~1~
                     mexit     1
-          #endif
-          #ifz ~2~
+          #else ifz ~2~
                     mexit     1
           #endif
           #if ~1~ = ~2~
@@ -1177,8 +1176,7 @@ gcd                 macro     a,b
 ~label~             set       ~1~
               #endif
                     mexit     ~1~
-          #endif
-          #if ~1~ > ~2~
+          #else if ~1~ > ~2~
                     mset      1,{~1~-{~2~}}
                     mtop
           #endif
@@ -1207,6 +1205,9 @@ lcm                 macro     a,b
 Vector              macro     Vvector,ISR_Address
           #ifb ~2~
             #ifndef ~1~
+              #ifdef ...
+                    #Hint     Missing \@~1~\@ vector ignored
+              #endif
                     mexit                         ;avoids error on empty but undefined vectors
             #endif
           #endif
@@ -1401,16 +1402,16 @@ ClrVar              macro     Variable
                     pulhx
                     mexit
               #endif
-                    push
-                    clra
-                    clrh
-                    ldx       #::~1~
-Loop$$$
-                    sta       ~1~-1,ax
-                    dbnzx     Loop$$$
-                    pull
-                    mexit
             #endif
+                    pshhx
+                    ldhx      #~1~+::~1~
+Loop$$$
+                    aix       #-1
+                    clr       ,ax
+                    cphx      #~1~
+                    bne       Loop$$$
+                    pulhx
+                    mexit
           #endif
           #if ::~1,~ <= 8
             #ifnb ~,1~
@@ -2748,11 +2749,11 @@ f~1~                exp       :temp-1
                     mset      0,{:pc}
 NUMBER_OF_OS_CALLS  set       :temp               ;Number of opcodes defined (so far)
                     org       :ppc
-          #if :temp > MAX_OS_CALLS
-                    merror    {MAX_OS_CALLS} MAX_OS_CALLS, need {:temp} (+{:temp-MAX_OS_CALLS})
-          #endif
           #if :temp > 256
                     #Warning  Double byte opcodes, OS => OSW
+          #endif
+          #if :temp > MAX_OS_CALLS
+                    merror    {MAX_OS_CALLS} MAX_OS_CALLS, need {:temp} (+{:temp-MAX_OS_CALLS})
           #endif
                     #pull
 ;-------------------------------------------------------------------------------

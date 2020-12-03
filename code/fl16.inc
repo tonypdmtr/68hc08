@@ -62,26 +62,26 @@ HighRegs_End        equ       $187F               ;end of high page registers
 
 ; **** Input/Output (I/O) Ports ************************************************
 
-PTAD                equ       $0038,1             ;Port A Data Register
+PTAD                equ       $38,1               ;Port A Data Register
 PORTA               equ       PTAD,1
-PTADD               equ       $0039,1             ;Port A Data Direction Register
+PTADD               equ       $39,1               ;Port A Data Direction Register
 DDRA                equ       PTADD,1
-PTBD                equ       $003A,1             ;Port B Data Register
+PTBD                equ       $3A,1               ;Port B Data Register
 PORTB               equ       PTBD,1
-PTBDD               equ       $003B,1             ;Port B Data Direction Register
+PTBDD               equ       $3B,1               ;Port B Data Direction Register
 DDRB                equ       PTBDD,1
-PTCD                equ       $003C,1             ;Port C Data Register
+PTCD                equ       $3C,1               ;Port C Data Register
 PORTC               equ       PTCD,1
-PTCDD               equ       $003D,1             ;Port C Data Direction Register
+PTCDD               equ       $3D,1               ;Port C Data Direction Register
 DDRC                equ       PTCDD,1
-PTDD                equ       $003E,1             ;Port D Data Register
+PTDD                equ       $3E,1               ;Port D Data Register
 PORTD               equ       PTDD,1
-PTDDD               equ       $003F,1             ;Port D Data Direction Register
+PTDDD               equ       $3F,1               ;Port D Data Direction Register
 DDRD                equ       PTDDD,1
 
 ; **** Interrupt Request Module (IRQ) ******************************************
 
-IRQSC               equ       $000B,1             ; IRQ status and control register
+IRQSC               equ       $0B,1               ;IRQ status and control register
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
@@ -95,7 +95,7 @@ IRQSC               equ       $000B,1             ; IRQ status and control regis
 
 ; **** Analog-to-Digital Converter Module (ATD) ********************************
 
-ADCSC1              equ       $0000,1             ;A/D Status & Control Register 1
+ADCSC1              equ       $00,1               ;A/D Status & Control Register 1
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
@@ -103,7 +103,7 @@ ADCSC1              equ       $0000,1             ;A/D Status & Control Register
                     @bitnum   AIEN,6              ;Interrupt Enable
                     @bitnum   ADCO,5              ;Continuous Conversion Enable
 
-ADCSC2              equ       $0001,1             ;A/D Status & Control Register 2
+ADCSC2              equ       $01,1               ;A/D Status & Control Register 2
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
@@ -112,10 +112,10 @@ ADCSC2              equ       $0001,1             ;A/D Status & Control Register
                     @bitnum   ACFE,5              ;Compare Function Enable
                     @bitnum   ACFGT,4             ;Compare Function Greater Than Enable
 
-ADCR                equ       $0003,1             ;Data Result Register
-ADCCV               equ       $0005,1             ;Compare Value Register
+ADCR                equ       $03,1               ;Data Result Register
+ADCCV               equ       $05,1               ;Compare Value Register
 
-ADCCFG              equ       $0006,1             ;A/D Configuration Register
+ADCCFG              equ       $06,1               ;A/D Configuration Register
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
@@ -128,8 +128,8 @@ ADCCFG              equ       $0006,1             ;A/D Configuration Register
                     @bitnum   ADICLK1,1           ;Input Clock Select
                     @bitnum   ADICLK0,0
 
-APCTL1              equ       $0007,1             ;Pin Control 1 Register
-APCTL2              equ       $0008,1             ;Pin Control 2 Register
+APCTL1              equ       $07,1               ;Pin Control 1 Register
+APCTL2              equ       $08,1               ;Pin Control 2 Register
 
 ; **** Serial Communications Interface (S08SCIV4) ******************************
 
@@ -209,7 +209,7 @@ SCID                equ       $1857,1             ;SCI Data Register (low byte)
 
 ; **** Timer/PWM Module (TPM) ***** TPM has 2 channels *************************
 
-TPM2SC              equ       $0010,1             ;TPM2 status and control register
+TPM2SC              equ       $10,1               ;TPM2 status and control register
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
@@ -222,14 +222,14 @@ TPM2SC              equ       $0010,1             ;TPM2 status and control regis
                     @bitnum   PS1,1               ;         -//-
                     @bitnum   PS0,0               ;         -//-
 
-TPM2CNT             equ       $0011,2             ;TPM2 Timer Counter Register
-TPM2CNTH            equ       $0011,1             ;TPM2 Timer Counter Register High
-TPM2CNTL            equ       $0012,1             ;TPM2 Timer Counter Register Low
-TPM2MOD             equ       $0013,2             ;TPM2 Timer Counter Modulo Register
-TPM2MODH            equ       $0013,1             ;TPM2 Timer Counter Modulo Register High
-TPM2MODL            equ       $0014,1             ;TPM2 Timer Counter Modulo Register Low
+TPM2CNT             equ       $11,2               ;TPM2 Timer Counter Register
+TPM2CNTH            equ       $11,1               ;TPM2 Timer Counter Register High
+TPM2CNTL            equ       $12,1               ;TPM2 Timer Counter Register Low
+TPM2MOD             equ       $13,2               ;TPM2 Timer Counter Modulo Register
+TPM2MODH            equ       $13,1               ;TPM2 Timer Counter Modulo Register High
+TPM2MODL            equ       $14,1               ;TPM2 Timer Counter Modulo Register Low
 
-TPM2C0SC            equ       $0015,1             ;TPM2 Timer Channel 0 Status and Control Register
+TPM2C0SC            equ       $15,1               ;TPM2 Timer Channel 0 Status and Control Register
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
@@ -240,18 +240,18 @@ TPM2C0SC            equ       $0015,1             ;TPM2 Timer Channel 0 Status a
                     @bitnum   ELSnB,3             ;edge/level select B
                     @bitnum   ELSnA,2             ;edge/level select A
 
-TPM2C0V             equ       $0016,2             ;TPM2 Timer Channel 0 Value Register
-TPM2C0VH            equ       $0016,1             ;TPM2 Timer Channel 0 Value Register High
-TPM2C0VL            equ       $0017,1             ;TPM2 Timer Channel 0 Value Register Low
+TPM2C0V             equ       $16,2               ;TPM2 Timer Channel 0 Value Register
+TPM2C0VH            equ       $16,1               ;TPM2 Timer Channel 0 Value Register High
+TPM2C0VL            equ       $17,1               ;TPM2 Timer Channel 0 Value Register Low
 
-TPM2C1SC            equ       $0018,1             ;TPM2 Timer Channel 1 Status and Control Register
-TPM2C1V             equ       $0019,2             ;TPM2 Timer Channel 1 Value Register
-TPM2C1VH            equ       $0019,1             ;TPM2 Timer Channel 1 Value Register High
-TPM2C1VL            equ       $001A,1             ;TPM2 Timer Channel 1 Value Register Low
+TPM2C1SC            equ       $18,1               ;TPM2 Timer Channel 1 Status and Control Register
+TPM2C1V             equ       $19,2               ;TPM2 Timer Channel 1 Value Register
+TPM2C1VH            equ       $19,1               ;TPM2 Timer Channel 1 Value Register High
+TPM2C1VL            equ       $1A,1               ;TPM2 Timer Channel 1 Value Register Low
 
 ; **** Interrupt Priority Controller *******************************************
 
-IPCSC               equ       $001E,1             ;IPC Status and Control Register
+IPCSC               equ       $1E,1               ;IPC Status and Control Register
 
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 
@@ -262,7 +262,7 @@ IPCSC               equ       $001E,1             ;IPC Status and Control Regist
                     @bitnum   IPCSC_PSE,5         ;Pseudo Stack Empty
                     @bitnum   IPCSC_IPCE,7        ;Interrupt Priority Controller Enable
 
-IPMPS               equ       $001F,1             ;Interrupt Priority Mask Pseudo Stack Register
+IPMPS               equ       $1F,1               ;Interrupt Priority Mask Pseudo Stack Register
 
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 
@@ -277,29 +277,29 @@ IPMPS               equ       $001F,1             ;Interrupt Priority Mask Pseud
 
 ;*******************************************************************************
 
-TPM1SC              equ       $0020,1             ;TPM1 Status and Control Register
-TPM1CNT             equ       $0021,2             ;TPM1 Timer Counter Register
-TPM1CNTH            equ       $0021,1             ;TPM1 Timer Counter Register High
-TPM1CNTL            equ       $0022,1             ;TPM1 Timer Counter Register Low
-TPM1MOD             equ       $0023,2             ;TPM1 Timer Counter Modulo Register
-TPM1MODH            equ       $0023,1             ;TPM1 Timer Counter Modulo Register High
-TPM1MODL            equ       $0024,1             ;TPM1 Timer Counter Modulo Register Low
-TPM1C0SC            equ       $0025,1             ;TPM1 Timer Channel 0 Status and Control Register
-TPM1C0V             equ       $0026,2             ;TPM1 Timer Channel 0 Value Register
-TPM1C0VH            equ       $0026,1             ;TPM1 Timer Channel 0 Value Register High
-TPM1C0VL            equ       $0027,1             ;TPM1 Timer Channel 0 Value Register Low
-TPM1C1SC            equ       $0028,1             ;TPM1 Timer Channel 1 Status and Control Register
-TPM1C1V             equ       $0029,2             ;TPM1 Timer Channel 1 Value Register
-TPM1C1VH            equ       $0029,1             ;TPM1 Timer Channel 1 Value Register High
-TPM1C1VL            equ       $002A,1             ;TPM1 Timer Channel 1 Value Register Low
-TPM1C2SC            equ       $002B,1             ;TPM1 Timer Channel 2 Status and Control Register
-TPM1C2V             equ       $002C,2             ;TPM1 Timer Channel 2 Value Register
-TPM1C2VH            equ       $002C,1             ;TPM1 Timer Channel 2 Value Register High
-TPM1C2VL            equ       $002D,1             ;TPM1 Timer Channel 2 Value Register Low
-TPM1C3SC            equ       $002E,1             ;TPM1 Timer Channel 3 Status and Control Register
-TPM1C3V             equ       $002F,2             ;TPM1 Timer Channel 3 Value Register
-TPM1C3VH            equ       $002F,1             ;TPM1 Timer Channel 3 Value Register High
-TPM1C3VL            equ       $0030,1             ;TPM1 Timer Channel 3 Value Register Low
+TPM1SC              equ       $20,1               ;TPM1 Status and Control Register
+TPM1CNT             equ       $21,2               ;TPM1 Timer Counter Register
+TPM1CNTH            equ       $21,1               ;TPM1 Timer Counter Register High
+TPM1CNTL            equ       $22,1               ;TPM1 Timer Counter Register Low
+TPM1MOD             equ       $23,2               ;TPM1 Timer Counter Modulo Register
+TPM1MODH            equ       $23,1               ;TPM1 Timer Counter Modulo Register High
+TPM1MODL            equ       $24,1               ;TPM1 Timer Counter Modulo Register Low
+TPM1C0SC            equ       $25,1               ;TPM1 Timer Channel 0 Status and Control Register
+TPM1C0V             equ       $26,2               ;TPM1 Timer Channel 0 Value Register
+TPM1C0VH            equ       $26,1               ;TPM1 Timer Channel 0 Value Register High
+TPM1C0VL            equ       $27,1               ;TPM1 Timer Channel 0 Value Register Low
+TPM1C1SC            equ       $28,1               ;TPM1 Timer Channel 1 Status and Control Register
+TPM1C1V             equ       $29,2               ;TPM1 Timer Channel 1 Value Register
+TPM1C1VH            equ       $29,1               ;TPM1 Timer Channel 1 Value Register High
+TPM1C1VL            equ       $2A,1               ;TPM1 Timer Channel 1 Value Register Low
+TPM1C2SC            equ       $2B,1               ;TPM1 Timer Channel 2 Status and Control Register
+TPM1C2V             equ       $2C,2               ;TPM1 Timer Channel 2 Value Register
+TPM1C2VH            equ       $2C,1               ;TPM1 Timer Channel 2 Value Register High
+TPM1C2VL            equ       $2D,1               ;TPM1 Timer Channel 2 Value Register Low
+TPM1C3SC            equ       $2E,1               ;TPM1 Timer Channel 3 Status and Control Register
+TPM1C3V             equ       $2F,2               ;TPM1 Timer Channel 3 Value Register
+TPM1C3VH            equ       $2F,1               ;TPM1 Timer Channel 3 Value Register High
+TPM1C3VL            equ       $30,1               ;TPM1 Timer Channel 3 Value Register Low
 
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 
@@ -764,8 +764,8 @@ ROM_END             set       BOOTROM-1
 XROM                equ       $FFC0               ;unused vectors can hold
 XROM_END            equ       $FFD1               ;some more code/data
 
-RAM                 equ       $0040               ;start of 1KB RAM
-RAM_END             equ       $00FF               ;last zero-page RAM location
+RAM                 equ       $40                 ;start of 1KB RAM
+RAM_END             equ       $FF                 ;last zero-page RAM location
 
 XRAM                equ       $0100
 XRAM_END            equ       $043F               ;last RAM location
@@ -859,7 +859,7 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
           #ifdef CRC_LOCATION
                     #MEMORY   CRC_LOCATION CRC_LOCATION+1
           #endif

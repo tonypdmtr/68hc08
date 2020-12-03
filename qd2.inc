@@ -471,8 +471,8 @@ ROM_END             equ       $FFA9               ;end of all flash (before NV r
 
 SERIAL_NUMBER       equ       $FFC0               ;start of optional S/N
 
-RAM                 equ       $0080               ;start of 512 byte RAM
-RAM_END             equ       $00FF               ;last zero-page RAM location
+RAM                 equ       $80                 ;start of 512 byte RAM
+RAM_END             equ       $FF                 ;last zero-page RAM location
 
 #ifdef BOOTRAM_END
 RAM                 set       BOOTRAM_END         ;start of 4096 byte RAM
@@ -541,10 +541,10 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
 ;                   #MEMORY   NVFTRIM
 ;                   #MEMORY   NVICSTRM
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
           #ifdef CRC_LOCATION
                     #MEMORY   CRC_LOCATION CRC_LOCATION+1
           #endif
           #ifdef RVECTORS
-                    #MEMORY   RVECTORS  RVECTORS|$00FF
+                    #MEMORY   RVECTORS  RVECTORS|$FF
           #endif

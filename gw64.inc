@@ -64,42 +64,42 @@ PPAGE_2End          equ       $02BFFF
 
 ;-------------------------------------------------------------------------------
 
-PTAD                equ       $0000,1             ;Port A Data Register
-PTADD               equ       $0001,1             ;Port A Data Direction Register
-PTBD                equ       $0002,1             ;Port B Data Register
-PTBDD               equ       $0003,1             ;Port B Data Direction Register
-PTCD                equ       $0004,1             ;Port C Data Register
-PTCDD               equ       $0005,1             ;Port C Data Direction Register
-PTDD                equ       $0006,1             ;Port D Data Register
-PTDDD               equ       $0007,1             ;Port D Data Direction Register
-PTED                equ       $0008,1             ;Port E Data Register
-PTEDD               equ       $0009,1             ;Port E Data Direction Register
-PTFD                equ       $000A,1             ;Port F Data Register
-PTFDD               equ       $000B,1             ;Port F Data Direction Register
-PTGD                equ       $000C,1             ;Port G Data Register
-PTGDD               equ       $000D,1             ;Port G Data Direction Register
-PTHD                equ       $000E,1             ;Port H Data Register
-PTHDD               equ       $000F,1             ;Port H Data Direction Register
+PTAD                equ       $00,1               ;Port A Data Register
+PTADD               equ       $01,1               ;Port A Data Direction Register
+PTBD                equ       $02,1               ;Port B Data Register
+PTBDD               equ       $03,1               ;Port B Data Direction Register
+PTCD                equ       $04,1               ;Port C Data Register
+PTCDD               equ       $05,1               ;Port C Data Direction Register
+PTDD                equ       $06,1               ;Port D Data Register
+PTDDD               equ       $07,1               ;Port D Data Direction Register
+PTED                equ       $08,1               ;Port E Data Register
+PTEDD               equ       $09,1               ;Port E Data Direction Register
+PTFD                equ       $0A,1               ;Port F Data Register
+PTFDD               equ       $0B,1               ;Port F Data Direction Register
+PTGD                equ       $0C,1               ;Port G Data Register
+PTGDD               equ       $0D,1               ;Port G Data Direction Register
+PTHD                equ       $0E,1               ;Port H Data Register
+PTHDD               equ       $0F,1               ;Port H Data Direction Register
 
 ;-------------------------------------------------------------------------------
 
-MTIM1SC             equ       $0010,1             ;MTIM Clock Configuration Register
-MTIM1CLK            equ       $0011,1             ;MTIM Clock Configuration Register
-MTIM1CNT            equ       $0012,1             ;MTIM Counter Register
-MTIM1MOD            equ       $0013,1             ;MTIM Modulo Register
-MTIM2SC             equ       $0014,1             ;MTIM Clock Configuration Register
-MTIM2CLK            equ       $0015,1             ;MTIM Clock Configuration Register
-MTIM2CNT            equ       $0016,1             ;MTIM Counter Register
-MTIM2MOD            equ       $0017,1             ;MTIM Modulo Register
+MTIM1SC             equ       $10,1               ;MTIM Clock Configuration Register
+MTIM1CLK            equ       $11,1               ;MTIM Clock Configuration Register
+MTIM1CNT            equ       $12,1               ;MTIM Counter Register
+MTIM1MOD            equ       $13,1               ;MTIM Modulo Register
+MTIM2SC             equ       $14,1               ;MTIM Clock Configuration Register
+MTIM2CLK            equ       $15,1               ;MTIM Clock Configuration Register
+MTIM2CNT            equ       $16,1               ;MTIM Counter Register
+MTIM2MOD            equ       $17,1               ;MTIM Modulo Register
 
-MTIM3SC             equ       $0018,1             ;MTIM16 Status and Control Register
-MTIM3CLK            equ       $0019,1             ;MTIM16 Clock Configuration Register
-MTIM3CNT            equ       $001A,2             ;MTIM16 Counter Register
-MTIM3CNTH           equ       $001A,1             ;MTIM16 Counter Register High
-MTIM3CNTL           equ       $001B,1             ;MTIM16 Counter Register Low
-MTIM3MOD            equ       $001C,2             ;MTIM16 Modulo Register
-MTIM3MODH           equ       $001C,1             ;MTIM16 Modulo Register High
-MTIM3MODL           equ       $001D,1             ;MTIM16 Modulo Register Low
+MTIM3SC             equ       $18,1               ;MTIM16 Status and Control Register
+MTIM3CLK            equ       $19,1               ;MTIM16 Clock Configuration Register
+MTIM3CNT            equ       $1A,2               ;MTIM16 Counter Register
+MTIM3CNTH           equ       $1A,1               ;MTIM16 Counter Register High
+MTIM3CNTL           equ       $1B,1               ;MTIM16 Counter Register Low
+MTIM3MOD            equ       $1C,2               ;MTIM16 Modulo Register
+MTIM3MODH           equ       $1C,1               ;MTIM16 Modulo Register High
+MTIM3MODL           equ       $1D,1               ;MTIM16 Modulo Register Low
 
                     @bitnum   MTIM_TSTP,4         ;MTIM Counter Stop
                     @bitnum   MTIM_TRST,5         ;MTIM Counter Reset
@@ -115,36 +115,36 @@ MTIM3MODL           equ       $001D,1             ;MTIM16 Modulo Register Low
 
 ;-------------------------------------------------------------------------------
 
-PDBSC               equ       $0020,2             ;PDB Status and Control Register
-PDBSCH              equ       $0020,1             ;PDB Status and Control High Register
-PDBSCL              equ       $0021,1             ;PDB Status and Control Low Register
-PDBMOD              equ       $0022,2             ;PDB Counter Modulus Register
-PDBMODH             equ       $0022,1             ;PDB Counter Modulus High Register
-PDBMODL             equ       $0023,1             ;PDB Counter Modulus Low Register
-PDBCNT              equ       $0024,2             ;PDB Counter Value Register
-PDBCNTH             equ       $0024,1             ;PDB Counter Value High Register
-PDBCNTL             equ       $0025,1             ;PDB Counter Value Low Register
-PDBIDLY             equ       $0026,2             ;PDB Interrupt Delay Register
-PDBIDLYH            equ       $0026,1             ;PDB Interrupt Delay High Register
-PDBIDLYL            equ       $0027,1             ;PDB Interrupt Delay Low Register
-PDBCH1CR            equ       $0028,2             ;PDB Channel 1 Control Register
-PDBCH1CRH           equ       $0028,1             ;PDB Channel 1 Control High Register
-PDBCH1CRL           equ       $0029,1             ;PDB Channel 1 Control Low Register
-PDBCH1DLYA          equ       $002A,2             ;PDB Channel 1 Delay A Register
-PDBCH1DLYAH         equ       $002A,1             ;PDB Channel 1 Delay A High Register
-PDBCH1DLYAL         equ       $002B,1             ;PDB Channel 1 Delay A Low Register
-PDBCH1DLYB          equ       $002C,2             ;PDB Channel 1 Delay B Register
-PDBCH1DLYBH         equ       $002C,1             ;PDB Channel 1 Delay B High Register
-PDBCH1DLYBL         equ       $002D,1             ;PDB Channel 1 Delay B Low Register
-PDBCH2CR            equ       $0030,2             ;PDB Channel 2 Control Register
-PDBCH2CRH           equ       $0030,1             ;PDB Channel 2 Control High Register
-PDBCH2CRL           equ       $0031,1             ;PDB Channel 2 Control Low Register
-PDBCH2DLYA          equ       $0032,2             ;PDB Channel 2 Delay A Register
-PDBCH2DLYAH         equ       $0032,1             ;PDB Channel 2 Delay A High Register
-PDBCH2DLYAL         equ       $0033,1             ;PDB Channel 2 Delay A Low Register
-PDBCH2DLYB          equ       $0034,2             ;PDB Channel 2 Delay B Register
-PDBCH2DLYBH         equ       $0034,1             ;PDB Channel 2 Delay B High Register
-PDBCH2DLYBL         equ       $0035,1             ;PDB Channel 2 Delay B Low Register
+PDBSC               equ       $20,2               ;PDB Status and Control Register
+PDBSCH              equ       $20,1               ;PDB Status and Control High Register
+PDBSCL              equ       $21,1               ;PDB Status and Control Low Register
+PDBMOD              equ       $22,2               ;PDB Counter Modulus Register
+PDBMODH             equ       $22,1               ;PDB Counter Modulus High Register
+PDBMODL             equ       $23,1               ;PDB Counter Modulus Low Register
+PDBCNT              equ       $24,2               ;PDB Counter Value Register
+PDBCNTH             equ       $24,1               ;PDB Counter Value High Register
+PDBCNTL             equ       $25,1               ;PDB Counter Value Low Register
+PDBIDLY             equ       $26,2               ;PDB Interrupt Delay Register
+PDBIDLYH            equ       $26,1               ;PDB Interrupt Delay High Register
+PDBIDLYL            equ       $27,1               ;PDB Interrupt Delay Low Register
+PDBCH1CR            equ       $28,2               ;PDB Channel 1 Control Register
+PDBCH1CRH           equ       $28,1               ;PDB Channel 1 Control High Register
+PDBCH1CRL           equ       $29,1               ;PDB Channel 1 Control Low Register
+PDBCH1DLYA          equ       $2A,2               ;PDB Channel 1 Delay A Register
+PDBCH1DLYAH         equ       $2A,1               ;PDB Channel 1 Delay A High Register
+PDBCH1DLYAL         equ       $2B,1               ;PDB Channel 1 Delay A Low Register
+PDBCH1DLYB          equ       $2C,2               ;PDB Channel 1 Delay B Register
+PDBCH1DLYBH         equ       $2C,1               ;PDB Channel 1 Delay B High Register
+PDBCH1DLYBL         equ       $2D,1               ;PDB Channel 1 Delay B Low Register
+PDBCH2CR            equ       $30,2               ;PDB Channel 2 Control Register
+PDBCH2CRH           equ       $30,1               ;PDB Channel 2 Control High Register
+PDBCH2CRL           equ       $31,1               ;PDB Channel 2 Control Low Register
+PDBCH2DLYA          equ       $32,2               ;PDB Channel 2 Delay A Register
+PDBCH2DLYAH         equ       $32,1               ;PDB Channel 2 Delay A High Register
+PDBCH2DLYAL         equ       $33,1               ;PDB Channel 2 Delay A Low Register
+PDBCH2DLYB          equ       $34,2               ;PDB Channel 2 Delay B Register
+PDBCH2DLYBH         equ       $34,1               ;PDB Channel 2 Delay B High Register
+PDBCH2DLYBL         equ       $35,1               ;PDB Channel 2 Delay B Low Register
 
                     @bitnum   PDBSCH_PRESCALER0,5 ;Clock Prescaler Select, bit 0
                     @bitnum   PDBSCH_PRESCALER1,6 ;Clock Prescaler Select, bit 1
@@ -176,25 +176,25 @@ PDBCH2DLYBL         equ       $0035,1             ;PDB Channel 2 Delay B Low Reg
                     @bitnum   PDBCH2CRL_AOS0,4    ;Channel 2 Trigger A Output Select, bit 0
                     @bitnum   PDBCH2CRL_AOS1,5    ;Channel 2 Trigger A Output Select, bit 1
           ;-------------------------------------- ;MMU related
-PPAGE               equ       $0038,1             ;Program Page Register
-LAP2                equ       $0039,1             ;Linear Address Pointer Register 2
-LAP1                equ       $003A,1             ;Linear Address Pointer Register 1
-LAP0                equ       $003B,1             ;Linear Address Pointer Register 0
-LWP                 equ       $003C,1             ;Linear Word Post Increment Register
-LBP                 equ       $003D,1             ;Linear Byte Post Increment Register
-LB                  equ       $003E,1             ;Linear Byte Register
-LAPAB               equ       $003F,1             ;Linear Address Pointer Add Byte Register
+PPAGE               equ       $38,1               ;Program Page Register
+LAP2                equ       $39,1               ;Linear Address Pointer Register 2
+LAP1                equ       $3A,1               ;Linear Address Pointer Register 1
+LAP0                equ       $3B,1               ;Linear Address Pointer Register 0
+LWP                 equ       $3C,1               ;Linear Word Post Increment Register
+LBP                 equ       $3D,1               ;Linear Byte Post Increment Register
+LB                  equ       $3E,1               ;Linear Byte Register
+LAPAB               equ       $3F,1               ;Linear Address Pointer Add Byte Register
           ;--------------------------------------
-ADC0SC1A            equ       $0040,1             ;Status and Control Register 1A
-ADC0SC1B            equ       $0041,1             ;Status and Control Register 1B
-ADC0CFG1            equ       $0042,1             ;Configuration Register 1
-ADC0CFG2            equ       $0043,1              ;Configuration Register 2
-ADC0RA              equ       $0044,2             ;Data Result Register A
-ADC0RHA             equ       $0044,1             ;Data Result High Register A
-ADC0RLA             equ       $0045,1             ;Data Result Low Register A
-ADC0RB              equ       $0046,2             ;Data Result Register B
-ADC0RHB             equ       $0046,1             ;Data Result High Register B
-ADC0RLB             equ       $0047,1             ;Data Result Low Register B
+ADC0SC1A            equ       $40,1               ;Status and Control Register 1A
+ADC0SC1B            equ       $41,1               ;Status and Control Register 1B
+ADC0CFG1            equ       $42,1               ;Configuration Register 1
+ADC0CFG2            equ       $43,1               ;Configuration Register 2
+ADC0RA              equ       $44,2               ;Data Result Register A
+ADC0RHA             equ       $44,1               ;Data Result High Register A
+ADC0RLA             equ       $45,1               ;Data Result Low Register A
+ADC0RB              equ       $46,2               ;Data Result Register B
+ADC0RHB             equ       $46,1               ;Data Result High Register B
+ADC0RLB             equ       $47,1               ;Data Result Low Register B
 
                     @bitnum   ADCH0,0             ;Input Channel Select Bit 0
                     @bitnum   ADCH1,1             ;Input Channel Select Bit 1
@@ -221,23 +221,23 @@ ADC0RLB             equ       $0047,1             ;Data Result Low Register B
 
 ;-------------------------------------------------------------------------------
 
-SPI0C1              equ       $0048,1             ;SPI0 Control Register 1
-SPI0C2              equ       $0049,1             ;SPI0 Control Register 2
-SPI0BR              equ       $004A,1             ;SPI0 Baud Rate Register
-SPI0S               equ       $004B,1             ;SPI0 Status Register
-SPI0D               equ       $004D,1             ;SPI0 Data Register
+SPI0C1              equ       $48,1               ;SPI0 Control Register 1
+SPI0C2              equ       $49,1               ;SPI0 Control Register 2
+SPI0BR              equ       $4A,1               ;SPI0 Baud Rate Register
+SPI0S               equ       $4B,1               ;SPI0 Status Register
+SPI0D               equ       $4D,1               ;SPI0 Data Register
 
-SPI1C1              equ       $0050,1             ;SPI1 Control Register 1
-SPI1C2              equ       $0051,1             ;SPI1 Control Register 2
-SPI1BR              equ       $0052,1             ;SPI1 Baud Rate Register
-SPI1S               equ       $0053,1             ;SPI1 Status Register
-SPI1D               equ       $0055,1             ;SPI1 Data Register
+SPI1C1              equ       $50,1               ;SPI1 Control Register 1
+SPI1C2              equ       $51,1               ;SPI1 Control Register 2
+SPI1BR              equ       $52,1               ;SPI1 Baud Rate Register
+SPI1S               equ       $53,1               ;SPI1 Status Register
+SPI1D               equ       $55,1               ;SPI1 Data Register
 
-SPI2C1              equ       $0058,1             ;SPI2 Control Register 1
-SPI2C2              equ       $0059,1             ;SPI2 Control Register 2
-SPI2BR              equ       $005A,1             ;SPI2 Baud Rate Register
-SPI2S               equ       $005B,1             ;SPI2 Status Register
-SPI2D               equ       $005D,1             ;SPI2 Data Register
+SPI2C1              equ       $58,1               ;SPI2 Control Register 1
+SPI2C2              equ       $59,1               ;SPI2 Control Register 2
+SPI2BR              equ       $5A,1               ;SPI2 Baud Rate Register
+SPI2S               equ       $5B,1               ;SPI2 Status Register
+SPI2D               equ       $5D,1               ;SPI2 Data Register
 
                     @bitnum   SPI_LSBFE,0         ;LSB First (Shifter Direction)
                     @bitnum   SPI_SSOE,1          ;Slave Select Output Enable
@@ -259,36 +259,36 @@ SPI2D               equ       $005D,1             ;SPI2 Data Register
 
 ;-------------------------------------------------------------------------------
 
-PCNT_STATUS         equ       $0060,2             ;PCounter Status Register
-PCNT_STATUS_H       equ       $0060,1             ;PCounter Status Register High
-PCNT_STATUS_L       equ       $0061,1             ;PCounter Status Register Low
-PCNT_CTRL           equ       $0062,2             ;PCounter Control Register
-PCNT_CTRL_H         equ       $0062,1             ;PCounter Control Register High
-PCNT_CTRL_L         equ       $0063,1             ;PCounter Control Register Low
-PCNT_FCMOD          equ       $0064,2             ;PCounter Forward Counter Modulus Register
-PCNT_FCMOD_H        equ       $0064,1             ;PCounter Forward Counter Modulus Register High
-PCNT_FCMOD_L        equ       $0065,1             ;PCounter Forward Counter Modulus Register Low
-PCNT_FCNTR          equ       $0066,2             ;PCounter Forward Counter Register
-PCNT_FCNTR_H        equ       $0066,1             ;PCounter Forward Counter Register High
-PCNT_FCNTR_L        equ       $0067,1             ;PCounter Forward Counter Register Low
-PCNT_RCMOD          equ       $0068,2             ;PCounter Reverse Counter Modulus Register
-PCNT_RCMOD_H        equ       $0068,1             ;PCounter Reverse Counter Modulus Register High
-PCNT_RCMOD_L        equ       $0069,1             ;PCounter Reverse Counter Modulus Register Low
-PCNT_RCNTR          equ       $006A,2             ;PCounter Reverse Counter Register
-PCNT_RCNTR_H        equ       $006A,1             ;PCounter Reverse Counter Register High
-PCNT_RCNTR_L        equ       $006B,1             ;PCounter Reverse Counter Register Low
-PCNT_PWM_MOD        equ       $006C,2             ;PCounter PWM Modulus Register
-PCNT_PWM_MOD_H      equ       $006C,1             ;PCounter PWM Modulus Register High
-PCNT_PWM_MOD_L      equ       $006D,1             ;PCounter PWM Modulus Register Low
-PCNT_PWM_CH0_VAL    equ       $006E,2             ;PCounter PWM Channel 0 Value Register
-PCNT_PWM_CH0_H_VAL  equ       $006E,1             ;PCounter PWM Channel 0 Value Register High
-PCNT_PWM_CH0_L_VAL  equ       $006F,1             ;PCounter PWM Channel 0 Value Register Low
-PCNT_PWM_CH1_VAL    equ       $0070,2             ;PCounter PWM Channel 1 Value Register
-PCNT_PWM_CH1_H_VAL  equ       $0070,1             ;PCounter PWM Channel 1 Value Register High
-PCNT_PWM_CH1_L_VAL  equ       $0071,1             ;PCounter PWM Channel 1 Value Register Low
-PCNT_STATE          equ       $0072,2             ;PCounter Status Register
-PCNT_STATE_H        equ       $0072,1             ;PCounter Status Register High
-PCNT_STATE_L        equ       $0073,1             ;PCounter Status Register Low
+PCNT_STATUS         equ       $60,2               ;PCounter Status Register
+PCNT_STATUS_H       equ       $60,1               ;PCounter Status Register High
+PCNT_STATUS_L       equ       $61,1               ;PCounter Status Register Low
+PCNT_CTRL           equ       $62,2               ;PCounter Control Register
+PCNT_CTRL_H         equ       $62,1               ;PCounter Control Register High
+PCNT_CTRL_L         equ       $63,1               ;PCounter Control Register Low
+PCNT_FCMOD          equ       $64,2               ;PCounter Forward Counter Modulus Register
+PCNT_FCMOD_H        equ       $64,1               ;PCounter Forward Counter Modulus Register High
+PCNT_FCMOD_L        equ       $65,1               ;PCounter Forward Counter Modulus Register Low
+PCNT_FCNTR          equ       $66,2               ;PCounter Forward Counter Register
+PCNT_FCNTR_H        equ       $66,1               ;PCounter Forward Counter Register High
+PCNT_FCNTR_L        equ       $67,1               ;PCounter Forward Counter Register Low
+PCNT_RCMOD          equ       $68,2               ;PCounter Reverse Counter Modulus Register
+PCNT_RCMOD_H        equ       $68,1               ;PCounter Reverse Counter Modulus Register High
+PCNT_RCMOD_L        equ       $69,1               ;PCounter Reverse Counter Modulus Register Low
+PCNT_RCNTR          equ       $6A,2               ;PCounter Reverse Counter Register
+PCNT_RCNTR_H        equ       $6A,1               ;PCounter Reverse Counter Register High
+PCNT_RCNTR_L        equ       $6B,1               ;PCounter Reverse Counter Register Low
+PCNT_PWM_MOD        equ       $6C,2               ;PCounter PWM Modulus Register
+PCNT_PWM_MOD_H      equ       $6C,1               ;PCounter PWM Modulus Register High
+PCNT_PWM_MOD_L      equ       $6D,1               ;PCounter PWM Modulus Register Low
+PCNT_PWM_CH0_VAL    equ       $6E,2               ;PCounter PWM Channel 0 Value Register
+PCNT_PWM_CH0_H_VAL  equ       $6E,1               ;PCounter PWM Channel 0 Value Register High
+PCNT_PWM_CH0_L_VAL  equ       $6F,1               ;PCounter PWM Channel 0 Value Register Low
+PCNT_PWM_CH1_VAL    equ       $70,2               ;PCounter PWM Channel 1 Value Register
+PCNT_PWM_CH1_H_VAL  equ       $70,1               ;PCounter PWM Channel 1 Value Register High
+PCNT_PWM_CH1_L_VAL  equ       $71,1               ;PCounter PWM Channel 1 Value Register Low
+PCNT_STATE          equ       $72,2               ;PCounter Status Register
+PCNT_STATE_H        equ       $72,1               ;PCounter Status Register High
+PCNT_STATE_L        equ       $73,1               ;PCounter Status Register Low
 
                     @bitnum   CURR_INV,0          ;Current state of the state machine when a state invalid event occurs, bit 0
                     @bitnum   PSTATE_INV,4        ;Sensor input pin state when a state invalid event occurs, bit 0
@@ -315,19 +315,19 @@ PCNT_STATE_L        equ       $0073,1             ;PCounter Status Register Low
 
 ;-------------------------------------------------------------------------------
 
-KBISC               equ       $0074,1             ;KBI Status and Control Register
+KBISC               equ       $74,1               ;KBI Status and Control Register
 
                     @bitnum   KBIMOD,0            ;Keyboard Detection Mode
                     @bitnum   KBIE,1              ;Keyboard Interrupt Enable
                     @bitnum   KBACK,2             ;Keyboard Interrupt Acknowledge
                     @bitnum   KBF,3               ;Keyboard Interrupt Flag
 
-KBIPE               equ       $0075,1             ;KBI Pin Enable Register
-KBIES               equ       $0076,1             ;KBI Edge Select Register
+KBIPE               equ       $75,1               ;KBI Pin Enable Register
+KBIES               equ       $76,1               ;KBI Edge Select Register
 
 ;-------------------------------------------------------------------------------
 
-IRQSC               equ       $0077,1             ;Interrupt request status and control register
+IRQSC               equ       $77,1               ;Interrupt request status and control register
 
                     @bitnum   IRQMOD,0            ;IRQ Detection Mode
                     @bitnum   IRQIE,1             ;IRQ Interrupt Enable
@@ -339,14 +339,14 @@ IRQSC               equ       $0077,1             ;Interrupt request status and 
 
 ;-------------------------------------------------------------------------------
 
-SCI0BD              equ       $0078,1             ;SCI0 Baud Rate Register
-SCI0BDH             equ       $0078,1             ;SCI0 Baud Rate Register High
+SCI0BD              equ       $78,1               ;SCI0 Baud Rate Register
+SCI0BDH             equ       $78,1               ;SCI0 Baud Rate Register High
 
                     @bitnum   RXEDGIE,6           ;RxD Input Active Edge Interrupt Enable (for RXEDGIF)
                     @bitnum   LBKDIE,7            ;LIN Break Detect Interrupt Enable (for LBKDIF)
 
-SCI0BDL             equ       $0079,1             ;SCI0 Baud Rate Register Low
-SCI0C1              equ       $007A,1             ;SCI0 Control Register 1
+SCI0BDL             equ       $79,1               ;SCI0 Baud Rate Register Low
+SCI0C1              equ       $7A,1               ;SCI0 Control Register 1
 
 SCI0C1_PT           equ       0                   ;Parity Type
 SCI0C1_PE           equ       1                   ;Parity Enable
@@ -357,7 +357,7 @@ SCI0C1_RSRC         equ       5                   ;Receiver Source Select
 SCI0C1_SCISWAI      equ       6                   ;SCI Stops in Wait Mode
 SCI0C1_LOOPS        equ       7                   ;Loop Mode Select
 
-SCI0C2              equ       $007B,1             ;SCI0 Control Register 2
+SCI0C2              equ       $7B,1               ;SCI0 Control Register 2
 
 SCI0C2_SBK          equ       0                   ;Send Break
 SCI0C2_RWU          equ       1                   ;Receiver Wakeup Control
@@ -368,7 +368,7 @@ SCI0C2_RIE          equ       5                   ;Receiver Interrupt Enable (fo
 SCI0C2_TCIE         equ       6                   ;Transmission Complete Interrupt Enable (for TC)
 SCI0C2_TIE          equ       7                   ;Transmit Interrupt Enable (for TDRE)
 
-SCI0S1              equ       $007C,1             ;SCI0 Status Register 1
+SCI0S1              equ       $7C,1               ;SCI0 Status Register 1
 
 SCI0S1_PF           equ       0                   ;Parity Error Flag
 SCI0S1_FE           equ       1                   ;Framing Error Flag
@@ -379,7 +379,7 @@ SCI0S1_RDRF         equ       5                   ;Receive Data Register Full Fl
 SCI0S1_TC           equ       6                   ;Transmission Complete Flag
 SCI0S1_TDRE         equ       7                   ;Transmit Data Register Empty Flag
 
-SCI0S2              equ       $007D,1             ;SCI0 Status Register 2
+SCI0S2              equ       $7D,1               ;SCI0 Status Register 2
 
 SCI0S2_RAF          equ       0                   ;Receiver Active Flag
 SCI0S2_LBKDE        equ       1                   ;LIN Break Detection Enable
@@ -389,7 +389,7 @@ SCI0S2_RXINV        equ       4                   ;Receive Data Inversion
 SCI0S2_RXEDGIF      equ       6                   ;RxD Pin Active Edge Interrupt Flag
 SCI0S2_LBKDIF       equ       7                   ;LIN Break Detect Interrupt Flag
 
-SCI0C3              equ       $007E,1             ;SCI0 Control Register 3
+SCI0C3              equ       $7E,1               ;SCI0 Control Register 3
 
 SCI0C3_PEIE         equ       0                   ;Parity Error Interrupt Enable
 SCI0C3_FEIE         equ       1                   ;Framing Error Interrupt Enable
@@ -400,17 +400,17 @@ SCI0C3_TXDIR        equ       5                   ;TxD Pin Direction in Single-W
 SCI0C3_T8           equ       6                   ;Ninth Data Bit for Transmitter
 SCI0C3_R8           equ       7                   ;Ninth Data Bit for Receiver
 
-SCI0D               equ       $007F,1             ;SCI0 Data Register
+SCI0D               equ       $7F,1               ;SCI0 Data Register
 
 ;-------------------------------------------------------------------------------
 
-ADC1SC1A            equ       $0080,1             ;Status and Control Register 1A
+ADC1SC1A            equ       $80,1               ;Status and Control Register 1A
 
 ADC1SC1A_DIFFA      equ       5                   ;Differential Mode Enable - DIFFA configures the ADC to operate in differential mode
 ADC1SC1A_AIENA      equ       6                   ;Interrupt Enable - AIENA enables conversion complete interrupts. When COCOA becomes set while the respective AIENA
 ADC1SC1A_COCOA      equ       7                   ;Conversion Complete Flag
 
-ADC1SC1B            equ       $0081,1             ;Status and Control Register 1B
+ADC1SC1B            equ       $81,1               ;Status and Control Register 1B
 
 ADC1SC1B_ADCHB0     equ       0                   ;Input Channel Select Bit 0
 ADC1SC1B_ADCHB1     equ       1                   ;Input Channel Select Bit 1
@@ -421,7 +421,7 @@ ADC1SC1B_DIFFB      equ       5                   ;Differential Mode Enable - DI
 ADC1SC1B_AIENB      equ       6                   ;Interrupt Enable - AIENB enables conversion complete interrupts. When COCOB becomes set while the respective AIENB
 ADC1SC1B_COCOB      equ       7                   ;Conversion Complete Flag
 
-ADC1CFG1            equ       $0082,1             ;Configuration Register 1
+ADC1CFG1            equ       $82,1               ;Configuration Register 1
 
 ADC1CFG1_ADICLK0    equ       0                   ;Input Clock Select Bit 0
 ADC1CFG1_ADICLK1    equ       1                   ;Input Clock Select Bit 1
@@ -432,27 +432,27 @@ ADC1CFG1_ADIV0      equ       5                   ;Clock Divide Select Bit 0
 ADC1CFG1_ADIV1      equ       6                   ;Clock Divide Select Bit 1
 ADC1CFG1_ADLPC      equ       7                   ;Low Power Configuration
 
-ADC1CFG2            equ       $0083,1             ;Configuration Register 2
+ADC1CFG2            equ       $83,1               ;Configuration Register 2
 
 ADC1CFG2_ADLSTS0    equ       0                   ;Long Sample Time Select Bit 0
 ADC1CFG2_ADLSTS1    equ       1                   ;Long Sample Time Select Bit 1
 ADC1CFG2_ADHSC      equ       2                   ;High Speed Configuration
 ADC1CFG2_ADACKEN    equ       3                   ;Asynchronous Clock Output Enable
 
-ADC1RA              equ       $0084,2             ;Data Result Register A
-ADC1RHA             equ       $0084,1             ;Data Result High Register A
-ADC1RLA             equ       $0085,1             ;Data Result Low Register A
+ADC1RA              equ       $84,2               ;Data Result Register A
+ADC1RHA             equ       $84,1               ;Data Result High Register A
+ADC1RLA             equ       $85,1               ;Data Result Low Register A
 
-ADC1RB              equ       $0086,2             ;Data Result Register B
-ADC1RHB             equ       $0086,1             ;Data Result High Register B
-ADC1RLB             equ       $0087,1             ;Data Result Low Register B
+ADC1RB              equ       $86,2               ;Data Result Register B
+ADC1RHB             equ       $86,1               ;Data Result High Register B
+ADC1RLB             equ       $87,1               ;Data Result Low Register B
 
 ;-------------------------------------------------------------------------------
 
-SCI1BD              equ       $0088,2             ;SCI1 Baud Rate Register
-SCI1BDH             equ       $0088,1             ;SCI1 Baud Rate Register High
-SCI1BDL             equ       $0089,1             ;SCI1 Baud Rate Register Low
-SCI1C1              equ       $008A,1             ;SCI1 Control Register 1
+SCI1BD              equ       $88,2               ;SCI1 Baud Rate Register
+SCI1BDH             equ       $88,1               ;SCI1 Baud Rate Register High
+SCI1BDL             equ       $89,1               ;SCI1 Baud Rate Register Low
+SCI1C1              equ       $8A,1               ;SCI1 Control Register 1
 
 SCI1C1_PT           equ       0                   ;Parity Type
 SCI1C1_PE           equ       1                   ;Parity Enable
@@ -463,7 +463,7 @@ SCI1C1_RSRC         equ       5                   ;Receiver Source Select
 SCI1C1_SCISWAI      equ       6                   ;SCI Stops in Wait Mode
 SCI1C1_LOOPS        equ       7                   ;Loop Mode Select
 
-SCI1C2              equ       $008B,1             ;SCI1 Control Register 2
+SCI1C2              equ       $8B,1               ;SCI1 Control Register 2
 
 SCI1C2_SBK          equ       0                   ;Send Break
 SCI1C2_RWU          equ       1                   ;Receiver Wakeup Control
@@ -474,7 +474,7 @@ SCI1C2_RIE          equ       5                   ;Receiver Interrupt Enable (fo
 SCI1C2_TCIE         equ       6                   ;Transmission Complete Interrupt Enable (for TC)
 SCI1C2_TIE          equ       7                   ;Transmit Interrupt Enable (for TDRE)
 
-SCI1S1              equ       $008C,1             ;SCI1 Status Register 1
+SCI1S1              equ       $8C,1               ;SCI1 Status Register 1
 
 SCI1S1_PF           equ       0                   ;Parity Error Flag
 SCI1S1_FE           equ       1                   ;Framing Error Flag
@@ -485,7 +485,7 @@ SCI1S1_RDRF         equ       5                   ;Receive Data Register Full Fl
 SCI1S1_TC           equ       6                   ;Transmission Complete Flag
 SCI1S1_TDRE         equ       7                   ;Transmit Data Register Empty Flag
 
-SCI1S2              equ       $008D,1             ;SCI1 Status Register 2
+SCI1S2              equ       $8D,1               ;SCI1 Status Register 2
 
 SCI1S2_RAF          equ       0                   ;Receiver Active Flag
 SCI1S2_LBKDE        equ       1                   ;LIN Break Detection Enable
@@ -495,7 +495,7 @@ SCI1S2_RXINV        equ       4                   ;Receive Data Inversion
 SCI1S2_RXEDGIF      equ       6                   ;RxD Pin Active Edge Interrupt Flag
 SCI1S2_LBKDIF       equ       7                   ;LIN Break Detect Interrupt Flag
 
-SCI1C3              equ       $008E,1             ;SCI1 Control Register 3
+SCI1C3              equ       $8E,1               ;SCI1 Control Register 3
 
 SCI1C3_PEIE         equ       0                   ;Parity Error Interrupt Enable
 SCI1C3_FEIE         equ       1                   ;Framing Error Interrupt Enable
@@ -506,13 +506,13 @@ SCI1C3_TXDIR        equ       5                   ;TxD Pin Direction in Single-W
 SCI1C3_T8           equ       6                   ;Ninth Data Bit for Transmitter
 SCI1C3_R8           equ       7                   ;Ninth Data Bit for Receiver
 
-SCI1D               equ       $008F,1             ;SCI1 Data Register
+SCI1D               equ       $8F,1               ;SCI1 Data Register
 
 ;-------------------------------------------------------------------------------
 
-IICA1               equ       $0090,2             ;IIC Address Register
-IICA                equ       $0090,1             ;IIC Address Register
-IICF                equ       $0091,1             ;IIC Frequency Divider Register
+IICA1               equ       $90,2               ;IIC Address Register
+IICA                equ       $90,1               ;IIC Address Register
+IICF                equ       $91,1               ;IIC Frequency Divider Register
 
 IICF_ICR0           equ       0                   ;IIC Clock Rate Bit 0
 IICF_ICR1           equ       1                   ;IIC Clock Rate Bit 1
@@ -523,7 +523,7 @@ IICF_ICR5           equ       5                   ;IIC Clock Rate Bit 5
 IICF_MULT0          equ       6                   ;Multiplier Factor Bit 0
 IICF_MULT1          equ       7                   ;Multiplier Factor Bit 1
 
-IICC1               equ       $0092,1             ;IIC Control Register 1
+IICC1               equ       $92,1               ;IIC Control Register 1
 
 IICC1_WUEN          equ       1                   ;Wake-up Enable
 IICC1_RSTA          equ       2                   ;Repeat START
@@ -533,7 +533,7 @@ IICC1_MST           equ       5                   ;Master Mode Select
 IICC1_IICIE         equ       6                   ;IIC Interrupt Enable
 IICC1_IICEN         equ       7                   ;IIC Enable
 
-IICC                equ       $0092,1             ;IIC Control Register
+IICC                equ       $92,1               ;IIC Control Register
 
 IICC_WUEN           equ       1                   ;Wake-up Enable
 IICC_RSTA           equ       2                   ;Repeat START
@@ -543,7 +543,7 @@ IICC_MST            equ       5                   ;Master Mode Select
 IICC_IICIE          equ       6                   ;IIC Interrupt Enable
 IICC_IICEN          equ       7                   ;IIC Enable
 
-IICS                equ       $0093,1             ;IIC Status Register
+IICS                equ       $93,1               ;IIC Status Register
 
 IICS_RXAK           equ       0                   ;Receive Acknowledge
 IICS_IICIF          equ       1                   ;IIC Interrupt Flag
@@ -553,8 +553,8 @@ IICS_BUSY           equ       5                   ;Bus Busy
 IICS_IAAS           equ       6                   ;Addressed as a Slave
 IICS_TCF            equ       7                   ;Transfer Complete Flag
 
-IICD                equ       $0094,1             ;IIC Data I/O Register
-IICC2               equ       $0095,1             ;IIC Control Register 2
+IICD                equ       $94,1               ;IIC Data I/O Register
+IICC2               equ       $95,1               ;IIC Control Register 2
 
 IICC2_AD8           equ       0                   ;Slave Address Bit 8
 IICC2_AD9           equ       1                   ;Slave Address Bit 9
@@ -562,8 +562,8 @@ IICC2_AD10          equ       2                   ;Slave Address Bit 10
 IICC2_ADEXT         equ       6                   ;Address Extension
 IICC2_GCAEN         equ       7                   ;General Call Address Enable
 
-IICFLT              equ       $0096,1             ;IIC Filter register
-IICSMB              equ       $0097,1             ;SMBus Control and Status Register
+IICFLT              equ       $96,1               ;IIC Filter register
+IICSMB              equ       $97,1               ;SMBus Control and Status Register
 
 IICSMB_SHTF2IE      equ       0                   ;SHTF2 Interrupt Enable
 IICSMB_SHTF2        equ       1                   ;SCL High Timeout Flag 2
@@ -574,28 +574,28 @@ IICSMB_SIICAEN      equ       5                   ;Second IIC Address Enable
 IICSMB_ALERTEN      equ       6                   ;SMBus Alert Response Address Enable
 IICSMB_FACK         equ       7                   ;Fast NACK/ACK enable
 
-IICA2               equ       $0098,1             ;IIC Address Register 2
-IICSLT              equ       $0099,2             ;IIC SCL Low Time Out register
-IICSLTH             equ       $0099,1             ;IIC SCL Low Time Out register - High byte
-IICSLTL             equ       $009A,1             ;IIC SCL Low Time Out register - Low byte
+IICA2               equ       $98,1               ;IIC Address Register 2
+IICSLT              equ       $99,2               ;IIC SCL Low Time Out register
+IICSLTH             equ       $99,1               ;IIC SCL Low Time Out register - High byte
+IICSLTL             equ       $9A,1               ;IIC SCL Low Time Out register - Low byte
 
 ;-------------------------------------------------------------------------------
 
-FTMSC               equ       $00A0,1             ;FTM Status and Control Register
-FTMCNT              equ       $00A1,2             ;FTM Timer Counter Register
-FTMCNTH             equ       $00A1,1             ;FTM Timer Counter Register High
-FTMCNTL             equ       $00A2,1             ;FTM Timer Counter Register Low
-FTMMOD              equ       $00A3,2             ;FTM Timer Counter Modulo Register
-FTMMODH             equ       $00A3,1             ;FTM Timer Counter Modulo Register High
-FTMMODL             equ       $00A4,1             ;FTM Timer Counter Modulo Register Low
-FTMC0SC             equ       $00A5,1             ;FTM Timer Channel 0 Status and Control Register
-FTMC0V              equ       $00A6,2             ;FTM Timer Channel 0 Value Register
-FTMC0VH             equ       $00A6,1             ;FTM Timer Channel 0 Value Register High
-FTMC0VL             equ       $00A7,1             ;FTM Timer Channel 0 Value Register Low
-FTMC1SC             equ       $00A8,1             ;FTM Timer Channel 1 Status and Control Register
-FTMC1V              equ       $00A9,2             ;FTM Timer Channel 1 Value Register
-FTMC1VH             equ       $00A9,1             ;FTM Timer Channel 1 Value Register High
-FTMC1VL             equ       $00AA,1             ;FTM Timer Channel 1 Value Register Low
+FTMSC               equ       $A0,1               ;FTM Status and Control Register
+FTMCNT              equ       $A1,2               ;FTM Timer Counter Register
+FTMCNTH             equ       $A1,1               ;FTM Timer Counter Register High
+FTMCNTL             equ       $A2,1               ;FTM Timer Counter Register Low
+FTMMOD              equ       $A3,2               ;FTM Timer Counter Modulo Register
+FTMMODH             equ       $A3,1               ;FTM Timer Counter Modulo Register High
+FTMMODL             equ       $A4,1               ;FTM Timer Counter Modulo Register Low
+FTMC0SC             equ       $A5,1               ;FTM Timer Channel 0 Status and Control Register
+FTMC0V              equ       $A6,2               ;FTM Timer Channel 0 Value Register
+FTMC0VH             equ       $A6,1               ;FTM Timer Channel 0 Value Register High
+FTMC0VL             equ       $A7,1               ;FTM Timer Channel 0 Value Register Low
+FTMC1SC             equ       $A8,1               ;FTM Timer Channel 1 Status and Control Register
+FTMC1V              equ       $A9,2               ;FTM Timer Channel 1 Value Register
+FTMC1VH             equ       $A9,1               ;FTM Timer Channel 1 Value Register High
+FTMC1VL             equ       $AA,1               ;FTM Timer Channel 1 Value Register Low
 
                     @bitnum   PS0,0               ;Prescale Divisor Select Bit 0
                     @bitnum   PS1,1               ;Prescale Divisor Select Bit 1
@@ -615,19 +615,19 @@ FTMC1VL             equ       $00AA,1             ;FTM Timer Channel 1 Value Reg
 
 ;-------------------------------------------------------------------------------
 
-CRCDH               equ       $00B0,2             ;CRC Data High Register (Word)
-CRCDH1              equ       $00B0,1             ;CRC Data High 1 (Upper Byte)
-CRCDH0              equ       $00B1,1             ;CRC Data High 0 (Lower Byte)
-CRCDL               equ       $00B2,2             ;CRC Data Low Register (Word)
-CRCDL1              equ       $00B2,1             ;CRC Data Low 1 (Upper Byte)
-CRCDL0              equ       $00B3,1             ;CRC Data Low 0 (Lower Byte)
-CRCPH               equ       $00B4,2             ;CRC Polynomial High (Word)
-CRCPH1              equ       $00B4,1             ;CRC Polynomial High Word Upper Byte
-CRCPH0              equ       $00B5,1             ;CRC Polynomial High Word Lower Byte
-CRCPL               equ       $00B6,2             ;CRC Polynomial Low (Word)
-CRCPL1              equ       $00B6,1             ;CRC Polynomial Low 1 (Upper Byte)
-CRCPL0              equ       $00B7,1             ;CRC Polynomial Low 0 (Lower Byte)
-CRCCTL              equ       $00B8,1             ;CRC Control Register
+CRCDH               equ       $B0,2               ;CRC Data High Register (Word)
+CRCDH1              equ       $B0,1               ;CRC Data High 1 (Upper Byte)
+CRCDH0              equ       $B1,1               ;CRC Data High 0 (Lower Byte)
+CRCDL               equ       $B2,2               ;CRC Data Low Register (Word)
+CRCDL1              equ       $B2,1               ;CRC Data Low 1 (Upper Byte)
+CRCDL0              equ       $B3,1               ;CRC Data Low 0 (Lower Byte)
+CRCPH               equ       $B4,2               ;CRC Polynomial High (Word)
+CRCPH1              equ       $B4,1               ;CRC Polynomial High Word Upper Byte
+CRCPH0              equ       $B5,1               ;CRC Polynomial High Word Lower Byte
+CRCPL               equ       $B6,2               ;CRC Polynomial Low (Word)
+CRCPL1              equ       $B6,1               ;CRC Polynomial Low 1 (Upper Byte)
+CRCPL0              equ       $B7,1               ;CRC Polynomial Low 0 (Lower Byte)
+CRCCTL              equ       $B8,1               ;CRC Control Register
 
                     @bitnum   CRCCTL_CRCW,0       ;Width of CRC protocol
                     @bitnum   CRCCTL_SEED,1       ;Write to the CRC Data Registers is a SEED
@@ -1882,8 +1882,8 @@ XROM_END            equ       $17FF
 
                     @?                            ;calculate NVPROT_MASK value
 
-RAM                 equ       $00C0               ;start of RAM
-RAM_END             equ       $00FF               ;last zero-page RAM location
+RAM                 equ       $C0                 ;start of RAM
+RAM_END             equ       $FF                 ;last zero-page RAM location
 
 XRAM                equ       $0100
 XRAM_END            equ       $107F               ;last RAM location
@@ -2006,7 +2006,7 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
           #ifdef CRC_LOCATION
                     #MEMORY   CRC_LOCATION CRC_LOCATION+1
           #endif

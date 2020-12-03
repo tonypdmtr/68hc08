@@ -701,8 +701,8 @@ ROM_END             def       $FFAD               ;end of all flash (before NV r
 ROM_END             set       BOOTROM-1
 #endif
 
-RAM                 equ       $0060               ;start of 512 byte RAM
-RAM_END             equ       $00FF               ;last zero-page RAM location
+RAM                 equ       $60                 ;start of 512 byte RAM
+RAM_END             equ       $FF                 ;last zero-page RAM location
 
 XRAM                equ       $0100
 XRAM_END            equ       $015F               ;last RAM location
@@ -771,7 +771,7 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
           #ifdef CRC_LOCATION
                     #MEMORY   CRC_LOCATION CRC_LOCATION+1
           #endif
