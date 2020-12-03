@@ -672,7 +672,7 @@ Source File Pseudo-Opcodes (Pseudo-Instructions)
 | Pseudo-Op                  | Description|
 |:---------------------------|:------------------------------------------------|
 |`[label] ALIGN expr`        |*Case 1*. If no label is present, it aligns the current location counter to be a multiple of the given expression.<br>*Case 2*. If a label is present it aligns the value of that label to be a multiple of the given expression.  (In this case, however, it does nothing to the current location counter.)  It issues an error if the label is not already defined.<br>**COMPATIBILITY ISSUE WITH VERSIONS PRIOR TO 8.30:**<br>Prior to version 8.30, the optional label would be assigned the current location counter value after the alignment.  The label could not be defined earlier, or you would get an error.<br>With v8.30 and later, you get an error if the label is not already defined by the time ALIGN is reached because the new behavior requires a previous definition so it can align the existing value of the label.   This makes it easy to catch all incompatible ALIGN statements written for the previous version(s).  If you get an error, simply move the label after the ALIGN statement.
-|`DB string|expr[,...]`      |Define Byte(s). expr may be a constant numeric, a label reference, an expression, or a string. DB encodes a single byte in the object file at the current location counter for each expr encountered (using the LSB of the result) or one byte for each character in strings.
+|`DB string¦expr[,...]`      |Define Byte(s). expr may be a constant numeric, a label reference, an expression, or a string. DB encodes a single byte in the object file at the current location counter for each expr encountered (using the LSB of the result) or one byte for each character in strings.
 |`DS blocksize`              |Define Storage. The assembler's location counter is incremented by blocksize. Forward references not allowed. No code is generated.
 |`DW expr[,...]`             |Define Word(s). expr may be a constant numeric, a label or an expression. expr is always interpreted as a word (16-bit) quantity, and is stored in the object file at the current location counter, high byte followed by low byte.
 |`END [expr]`                |Provided for compatibility. The END directive cannot be used to terminate assembly; ASM8 always processes the source file to the end of file. If expr is specified, the word result of the final END directive is encoded in the S9 record of the object file.<br><br>If the expr specified is 24-bit (bits 23-16, collectively, are non-zero), which is possible only when the MMU option is enabled, the 24-bit result is encoded in the S8 record of the object file (no S9 record is produced in that case).
@@ -681,9 +681,9 @@ Source File Pseudo-Opcodes (Pseudo-Instructions)
 |`label EQU expr[,size]`     |Assigns the value of expr to label. _See also_ `EXP` and `SET`
 |`label EXP expr[,size]`     |Assigns the value of expr to label. This is similar to `EQU` but with the following difference: Labels defined thus will be included in the .EXP file as regular SETs. This effectively allows exporting symbols for use from other source files. It makes it possible to give only object code to others along with the produced .EXP file so that they can 'link' the object to their source.
 |`FAR expr[,...]`            |Define 24-bit word(s) when the MMU is enabled. expr may be a constant numeric, a label or an expression. expr is always interpreted as a 24-bit quantity, and is stored in the object file at the current location counter in big-endian order.<br>If, however, the MMU option is disabled, `FAR` is treated as `DW`.
-|`FCB string|expr[,...]`     |Form Constant Byte(s). Same as DB.
-|`FCC string|expr[,...]`     |Form Constant Character(s). Same as DB.
-|`FCS string|expr[,...]`     |Form Constant String. Similar to FCC, but automatically appends a terminating null (0) byte to the end of the string defined (for ASCIZ strings). If an empty string is given, only the ASCIZ terminator is inserted.
+|`FCB string¦expr[,...]`     |Form Constant Byte(s). Same as DB.
+|`FCC string¦expr[,...]`     |Form Constant Character(s). Same as DB.
+|`FCS string¦expr[,...]`     |Form Constant String. Similar to FCC, but automatically appends a terminating null (0) byte to the end of the string defined (for ASCIZ strings). If an empty string is given, only the ASCIZ terminator is inserted.
 |`FDB expr[,...]`            |Form Double Byte(s). Same as DW.
 |`LONG expr[,...]`           |Form 32-bit long word(s). expr may be a constant numeric, a label or an expression. expr is always interpreted as a 32-bit quantity, and is stored in the object file at the current location counter in big-endian order.
 |`MacroName MACRO comments`  |`MACRO` begins the definition of a new macro.
@@ -2232,7 +2232,7 @@ Expression Operators and Other Special Characters<br>
 |`<=`    |'Less than or equal' comparison for the `#IF` directive.
 |`<`     |Shift left - operand to the left is shifted left by the count to the right.<br><br>Also used to specify direct addressing mode.<br><br>'Less than' comparison for the `#IF` directive.
 |`&`     |Bitwise AND
-|`|`     |Bitwise OR
+|`¦`     |Bitwise OR
 |`^`     |Bitwise XOR (exclusive OR)
 |`~`     |Swap high and low bytes (unary): `~$1234 = $3412`<br><br>Useful for converting word constants from big endian to little endian, or the inverse.
 |`[[`    |Extract low 16 bits (unary): `[[$123456 = $3456`
