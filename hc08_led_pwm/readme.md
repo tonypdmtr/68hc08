@@ -17,154 +17,152 @@ see this [HC08-led-brightness-control-pwm-method/](https://xiaolaba.wordpress.co
 ### source code in asm
 
 ```
-****************************************************************
-*     Two dimming LEDs driver                        *
-******************************************************
-* Internal fosc=12.8MHz,
-* TIMER time T(decimal)=50*T(ms)
-* Pulse Width increment/decrement=6,i.e 6/50=0.12ms
-
-$nolist
-;$include 'Fr908qt2.asm' ;frame file for 908QT2
-
-; modified by xiaolaba, fit for QT2 / QT4
+;*******************************************************************************
+; Two dimming LEDs driver
+;*******************************************************************************
+; Internal fosc=12.8MHz,
+; TIMER time T(decimal)=50*T(ms)
+; Pulse Width increment/decrement=6,i.e 6/50=0.12ms
+                    #NoList
+;                   #Include  Fr908qt2.asm        ;frame file for 908QT2
+;
+; Modified by xiaolaba, fit for QT2 / QT4
 ; 2012-06-29
-; -------------------
-RAM     equ     $80
-ROM     equ     $EE00
-prtA    equ     $0
-pA0.    equ     $1
-pA1.    equ     $2
-TOF     equ     7
+;*******************************************************************************
 
-CONFIG2 EQU $001E
-CONFIG1 EQU $001F
+RAM                 equ       $80
+ROM                 equ       $EE00
 
-PORTA   EQU $0000
-PORTB   EQU $0001
-DDRA    EQU $0004
-DDRB    EQU $0005
-PTAPUE  EQU $000B
-PTBPUE  EQU $000C
+PORTA               equ       $0000
+DDRA                equ       $0004
 
-TSC     EQU $0020
-TCNTH   EQU $0021
-TCNTL   EQU $0022
-TMODH   EQU $0023
-TMODL   EQU $0024
-TSC0    EQU $0025
-TCH0H   EQU $0026
-TCH0L   EQU $0027
-TSC1    EQU $0028
-TCH1H   EQU $0029
-TCH1L   EQU $002A
+pA0.                equ       1
+pA1.                equ       2
+TOF.                equ       7
 
-OSCSTAT EQU $0036
-OSCTRIM EQU $0038
-; -------------------
+CONFIG1             equ       $001F
+TSC                 equ       $0020
+TMODH               equ       $0023
+TSC0                equ       $0025
+TCH0H               equ       $0026
+TCH0L               equ       $0027
+TSC1                equ       $0028
+TCH1H               equ       $0029
+TCH1L               equ       $002A
 
-$list
-*I/O
+;-------------------------------------------------------------------------------
+; I/O
+;-------------------------------------------------------------------------------
+; pA0 output PWM to LED1
+; pA1 output PWM to LED2
+; pA2 input ON/OFF Control: ON(1),OFF(0)
 
-*pA0 output PWM to LED1
-*pA1 output PWM to LED2
-*pA2 input ON/OFF Control: ON(1),OFF(0)
+;-------------------------------------------------------------------------------
+; CONSTANTS
+;-------------------------------------------------------------------------------
 
-* CONSTANTS
-PERIOD_PWM  EQU $320 ;period PWM=16ms (16*50=800=$320)
+PERIOD_PWM          equ       $320                ; period PWM=16ms (16*50=800=$320)
 
-*VARIABLES
-  ORG RAM
-Tcnt        RMB 1    ;Ramp time counter
-cnt01s      RMB 1    ;delay counter
+;*******************************************************************************
+                    #RAM
+;*******************************************************************************
+                    org       RAM
 
-*INITIALIZATION
-  ORG ROM
-init:
-  RSP                ;reset Stack Pointer = $FF
-  MOV   #$01,CONFIG1 ;COP disabled
-  CLRH               ;clear H:X
-  CLRX
-  CLRA
-  clr   Tcnt        ;
+tcnt                rmb       1                   ; Ramp time counter
+cnt01s              rmb       1                   ; delay counter
 
-  MOV   #$03,Tch1H      ;set Initial pwLED2=6x128=800=$0300
-  clr   Tch1L
+;*******************************************************************************
+                    #ROM
+;*******************************************************************************
+                    org       ROM
 
-  clr   Tch0H           ;set Initial pwLED1=0
-  clr   Tch0L
+Start               proc
+                    rsp                           ; reset Stack Pointer = $FF
+                    mov       #$01,CONFIG1        ; COP disabled
+                    clrhx                         ; clear HX
+                    clra
+                    clr       tcnt
 
-  clr   cnt01s
+                    mov       #$03,TCH1H          ; set Initial pwLED2=6x128=800=$0300
+                    clr       TCH1L
 
-  MOV   #255T,Tcnt      ;set Initial Tcnt (to be 0 after INC)
-  CLR   prtA            ;
-  MOV   #pA0.+pA1.,DDRA ;set I/O prtA
+                    clr       TCH0H               ; set Initial pwLED1=0
+                    clr       TCH0L
 
-  LDHX  #PERIOD_PWM     ;PWM PERIOD save to TmodH
-  STHX  TmodH
+                    clr       cnt01s
 
-  MOV   #%00010110,TSC  ;clear and start TIMER,prescaler:64
+                    mov       #255,tcnt           ; set Initial tcnt (to be 0 after INC)
+                    clr       PORTA
+                    mov       #pA0.+pA1.,DDRA     ; set I/O PORTA
 
-.page
-MAIN:
-;  brset 2,prtA,m4    ;start working only when pA2=1
-;  CLR   TSC0
-;  CLR   TSC1
-;  BRA   MAIN
-m4:
-  BRCLR TOF,TSC,*    ;wait for the end of PERIOD_PWM, loop here
-  BCLR  TOF,TSC      ;TOF reset
-  INC   Tcnt         ;set the next time step
-  LDA   Tcnt         ;is the time overpassed the ramp 1
-m1:
-  CMP   #128T        ;duration?
-  BHS   m3
-***************************************
-  tst   Tcnt         ;Tcnt=0?
-  bne   ramp1        ;If not, go to ramp1
-  jsr   dly          ;If yes, go to delay
-ramp1:
-  LDHX  Tch0H        ;increment pwLED1
-  AIX   #6T
-  STHX  Tch0H
-  LDHX  Tch1H        ;decrement pwLED2
-  AIX   #-6T
-  STHX  Tch1H
-  BRA   m2
-****************************************
-m3:
-  bne   ramp2        ;Tcnt=128? If not,go to ramp2
-  jsr   dly          ;          If yes,go to delay
-ramp2:
-  LDHX  Tch1H        ;increment pwLED2
-  AIX   #6T
-  STHX  Tch1H
-  LDHX  Tch0H        ;decrement pwLED1
-  AIX   #-6T
-  STHX  Tch0H
-****************************************
-m2:
-  MOV   #%00011010,TSC0 ;start Tch0H on pA0
-  MOV   #%00011010,TSC1 ;start Tch1H on pA1
-  JMP   MAIN
-**************************************************************
-dly:
-  LDA   #30T          ;delay 3sec
-lp0:
-  JSR   dly01s
-  DBNZA lp0
-  rts
-**************************************************************
-dly01s:
-  LDX   #250T         ;delay0.1sec
-loop:
-  DBNZ  cnt01s,loop
-  DBNZX loop
-  rts
-**************************************************************
-  ORG $FFFE  ; Vector reset
-  FDB init   ; Set start address
+                    ldhx      #PERIOD_PWM         ; PWM PERIOD save to TMODH
+                    sthx      TMODH
 
+                    mov       #%00010110,TSC      ; clear and start TIMER,prescaler:64
+;                   bra       MainLoop
+
+;*******************************************************************************
+
+MainLoop            proc
+;                   brset     2,PORTA,_1@@        ; start working only when pA2=1
+;                   clr       TSC0
+;                   clr       TSC1
+;                   bra       MainLoop
+
+_1@@                brclr     TOF.,TSC,*          ; wait for the end of PERIOD_PWM, loop here
+                    bclr      TOF.,TSC            ; TOF reset
+                    inc       tcnt                ; set the next time step
+                    lda       tcnt                ; is the time overpassed the ramp 1
+                    cmpa      #128                ; duration?
+                    bhs       _3@@
+          ;--------------------------------------
+                    tst       tcnt                ; tcnt=0?
+                    bne       _4@@                ; If not, go to _4@@
+                    bsr       dly                 ; If yes, go to delay
+
+_4@@                ldhx      TCH0H               ; increment pwLED1
+                    aix       #6
+                    sthx      TCH0H
+                    ldhx      TCH1H               ; decrement pwLED2
+                    aix       #-6
+                    sthx      TCH1H
+                    bra       _2@@
+          ;--------------------------------------
+_3@@                bne       ramp2               ; tcnt=128? If not,go to ramp2
+                    bsr       dly                 ; If yes,go to delay
+ramp2
+                    ldhx      TCH1H               ; increment pwLED2
+                    aix       #6
+                    sthx      TCH1H
+                    ldhx      TCH0H               ; decrement pwLED1
+                    aix       #-6
+                    sthx      TCH0H
+          ;--------------------------------------
+_2@@                mov       #%00011010,TSC0     ; start TCH0H on pA0
+                    mov       #%00011010,TSC1     ; start TCH1H on pA1
+                    bra       MainLoop
+
+;*******************************************************************************
+
+dly                 proc
+                    lda       #30                 ; delay 3sec
+Loop@@              bsr       dly01s
+                    dbnza     Loop@@
+                    rts
+
+;*******************************************************************************
+
+dly01s              proc
+                    ldx       #250                ; delay0.1sec
+Loop@@              dbnz      cnt01s,*
+                    dbnzx     Loop@@
+                    rts
+
+;*******************************************************************************
+                    #VECTORS
+;*******************************************************************************
+                    org       $FFFE               ; Vector reset
+                    fdb       Start               ; Set start address
 ```
 
 
