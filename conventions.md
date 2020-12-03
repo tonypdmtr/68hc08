@@ -6,7 +6,7 @@ The following are general coding conventions which older code may not yet follow
 * End of line spaces are removed (automatically by the editor or a separate utility as required).
 * End-of-line is Linux style (LF) even under Windows.
 * Labels begin in column 1.
-* Instructions and non-conditional directives begin in column 21.
+* Non-conditional directives begin in column 21.
 * Conditional directives outside a code block begin in column 1.
 * Conditional directives inside a code block begin in column 11.
 * Each nested conditional directive is indented by 2 spaces.
