@@ -12,6 +12,8 @@
 ;
 ; Output: Weekday in A (0=Sunday, 1=Monday, ..., 6=Saturday)
 ;*******************************************************************************
+; Tony's note: This originally 3rd party code appears to be buggy
+;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
                     #ListOff
@@ -39,17 +41,18 @@ March@@             eor       #$7F                ; Invert A so carry works righ
                     pulh
                     psha      tmp@@
                     tha                           ; Get the year
-                    bsr       Mod7@@              ; Do a modulo to prevent overflow
-                    sbc       tmp@@,sp            ; Combine with day+month
-                    sta       tmp@@,sp
-                    tha                           ; Get the year again
+                    call      Mod7@@              ; Do a modulo to prevent overflow
+                    pshh
+                    tsx
+                    sbc       tmp@@,spx           ; Combine with day+month
+                    sta       tmp@@,spx
+                    pula                          ; Get the year again
                     lsra:2                        ; Divide it by 4
-                    clc                           ; Add it to y+m+d and fall through
-                    adc       tmp@@,sp
+                    add       tmp@@,spx           ; Add it to y+m+d and fall through
                     ais       #:ais
 Mod7@@              adc       #7                  ; Returns (A+3) modulo 7
                     bcc       Mod7@@              ; for A in 0..255
-                    rts
+                    rtc
 
 Months@@            fcb       1,5,6,3,1,5,3,0,4,2,6,4  ; Month offsets
 
@@ -60,9 +63,9 @@ Months@@            fcb       1,5,6,3,1,5,3,0,4,2,6,4  ; Month offsets
                     #spauto
 
 Start               proc
-                    ldhx      #{:year-1900}<8|{:month}
-                    lda       #{:date}
-                    bsr       GetWeekday
+                    ldhx      #:year-1900<8|:month
+                    lda       #:date
+                    call      GetWeekday
                     bra       *
 
                     @vector   Vreset,Start
