@@ -54,11 +54,11 @@ Busy?@@             @cop                          ;reset COP
 
 NVM_Read8           proc
                     ldhx      #8
-Loop@@              psha
-                    lda       EEPROM-1,x
+                    psha
+Loop@@              lda       EEPROM-1,x
                     sta       buffer-1,x
-                    pula
                     dbnzx     Loop@@
+                    pula
                     rts
 
 ;*******************************************************************************
