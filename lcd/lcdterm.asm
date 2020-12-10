@@ -20,7 +20,7 @@
 ;*******************************************************************************
 
 ;*******************************************************************************
-; VT100 Kommandos
+; VT100 Commands
 ;
 ; Reset Device          <ESC>c                       ok
 ; Cursor Home           <ESC>[H                      ok
@@ -34,759 +34,582 @@
 ; Erase Screen          <ESC>[2J                     ok
 ;*******************************************************************************
 
-                    #Uses     qt4.inc
+                    #Uses     qy4.inc
 
-;*** SYSTEM DEFINITIONS AND EQUATES ********************************************
-
-;**** Equates to setup alternate vectors **********************************
-; actual vectors will pass control to these locations.
-; user code would include jump instructions at these locations that
-; jump to the user's interrupt service routines, for example
-;                   org       AltADC                                               *
-;                   jmp       ADCisr                                               *
-;                   jmp       KBDisr                                               *
 ;*******************************************************************************
-
-AltADC              equ       $FDEB               ; Alternate ADC interrupt vector
-AltKBD              equ       $FDEE               ; '     KBD wakeup ' '
-AltTOF              equ       $FDF1               ; '     TOF        ' '
-AltTCH1             equ       $FDF4               ; '     Timer Ch.1 ' '
-AltTCH0             equ       $FDF7               ; '     Timer Ch.0 ' '
-AltIRQ              equ       $FDFA               ; '     IRQ        ' '
-AltRESET            equ       $FDFD               ; '     RESET      ' '
+; SYSTEM DEFINITIONS AND EQUATES
+;*******************************************************************************
 
 TRIMLOC             equ       $FFC0               ; nonvolatile trim value (flash)
 InitConfig1         equ       %01001001           ; Config Register1
-GetByte             equ       $2D6b               ; ROM routine Getbyte auf PTA0
-
-;*** Application Specific Definitions ******************************************
-
+GetByte             equ       $2D6b               ; ROM routine getbyte on PTA0
+          ;-------------------------------------- ; Application Specific Definitions
 LCD_CTRL            equ       $00                 ; PORTA
 LCD_DATA            equ       $01                 ; PORTB
 E                   equ       4                   ; PORTA, bit 4
 RS                  equ       5                   ; PORTA, bit 5
-ESC                 def       $01B                ; Escape Character
-
-;*** SCI Definitionen **********************************************************
-
+ESC                 def       $1B                 ; Escape Character
+          ;-------------------------------------- ; SCI definitions
 PTA                 equ       $0000
 PTA0                equ       0                   ; bit #0 for PTA0
-
-;*** LCD Kommandos *************************************************************
-
-CLRDISP             equ       %00000001           ; Display L?schen
+          ;-------------------------------------- ; LCD commands
+CLRDISP             equ       %00000001           ; Clear display
 CURHOME             equ       %00000010           ; Cursor Home
-ENTMODI             equ       %00000111           ; Character Entry Mode mit Inkrement
-ENTMODD             equ       %00000101           ; Character Entry Mode mit Dekrement
+ENTMODI             equ       %00000111           ; Character entry mode with increment
+ENTMODD             equ       %00000101           ; Character entry mode with decrement
 ENTMODO             equ       %00000100           ; Character Entry Moode Off
 DSPON               equ       %00001100           ; Diplay On
-DSPOFF              equ       %00001000           ; Display Off
-CURON               equ       %00001111           ; Cursor Underline blinking on
+DSPOFF              equ       %00001000           ; Display off
+CURON               equ       %00001111           ; Cursor underline blinking on
 CUROFF              equ       %00001100           ; Cursor off
 SETRAMADR           equ       %01000000           ; Set Ram Adress
-SETDSPADR           equ       %10000000           ; Set Display Adress
-FUNCSET             equ       %00111000           ; Function Set 8 Bit 5*7 Pixel
+SETDSPADR           equ       %10000000           ; Set display address
+FUNCSET             equ       %00111000           ; Function set 8 bit 5 * 7 pixels
+          ;-------------------------------------- ; LCD addresses
+ROW1ADR             equ       $80                 ; Start address line 1
+ROW2ADR             equ       $C0                 ; Start address line 2
 
-;*** LCD Adressen **************************************************************
+;*******************************************************************************
+                    #RAM
+;*******************************************************************************
 
-row1adr             equ       $80                 ; Startadresse Zeile 1
-row2adr             equ       $C0                 ; Startadresse Zeile 2
+time                rmb       1                   ; used in delay routine
+zeichen             rmb       1                   ; current character
+row                 rmb       1                   ; row
+col                 rmb       1                   ; column
+inptr               rmb       1                   ; position in the receive buffer for reception
+outptr              rmb       1                   ; position in the receive buffer for output
+data                rmb       32                  ; Receive data buffer 32 bytes
+screen              rmb       32                  ; Memory image of the display 2 lines of 16 bytes each
+parm1               rmb       1                   ; Parameters for VT commands
+parm2               rmb       1
 
-;*** Memory Definitions ********************************************************
+;*******************************************************************************
+                    #ROM
+;*******************************************************************************
 
-ROM                 def       $EE00               ; start of Flash mem
-RAM                 def       $80                 ; start of RAM mem
+;*******************************************************************************
+; Main routine
+;*******************************************************************************
 
-MSG_STORAGE         equ       $FA00               ; start of message block
-
-;*** RAM VARIABLEN *************************************************************
-
-                    org       RAM
-
-TIME                ds        1                   ; in delay routine benutzt
-zeichen             ds        1                   ; aktuelles Zeichen
-row                 ds        1                   ; Zeile
-col                 ds        1                   ; spalte
-inptr               ds        1                   ; position im Empfangspuffer f?r empfang
-outptr              ds        1                   ; position im empfangspuffer f?r ausgabe
-data                ds        32                  ; Empfangsdaten puffer 32 Byte
-screen              ds        32                  ; Speicherabbild der Anzeige 2 Zeilen a 16 Byte
-parm1               ds        1                   ; Parameter f?r VT Kommandos
-parm2               ds        1
-
-;***      71 Byte Ram used
-
-;*** MAIN ROUTINE **************************************************************
-
-                    org       ROM                 ; start am annfang des FLASH ROMs
-
-                    lda       InitConfig1         ; Configregister Schreiben
+Start               proc
+                    lda       InitConfig1         ; Write config register
                     sta       CONFIG1
-                    lda       TRIMLOC             ; Oszillator trim value laden
-                    sta       OSCTRIM             ; und setzen
+                    lda       TRIMLOC             ; Load oscillator trim value
+                    sta       OSCTRIM             ; and put
 
-;*** Initialize ram ************************************************************
-
-                    jsr       raminit
-
-;*** Initialize Ports **********************************************************
-
-START               bclr      E,LCD_CTRL          ; clear LCD_CTRL
+                    jsr       RamInit             ; Initialize ram
+          ;-------------------------------------- ; Initialize ports
+                    bclr      E,LCD_CTRL          ; clear LCD_CTRL
                     bclr      RS,LCD_CTRL
                     clr       LCD_DATA            ; clear LCD_DATA
                     lda       #$FF                ; make ports outputs
                     sta       DDRB                ; PortB output
-                    bset      E,DDRA              ; PORTA Pins als outputs
+                    bset      E,DDRA              ; PORTA Pins as outputs
                     bset      RS,DDRA
-
-;*** Initialisiere Keyboard int auf PTA0 **********************************
-
-                    sei                           ; erstmal Interuppts verbieten
-                    mov       #%00000100,KBSCR    ; Pending ints l?schen Ints zulassen fallenden flanke
-                    mov       #%00000001,KBIER    ; PTA0 Interrupt zulassen
-
-;*** LCD Initialisieren ***************************************************
-
+          ;-------------------------------------- ; Initialize keyboard int on PTA0
+                    sei                           ; first prohibit interuppts
+                    mov       #%00000100,KBSCR    ; Pending ints delete ints allow falling edge
+                    mov       #%00000001,KBIER    ; Allow PTA0 interrupt
+          ;-------------------------------------- ; Initialize LCD
                     bsr       LCD_init
+          ;-------------------------------------- ; further initializations
 
-;*** weitere Initialisierungen ********************************************
-
-                    lda       #$80                ; Adresse Beginn Zeile 1
+                    lda       #$80                ; Address start of line 1
                     jsr       LCD_ADDR            ; send addr to LCD
-                    clr       row                 ; und Cursorposituion wegschreiben
+                    clr       row                 ; and write out cursor position
                     clr       col
 ;                   lda       #$80
 ;                   jsr       LCD_ADDR
-                    cli                           ; von jetzt an Interrupts zulassen
+                    cli                           ; allow interrupts from now on
+          ;-------------------------------------- ; Actual processing begins
+MainLoop@@          jsr       GetChar             ; Fetch characters
+                    cmpa      #$20
+                    blo       Ctrl@@              ; <$ 20 is control character
 
-;*** Beginn der eigentlichen Verarbeitung *********************************
-loop
-                    jsr       getchar             ; Zeichen holen
-                    cmp       #$20
-                    blo       loop3               ; < $20 ist steuerzeichen
-
-loop1
                     sta       zeichen
-                    jsr       LCD_WRITE           ; Zeichen ausgeben
+                    jsr       LCD_WRITE           ; Output characters
                     lda       row
                     nsa
                     add       col
                     tax
                     lda       zeichen
                     sta       screen,x
-                    inc       col                 ; Spalte hochz?hlen
-                    lda       col                 ; Letzte Spalte ?
-                    cmp       #$10
-                    bne       loop                ; nein dann n?chstes Zeichen
-                    lda       row                 ; zweite Zeile ?
-                    bne       loop2               ; ja dann nur auf Anfang setezen
-                    inc       row                 ; Zeilenz?hler erh?hen
-loop2
-                    lda       #row2adr            ; Startadresse 2te Zeile laden
-                    jsr       LCD_ADDR            ; Adresse setzen
-                    clr       col                 ; Spalte auf 0 setzen
-                    bra       loop                ; und von vorne
+                    inc       col                 ; Count up the column
+                    lda       col                 ; Last column ?
+                    cmpa      #$10
+                    bne       MainLoop@@          ; no then the next sign
+                    lda       row                 ; 2nd line?
+                    bne       BeginLine@@         ; yes, then get only the beginning
+                    inc       row                 ; Increase line counter
 
-loop3
-                    cmp       #ESC                ; ESC dann Kommando
-                    bne       loop4               ; andere erstmal nicht
-                    clr       parm1               ; parameter initialisieren
+BeginLine@@         lda       #ROW2ADR            ; Load start address 2nd line
+                    jsr       LCD_ADDR            ; Set address
+                    clr       col                 ; Set column to 0
+                    bra       MainLoop@@          ; and from the front
+
+Ctrl@@              cmpa      #ESC                ; ESC then command
+                    bne       Cont@@              ; others not at first
+                    clr       parm1               ; initialize parameters
                     clr       parm2
                     jsr       vt_command
-; andere steuerzeichen erstmal ignorieren
-loop4
-                    bra       loop                ; und von vorne los
-
-DUMMY               bra       DUMMY               ; Hier soll es eigentlich nie hingehen
-
-;*******************************************************************************
-;  unterprogramme
-;*******************************************************************************
+          ;--------------------------------------
+          ; ignore other control characters first
+          ;--------------------------------------
+Cont@@              bra       MainLoop@@          ; and start all over again
 
 ;*******************************************************************************
-; VAR_DELAY
-;
-; Wartet TIME mal 100 us
-; bei 3,2 MHz internener Busfrequenz 320 Takte
-;
+;  subroutines
 ;*******************************************************************************
 
-VAR_DELAY           lda       #33                 ; 2
+;*******************************************************************************
+; Wait 100 us for TIME
+; at 3.2 MHz internal bus frequency 320 cycles
 
-VAR_DEL1
-                    deca                          ; 1
-                    nop                           ; 1
-                    nop                           ; 1
-                    nop                           ; 1
-                    nop                           ; 1
-                    nop                           ; 1 =6 Takte
-                    nop
-                    nop
-
-                    bne       VAR_DEL1            ; 9 * 33 Takte = 297 Takte + 2 = 299 Takte
-
-                    dec       TIME                ; 4 = 303 Zakte
-
-                    brn       VAR_DEL1            ; 3 = 306
-                    brn       VAR_DEL1            ; 3 = 309
-                    brn       VAR_DEL1            ; 3 = 312
-                    nop                           ; 1 = 313
-                    nop                           ; 1 = 314
-                    bne       VAR_DEL1            ; 3 = 317
+VAR_DELAY           proc
+                    lda       #33                 ; 2
+Loop@@              deca                          ; 1
+                    nop:7
+                    bne       Loop@@              ; 9 * 33 Takte = 297 Takte + 2 = 299 Takte
+                    dec       time                ; 4 = 303 Zakte
+                    brn:3     *                   ; 9 = 312
+                    nop:2                         ; 2 = 314
+                    bne       Loop@@              ; 3 = 317
                     rts                           ; 4
 
 ;*******************************************************************************
-; LCD Routinen
+; LCD Routines
 ;*******************************************************************************
 
 ;*******************************************************************************
-; LCD_init
-;
-; Initialisiert das Display
-;
-;*******************************************************************************
+; Initialize the display
 
-LCD_init
-
-;*** 15ms warten
-
+LCD_init            proc
+          ;-------------------------------------- ; with 15ms delay
                     bclr      RS,LCD_CTRL         ; LCD auf Instruction setzen
                     lda       #150
-                    sta       TIME                ; set delay time
+                    sta       time                ; set delay time
                     bsr       VAR_DELAY           ; sub for 0.1ms delay
-
-;*** Send Init Command
-
+          ;-------------------------------------- ; send init command
                     lda       #FUNCSET            ; LCD init command
                     sta       LCD_DATA
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
-
-;*** Warten 4.1ms
-
+          ;-------------------------------------- ; 4.1ms delay
                     lda       #41
-                    sta       TIME                ; set delay time
+                    sta       time                ; set delay time
                     bsr       VAR_DELAY           ; sub for 0.1ms delay
-
-;*** Send Init Command
-
+          ;-------------------------------------- ; send init command (2nd time)
                     lda       #FUNCSET            ; LCD init command
                     sta       LCD_DATA
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
-
-;*** 100us warten
-
+          ;-------------------------------------- ; 100us delay
                     lda       #1
-                    sta       TIME                ; set delay time
+                    sta       time                ; set delay time
                     bsr       VAR_DELAY           ; sub for 0.1ms delay
-
-;*** Send Init Command
-
+          ;-------------------------------------- ; send init command
                     lda       #FUNCSET            ; LCD init command
                     jsr       LCD_WRITE           ; write data to LCD
-
-;*** Send Function Set Command
-;*** 8 bit bus, 2 rows, 5x7 dots
-
+          ;--------------------------------------
+          ; send function set command
+          ; 8 bit bus, 2 rows, 5x7 dots
+          ;--------------------------------------
                     lda       #FUNCSET            ; function set command
                     jsr       LCD_WRITE           ; write data to LCD
-
-;*** Send Display Ctrl Command
-
-;*** display on, cursor off, no blinking
-
+          ;--------------------------------------
+          ; send display ctrl command
+          ; display on, cursor off, no blinking
+          ;--------------------------------------
                     lda       #DSPON              ; display ctrl command
                     jsr       LCD_WRITE           ; write data to LCD
-
-;*** Send Clear Display Command
-
-;*** clear display, cursor addr=0
-
+          ;--------------------------------------
+          ; send clear display command
+          ; clear display, cursor addr=0
+          ;--------------------------------------
                     bsr       LCD_clear
-
-;*** Send Entry Mode Command
-
-;*** increment, no display shift
-
+          ;--------------------------------------
+          ; send entry mode command
+          ; increment, no display shift
+          ;--------------------------------------
                     lda       #$06                ; entry mode command
                     jsr       LCD_ADDR            ; write data to LCD
-
-;*** SEND MESSAGES
-
-;*** Set the address, send data
-
-                    jsr       MESSAGE1            ; send Message1
-                    jsr       MESSAGE2            ; send Message2
-                    rts
+          ;--------------------------------------
+          ; send messages
+          ; set the address, send data
+          ;--------------------------------------
+                    jsr       Message1            ; send Message1
+                    jmp       Message2            ; send Message2
 
 ;*******************************************************************************
-; LCD_clear
-;
-; L?scht das LCD
-;
-;*******************************************************************************
+; Clear the LCD
 
-LCD_clear
+LCD_clear           proc
                     lda       #CLRDISP            ; clear display command
                     jsr       LCD_ADDR            ; write data to LCD
                     lda       #16
-                    sta       TIME                ; set delay time for 1.6ms
+                    sta       time                ; set delay time for 1.6ms
                     bsr       VAR_DELAY           ; sub for 0.1ms delay
-                    ldx       #0
+                    clrx
                     lda       #' '
-LCD_clear1
-                    sta       screen,x            ; und den screen buffer
+Loop@@              sta       screen,x            ; and the screen buffer
                     incx
-                    cpx       #$20                ; mit leerzeichen f?llen
-                    bne       LCD_clear1
+                    cmpx      #::screen           ; fill with spaces
+                    bne       Loop@@
                     rts
 
 ;*******************************************************************************
-; LCD_home
-;
 ; Cursor Home
-;
-;*******************************************************************************
 
-LCD_home
+LCD_home            proc
                     lda       #CURHOME            ; clear display command
-                    jsr       LCD_ADDR            ; write data to LCD
+                    bsr       LCD_ADDR            ; write data to LCD
                     clr       row                 ; cursor Position merken
                     clr       col
                     lda       #16
-                    sta       TIME                ; set delay time for 1.6ms
-                    bsr       VAR_DELAY           ; sub for 0.1ms delay
-                    rts
+                    sta       time                ; set delay time for 1.6ms
+                    bra       VAR_DELAY           ; sub for 0.1ms delay
 
-;**************************************************************************
-; LCD_scroll                                                             *
-;                                                                        *
-; Einze zeile scrollen                                                   *
-;                                                                        *
-;**************************************************************************
+;*******************************************************************************
+; Scrolls one line
 
-LCD_scroll
-                    clrx                          ; x l?schen
-lcd_scr1
-                    lda       screen+$10,x        ; untere Zeile laden
-                    sta       screen,x            ; in obere speichern
-                    lda       #' '                ; Blanks in untere Zeile schreiben
+LCD_scroll          proc
+                    clrx                          ; x delete
+Loop@@              lda       screen+$10,x        ; load lower line
+                    sta       screen,x            ; in upper store
+                    lda       #' '                ; Write blanks on the bottom line
                     sta       screen+$10,x
                     incx
-                    cpx       #$10
-                    bne       lcd_scr1
-                    bsr       write_scr           ; und ausgeben
-                    lda       #row2adr
+                    cmpx      #$10
+                    bne       Loop@@
+                    bsr       write_scr           ; and spend
+                    lda       #ROW2ADR
                     bsr       LCD_ADDR
-                    mov       #0,col
+                    clr       col
                     rts
 
-;**************************************************************************
-; LCD_clreol                                                             *
-;                                                                        *
-; Bis zum ende der Zeile l?schen                                         *
-;                                                                        *
-;**************************************************************************
+;*******************************************************************************
+; Clear to the end of the line
 
-LCD_clreol
+LCD_clreol          proc
+                    lda       row                 ; Load line counter
+                    bne       _1@@                ; line 1 ?
+                    lda       #ROW1ADR            ; otherwise load address from line 0
+                    bra       _2@@                ; continue
 
-                    lda       row                 ; Zeilenz?hler laden
-                    bne       LCD_clreol1         ; zeile 1 ?
-                    lda       #row1adr            ; sonst adresse von Zeile 0 laden
-                    bra       LCD_clreol2         ; weiter
+_1@@                lda       #ROW2ADR            ; Load address from line 1
 
-LCD_clreol1
-                    lda       #row2adr            ; adresse von Zeile 1 laden
-
-LCD_clreol2
-                    add       col                 ; Spalte aufaddieren
-                    bsr       LCD_ADDR            ; adresse setzen
-                    ldx       col                 ; spaltenposition des cursors laden
+_2@@                add       col                 ; Add up the column
+                    bsr       LCD_ADDR            ; set address
+                    ldx       col                 ; Load the column position of the cursor
                     lda       row
-                    bne       LCD_clreol4         ; zeile 1 dann weiter
-LCD_clreol3
-                    lda       #' '                ; leerzeichen laden
-                    bsr       LCD_WRITE           ; und ausgeben
-                    incx                          ; z?hler eh?hen
-                    cpx       #$10                ; bis zum ende der zeile
-                    bne       LCD_clreol3
-                    lda       #row1adr            ; Adresse Zeile 0 laden
-                    add       col                 ; Spalte addieren
-                    bsr       LCD_ADDR            ; adresse setzen
-                    bra       LCD_clreol5         ; und weiter
+                    bne       Loop2@@             ; line 1 then continue
 
-LCD_clreol4
-                    lda       #' '                ; leerzeichen laden
-                    bsr       LCD_WRITE           ; und ausgeben
-                    incx                          ; z?hler eh?hen
-                    cpx       #$10                ; bis zum ende der zeile
-                    bne       LCD_clreol4
-                    lda       #row2adr            ; Adresse Zeile 1 laden
-                    add       col                 ; Spalte addieren
-                    bsr       LCD_ADDR            ; adresse setzen
+Loop1@@             lda       #' '                ; load spaces
+                    bsr       LCD_WRITE           ; and spend
+                    incx                          ; Increase counter
+                    cmpx      #$10                ; until the end of the line
+                    bne       Loop1@@
 
-LCD_clreol5
+                    lda       #ROW1ADR            ; Load address line 0
+                    add       col                 ; Add column
+                    bsr       LCD_ADDR            ; set address
+                    bra       _5@@                ; and further
 
-                    ldx       col                 ; Zeile Laden
-                    lda       row                 ; spalte in x laden
-                    bne       LCD_clreol7         ; Zeile 1 dann weiter
+Loop2@@             lda       #' '                ; load spaces
+                    bsr       LCD_WRITE           ; and spend
+                    incx                          ; Increase counter
+                    cmpx      #$10                ; until the end of the line
+                    bne       Loop2@@
+                    lda       #ROW2ADR            ; Load address line 1
+                    add       col                 ; Add column
+                    bsr       LCD_ADDR            ; set address
 
-LCD_clreol6
-                    lda       #' '                ; Leerzeichen in akku
-                    sta       screen,x            ; und in screenbuffer schreiben
-                    incx                          ; x erh?hen
-                    cpx       #$10                ; bis zum ende der Zeile
-                    bne       LCD_clreol6
-                    bra       LCD_clreol9         ; und raus
+_5@@                ldx       col                 ; Load line
+                    lda       row                 ; load column in x
+                    bne       _7@@                ; Line 1 then continue
 
-LCD_clreol7
-                    aix       #$10                ; $10 f?r zweite Zeile dazu
-LCD_clreol8
-                    lda       #' '                ; Lerrzeichen in Akku
-                    sta       screen,x            ; Puffer f?llen
-                    incx                          ; z?hler eh?hen
-                    cpx       #$20                ; zeile zuende ?
-                    bne       LCD_clreol8
+Loop3@@             lda       #' '                ; Space in battery
+                    sta       screen,x            ; and write in screenbuffer
+                    incx                          ; x increase
+                    cmpx      #$10                ; to the end of the line
+                    bne       Loop3@@
+                    bra       Done@@              ; and out
 
-LCD_clreol9
+_7@@                aix       #$10                ; $ 10 for the second line
+Loop4@@             lda       #' '                ; Error in battery
+                    sta       screen,x            ; Fill the buffer
+                    incx                          ; Increase counter
+                    cmpx      #::screen           ; end of line?
+                    bne       Loop4@@
 
-                    rts
+Done@@              rts
 
+;*******************************************************************************
+; Write characters in the LCD registers
 
-;**************************************************************************
-; LCD_WRITE                                                              *
-;                                                                        *
-; Schreibt Zeichen im Akku auf das LCD                                   *
-;                                                                        *
-;**************************************************************************
-
-LCD_WRITE
-                    sta       LCD_DATA            ; auf Datenport ausgeben
+LCD_WRITE           proc
+                    sta       LCD_DATA            ; output on data port
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
-                    lda       #30                 ; 2 40us delay f?r LCD
-LCD_W1
-                    deca                          ; 3
-                    bne       LCD_W1              ; 3
+                    lda       #30                 ; 2 40us delay für LCD
+Loop@@              deca                          ; 3
+                    bne       Loop@@              ; 3
                     rts
 
+;*******************************************************************************
+; Sets the LCD address to the value of the registers
 
-
-;**************************************************************************
-; LCD_ADDR                                                               *
-;                                                                        *
-; Setzt die LCD Adresse auf den Wert des Akkus                           *
-;                                                                        *
-;**************************************************************************
-
-LCD_ADDR            bclr      RS,LCD_CTRL         ; LCD in command mode
-                    sta       LCD_DATA            ; auf datenport ausgeben
+LCD_ADDR            proc
+                    bclr      RS,LCD_CTRL         ; LCD in command mode
+                    sta       LCD_DATA            ; output on data port
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
                     lda       #30                 ; 2 40us delay
-LCD_ADDR1
-                    deca                          ; 3
-                    bne       LCD_ADDR1           ; 3
+Loop@@              deca                          ; 3
+                    bne       Loop@@              ; 3
                     bset      RS,LCD_CTRL         ; LCD in data mode
                     rts
 
+;*******************************************************************************
+; Write the contents on the display
 
-
-;**************************************************************************
-; write_scr                                                              *
-;                                                                        *
-; gibt den inhalt von screen auf dem Display aus                         *
-;**************************************************************************
-
-write_scr
-                    lda       #$80                ; addr = $80 Zeile0 Spalte0
-                    bsr       LCD_ADDR            ; sende addr to LCD
-                    clrx
-write_scr1
-                    lda       screen,X            ; zeichen aus puffer laden
-                    bsr       LCD_WRITE           ; write data to LCD
-                    incx
-                    cpx       #$10
-                    bne       write_scr1          ; obere Zeile
-                    lda       #$C0                ; addr = $C0 Zeile1 Spalte0
+write_scr           proc
+                    lda       #$80                ; addr = $ 80 row0 column0
                     bsr       LCD_ADDR            ; send addr to LCD
-write_scr2
-                    lda       screen,X            ; zeichen aus puffer laden
+
+                    clrx
+Loop1@@             lda       screen,x            ; Load characters from buffer
                     bsr       LCD_WRITE           ; write data to LCD
                     incx
-                    cpx       #$20
-                    bne       write_scr2          ; untere Zeile
+                    cmpx      #$10
+                    bne       Loop1@@             ; top line
+
+                    lda       #$C0                ; addr = $ C0 row1 column0
+                    bsr       LCD_ADDR            ; send addr to LCD
+
+Loop2@@             lda       screen,x            ; Load characters from buffer
+                    bsr       LCD_WRITE           ; write data to LCD
+                    incx
+                    cmpx      #::screen
+                    bne       Loop2@@             ; bottom line
                     rts
 
+;*******************************************************************************
+; Message1 and Message2 give you from sport news
 
-
-;**************************************************************************
-; MESSAGE1 und MESSAGE2 geben dir Starnachrichten aus                    *
-;                                                                        *
-;**************************************************************************
-
-MESSAGE1            lda       #$84                ; addr = $04 Zeile1 Spalte4
+Message1            proc
+                    lda       #$84                ; addr = $04 Zeile1 Spalte4
                     bsr       LCD_ADDR            ; send addr to LCD
                     clrx
-L3                  lda       MSG1,X              ; load AccA w/char from msg
-                    beq       OUTMSG1             ; end of msg?
+Loop@@              lda       Msg@@,x             ; load AccA w/char from msg
+                    beq       Done@@              ; end of msg?
                     bsr       LCD_WRITE           ; write data to LCD
                     incx
-                    bra       L3                  ; loop to finish msg
+                    bra       Loop@@              ; loop to finish msg
+Done@@              equ       :AnRTS
 
-OUTMSG1             rts
+Msg@@               fcs       'NITRON'
 
+;*******************************************************************************
 
-
-MESSAGE2            lda       #$C0                ; addr = $C0 Zeile2 Spalte0
+Message2            proc
+                    lda       #$C0                ; addr = $C0 Zeile2 Spalte0
                     bsr       LCD_ADDR            ; send addr to LCD
                     clrx
-L5                  lda       MSG2,X              ; load AccA w/char from msg
-                    beq       OUTMSG2             ; end of msg?
+Loop@@              lda       Msg@@,x             ; load AccA w/char from msg
+                    beq       Done@@              ; end of msg?
                     bsr       LCD_WRITE           ; write data to LCD
                     incx
-                    bra       L5                  ; loop to finish msg
+                    bra       Loop@@              ; loop to finish msg
+Done@@              equ       :AnRTS
 
-OUTMSG2             rts
-
-;**************************************************************************
-; Ende der LCD Routinen                                                  *
-;**************************************************************************
+Msg@@               fcs       'LCD Terminal'
 
 ;**************************************************************************
-; raminit                                                                *
-;                                                                        *
-; initialisiert den Ram Speicher                                         *
-;                                                                        *
+; End of the LCD routines
 ;**************************************************************************
 
-raminit
-                    clr       TIME
-                    clr       row
-                    clr       col
-                    clr       inptr
-                    clr       outptr
-                    clr       parm1
-                    clr       parm2
-                    ldx       #0
-                    lda       #0
-raminit1
-                    sta       data,x
-                    incx
-                    cpx       #$20
-                    bne       raminit1
-                    ldx       #0
+;*******************************************************************************
+; initializes the RAM memory
+
+RamInit             proc
+                    clra
+                    sta       time
+                    sta       row
+                    sta       col
+                    sta       inptr
+                    sta       outptr
+                    sta       parm1
+                    sta       parm2
+                    clrx
+
                     lda       #' '
-raminit2
+Loop@@              clr       data,x
                     sta       screen,x
                     incx
-                    cpx       #$20
-                    bne       raminit2
+                    cmpx      #::screen
+                    bne       Loop@@
                     rts
 
-;**************************************************************************
-; getchar                                                                *
-;                                                                        *
-; holt das n?chste Zeichen aus dem Puffer und gibt es im akku zur?ck     *
-;                                                                        *
-;**************************************************************************
+;*******************************************************************************
+; fetches the next character from the buffer and returns it in the battery
 
-getchar
+GetChar             proc
+                    pshx                          ; x-reg
+Loop@@              ldx       outptr              ; Output pointer in the receive buffer
+                    cmpx      inptr               ; Compare with input pointer
+                    beq       Loop@@              ; both right then there is nothing
+                    lda       data,x              ; otherwise charge in battery
+                    incx                          ; increase index
+                    stx       outptr              ; and save output pointer
+                    cmpx      #::data             ; end of the buffer?
+                    bne       Done@@              ; no then out
+                    clr       outptr              ; otherwise set the pointer to the beginning of the buffer
+Done@@              pulx                          ; Get x-reg back
+                    rts                           ; and back
 
-                    pshx                          ; x-reg sichern
-getch1
-                    ldx       outptr              ; Ausgabezeiger im Empfangspuffer
-                    cpx       inptr               ; Mit eingabezeiger vergleichen
-                    beq       getch1              ; beide gleich dann ist nix da
-                    lda       data,x              ; sonst in akku laden
-                    incx                          ; index erh?hen
-                    stx       outptr              ; und ausgabezeiger speichern
-                    cpx       #20                 ; ende des puffers ?
-                    bne       getchend            ; nein dann raus
-                    clr       outptr              ; sonst zeiger auf Anfang des Puffers setzen
-getchend
-                    pulx                          ; x-reg zur?ckholen
-                    rts                           ; und zur?ck
+;*******************************************************************************
+; Edit VT100 commands
+;
+; (Force cursor position is not implemented)
 
-;**************************************************************************
-; vt_command                                                             *
-;                                                                        *
-; vt100 Kommandos bearbeiten                                             *
-;                                                                        *
-;                                                                        *
-;                                                                        *
-;  force Cursor Position ist noch etwas im argen                         *
-;  m??te dringend ausgelagert werden in eigene subroutine                *
-;  und etwas besser strukturieren                                        *
-;                                                                        *
-;**************************************************************************
+vt_command          proc
+                    bsr       GetChar             ; Get character after ESC
+                    cmpa      #'c'                ; Reset device?
+                    bne       ScrollUp?@@         ; otherwise continue
+                    jsr       LCD_init            ; reset
+                    bsr       RamInit             ; Initialize ram
+                    jsr       LCD_home            ; and set cursor
+                    jmp       Done@@              ; and out
 
-vt_command
-                    bsr       getchar             ; Zeichen nach ESC holen
-                    cmp       #'c'                ; Reset Device ?
-                    bne       vt_comm_1           ; sonst weiter
-                    jsr       LCD_init            ; zur?cksetzen
-                    bsr       raminit             ; Ram initialisieren
-                    jsr       LCD_home            ; und cursor setzen
-                    jmp       vt_comm_end         ; und raus
+ScrollUp?@@         cmpa      #'M'                ; Scroll Up?
+                    bne       _1@@                ; otherwise continue
+                    jsr       LCD_scroll          ; Scroll
+                    jmp       Done@@              ; and out
 
-vt_comm_1
-                    cmp       #'M'                ; Scroll Up ?
-                    bne       vt_comm2            ; sonst weiter
-                    jsr       LCD_scroll          ; Scrollen
-                    jmp       vt_comm_end         ; und raus
-
-vt_comm2
-                    cmp       #'['                ; Alles weitere f?ngt mit eckiger klammer an
-                    bne       vt_err              ; sonst raus weil fehler
-                    bsr       getchar             ; n?chstes Zeichen holen
-                    cmp       #'H'                ; Cursor Home ?
-                    bne       vt_comm3            ; sonst weiter
+_1@@                cmpa      #'['                ; Everything else starts with square brackets
+                    bne       Fail@@              ; otherwise out because of errors
+                    bsr       GetChar             ; Get the next character
+                    cmpa      #'H'                ; Cursor Home?
+                    bne       _2@@                ; otherwise continue
                     jsr       LCD_home            ; Cursor Home
-vt_err              jmp       vt_comm_end         ; und raus
+Fail@@              jmp       Done@@              ; and out
 
-vt_comm3
-                    cmp       #'K'                ; Clear to end of Line
-                    bne       vt_comm4            ; sonst weiter
-                    jsr       LCD_clreol          ; zeile bis zum ende l?schen
-                    jmp       vt_comm_end         ; und raus
+_2@@                cmpa      #'K'                ; Clear to end of line
+                    bne       _3@@                ; otherwise continue
+                    jsr       LCD_clreol          ; delete line to the end
+                    jmp       Done@@              ; and out
 
-vt_comm4
-                    cmp       #'2'                ; hier gibt es mehrere m?glichkeiten
-                    bne       vt_comm6
-                    sta       parm1               ; erstmal speichern, k?nnte parameter sein
-                    bsr       getchar             ; n?chstes Zeichen
-                    cmp       #'K'                ; K ist erase line
-                    bne       vt_comm5            ; sonst weiter probieren
-                    clr       col                 ; spalte auf 0 setzen
-                    jsr       LCD_clreol          ; und bis zum ende der Zeile l?schen
-                    bra       vt_comm_end         ; und raus
+_3@@                cmpa      #'2'                ; there are several possibilities here
+                    bne       _5@@
+                    sta       parm1               ; first save, could be parameters
+                    bsr       GetChar             ; next character
+                    cmpa      #'K'                ; K is erase line
+                    bne       _4@@                ; otherwise keep trying
+                    clr       col                 ; set column to 0
+                    jsr       LCD_clreol          ; and delete to the end of the line
+                    bra       Done@@              ; and out
 
-vt_comm5
-                    cmp       #'J'                ; J ist Clear Screen
-                    bne       vt_comm6            ; sonst weiter testen
+_4@@                cmpa      #'J'                ; J is clear screen
+                    bne       _5@@                ; otherwise continue testing
                     jsr       LCD_clear
-                    bra       vt_comm_end
+                    bra       Done@@
 
-vt_comm6
-                    cmp       #'1'                ; Force Cursor position
-                    bne       vt_comm7            ; hier nur mit Zeile 0 und 1
-                    sub       #30                 ; umwandlung in bin?r
-                    sta       parm1               ; speichern weil noch ein wert kommt
-                    bra       force
+_5@@                cmpa      #'1'                ; Force cursor position
+                    bne       _6@@                ; here only with lines 0 and 1
+                    sub       #30                 ; conversion to binary
+                    sta       parm1               ; save because another value is coming
+                    bra       Force@@
 
-vt_comm7
-                    cmp       #'0'
-                    bne       vt_comm10
-                    sub       #30                 ; umwandlung in bin?r
-                    sta       parm1               ; und speichern
-force
-                    bsr       getchar             ; Zeile gespeichert n?chstes Zeichen
-                    cmp       #';'                ; Trennzeichen
-                    bne       vt_comm10
-                    bsr       getchar             ; n?chstes Zeichen
-                    cmp       #'2'                ; max 16 Zeichen pro Zeile daher erstes Zeichen kleiner 2
-                    bhi       vt_comm8            ; oder kleiner 10
-                    sub       #30                 ; bin?r machen
-                    nsa                           ; mal 16
-                    sta       parm2               ; und speichern
-                    jsr       getchar
-vt_comm8
+_6@@                cmpa      #'0'
+                    bne       _9@@
+                    sub       #'0'                ; convert to binary
+                    sta       parm1               ; and save
 
-                    cmp       #'f'                ; ende erstes Zeichen ist schon spalte
-                    bne       vt_comm9            ; Spalte ist zweistellig
-                    lda       parm2               ; wert wieder durch 16 teilen
+Force@@             bsr       GetChar             ; Line saved next character
+                    cmpa      #';'                ; delimiter
+                    bne       _9@@
+                    bsr       GetChar             ; next character
+                    cmpa      #'2'                ; max 16 characters per line therefore first character less than 2
+                    bhi       _7@@                ; or less than 10
+                    sub       #'0'                ; convert to binary
+                    nsa                           ; times 16
+                    sta       parm2               ; and save
+                    jsr       GetChar
+
+_7@@                cmpa      #'f'                ; end first character is already column
+                    bne       _8@@                ; Column is two digits
+                    lda       parm2               ; divide value by 16 again
                     nsa
-                    sta       parm2               ; und speichern
-                    lda       parm1               ; zeile holen
-                    sta       row                 ; und sichern
-                    clc                           ; carry l?schen zum nullen schieben
-                    rora                          ; Schieben bis an richtiger Position
-                    rora
-                    rora
-                    add       #$80                ; $80 dazu ergibt 80 oder C0
-                    add       parm2               ; Spalte laden aufaddieren
-                    jsr       LCD_ADDR            ; Adresse setzen
-                    lda       parm2               ; spalte in Cursorposition merken
+                    sta       parm2               ; and save
+                    lda       parm1               ; fetch line
+                    sta       row                 ; and secure
+                    clc                           ; carry delete to zero push
+                    rora:3                        ; Slide to the correct position
+                    add       #$80                ; Add $ 80 to 80 or C0
+                    add       parm2               ; Add column load
+                    jsr       LCD_ADDR            ; Set address
+                    lda       parm2               ; Note column in cursor position
                     sta       col
-                    bra       vt_comm_end         ; und schluss
+                    bra       Done@@              ; and finally
 
-vt_comm9
-                    cmp       #'9'                ; Zweites Zeichen darf nicht gr??er 9 sein
-                    bhi       vt_comm10           ; sonst raus wegen fehler
-                    sub       $30                 ; bin?r machen
-                    add       parm2               ; hinzuaddieren
-                    cmp       #$0A                ; gr??er 10 ?
-                    blo       force2
-                    sub       #$06                ; dann 6 abziehen weil ober die 1 mit 16 multipliziert wurde
+_8@@                cmpa      #'9'                ; The second character cannot be greater than 9
+                    bhi       _9@@                ; otherwise out because of errors
+                    sub       $30                 ; make binär
+                    add       parm2               ; add
+                    cmpa      #$0A                ; greater than 10?
+                    blo       Force2@@
+                    sub       #$06                ; then subtract 6 because the 1 was multiplied by 16 above
 
-force2
-                    sta       parm2               ; und sichern
-                    lda       parm1               ; zeile holen
-                    sta       row                 ; und cursorposition sichern
-                    clc                           ; carry l?schen zum nullen schieben
-                    rora                          ; Schieben bis an richtiger Position
-                    rora
-                    rora
-                    add       #$80                ; $80 dazu ergibt 80 oder C0
-                    add       parm2               ; Spalte laden aufaddieren
-                    jsr       LCD_ADDR            ; adresse setzen
-                    lda       parm2               ; und splate f?r cursorposition setzen
+Force2@@            sta       parm2               ; and secure
+                    lda       parm1               ; fetch line
+                    sta       row                 ; and save cursor position
+                    clc                           ; carry delete to zero push
+                    rora:3                        ; Slide to the correct position
+                    add       #$80                ; Add $ 80 to 80 or C0
+                    add       parm2               ; Add up column load
+                    jsr       LCD_ADDR            ; set address
+                    lda       parm2               ; and set splate for cursor position
                     sta       col
-                    jsr       getchar             ; sollte f sein
-                    !bra      vt_comm_end
-vt_comm10
-; hier k?nnte eine fehllerbehandlung stattfinden
-vt_comm_end
-                    rts
+                    jsr       GetChar             ; should be f
+                    !bra      Done@@
+_9@@                !...      add error handling here (if needed)
+Done@@              rts
 
-;**************************************************************************
-; Keyboard Interrupt service Routine                                     *
-;                                                                        *
-; Wird bei fallender Flanke auf PTA0 aufgerufen                          *
-; Ruft GetByte auf und schreibt empfangene Daten in den Empfangspuffer   *
-; ca 20 Takte bis Getbyte beginnt. Gebtbyte geht auf die Mitte des Bits  *
-; Dadurch Verschiebung um ca 20 Takte nach hinten. bei 9600 Baud ist     *
-; ein bit ca 330 Takte sollte kein Problem sein                          *
-; Stopbit wird beim Empfang ignoriert, deshalb nach empfang              *
-; ca 300 Takte zeit bevor n?chstes Zeichen kommen kann.                  *
-;**************************************************************************
-KbdIsr
+;*******************************************************************************
+; Keyboard Interrupt service Routine
+;
+; Is called with a falling edge on PTA0
+; Calls GetByte and writes the received data to the receive buffer
+; approx. 20 bars until Getbyte begins. Gebtbyte goes to the middle of the bit
+; This shifts it backwards by about 20 bars. is at 9600 baud
+; a bit of about 330 cycles should not be a problem
+; Stop bit is ignored when receiving, therefore after receiving
+; about 300 bars time before the next character can come.
 
+KbdIsr              proc
                     pshh                          ; 2 save H-reg
-                    sei                           ; 2 keine weiteren Interrupts zulassen
-                    mov       #%00000010,KBIER    ; 4 KB-Int disablen
+                    sei                           ; 2 do not allow any further interrupts
+                    mov       #%00000010,KBIER    ; Disable 4 KB int
                     bclr      PTA0,PTA            ; 4initialize PTA0 for serial comms
-                    jsr       GetByte             ; RS232 Byte empfangen
-                    ldx       inptr               ; Zeiger f?r Empfangspuffer laden
-                    sta       data,x              ; und Zeichen sichern
-                    incx                          ; Zeiger erh?hen
-                    cpx       #$20                ; ende des Puffers ?
-                    bne       kbd1                ; nein dann weiter
-                    clrx                          ; sonst auf Anfang setzen
-kbd1
-                    stx       inptr               ; und speichern
-                    mov       #%00000100,KBSCR    ; ACK schreiben um alles zu clearen
-                    mov       #%00000001,KBIER    ; ints auf PTA0 wieder zulassen
-                    cli                           ; ints wieder erlauben
-                    pulh                          ; H-Reg zur?ckholen
+                    jsr       GetByte             ; RS232 byte received
+                    ldx       inptr               ; Load pointer for receive buffer
+                    sta       data,x              ; and secure characters
+                    incx                          ; Increase pointer
+                    cmpx      #::data             ; end of buffer?
+                    bne       Save@@              ; no then continue
+                    clrx                          ; otherwise go to the beginning
+Save@@              stx       inptr               ; and save
+                    mov       #%00000100,KBSCR    ; Write ACK to clear everything
+                    mov       #%00000001,KBIER    ; Allow ints on PTA0 again
+                    cli                           ; allow ints again
+                    pulh                          ; Retrieve H-Reg
                     rti
 
-;*** MESSAGE STORAGE ******************************************************
+;*******************************************************************************
+                    #VECTORS
+;*******************************************************************************
 
-                    org       MSG_STORAGE
-
-MSG1                db        'NITRON'
-                    db        0
-MSG2                db        'LCD Terminal'
-                    db        0
-
-
-;*** Belegung der Vektoren ************************************************
-
-                    org       AltRESET
-                    jmp       $EE00
-
-                    org       AltKBD
-                    jmp       KbdIsr
+                    @vector   Vkeyboard,KbdIsr
+                    @vector   Vreset,Start
