@@ -41,7 +41,7 @@
 ;*******************************************************************************
 
 TRIMLOC             equ       $FFC0               ; nonvolatile trim value (flash)
-InitConfig1         equ       %01001001           ; Config Register1
+INIT_CONFIG1        equ       %01001001           ; Config Register1
 GetByte             equ       $2D6b               ; ROM routine getbyte on PTA0
           ;-------------------------------------- ; Application Specific Definitions
 LCD_CTRL            equ       $00                 ; PORTA
@@ -51,8 +51,8 @@ E                   equ       4                   ; PORTA, bit 4
 RS                  equ       5                   ; PORTA, bit 5
 ESC                 def       $1B                 ; Escape Character
           ;-------------------------------------- ; SCI definitions
-PTA                 equ       $0000
-PTA0                equ       0                   ; bit #0 for PTA0
+KEY                 equ       PORTA
+KEY.                equ       0                   ; bit #0 for PTA0
           ;-------------------------------------- ; LCD commands
 CLRDISP             equ       %00000001           ; Clear display
 CURHOME             equ       %00000010           ; Cursor Home
@@ -94,7 +94,7 @@ parm2               rmb       1
 ;*******************************************************************************
 
 Start               proc
-                    lda       InitConfig1         ; Write config register
+                    lda       #INIT_CONFIG1       ; Write config register
                     sta       CONFIG1
                     lda       TRIMLOC             ; Load oscillator trim value
                     sta       OSCTRIM             ; and put
@@ -125,8 +125,8 @@ Start               proc
                     cli                           ; allow interrupts from now on
           ;-------------------------------------- ; Actual processing begins
 MainLoop@@          jsr       GetChar             ; Fetch characters
-                    cmpa      #$20
-                    blo       Ctrl@@              ; <$ 20 is control character
+                    cmpa      #' '
+                    blo       Ctrl@@              ; < space is control character
 
                     sta       zeichen
                     jsr       LCD_WRITE           ; Output characters
@@ -165,18 +165,25 @@ Cont@@              bra       MainLoop@@          ; and start all over again
 
 ;*******************************************************************************
 ; Wait 100 us for TIME
-; at 3.2 MHz internal bus frequency 320 cycles
+; (@3.2 MHz internal bus frequency, that's 320 cycles)
 
 VAR_DELAY           proc
-                    lda       #33                 ; 2
-Loop@@              deca                          ; 1
-                    nop:7
-                    bne       Loop@@              ; 9 * 33 Takte = 297 Takte + 2 = 299 Takte
-                    dec       time                ; 4 = 303 Zakte
-                    brn:3     *                   ; 9 = 312
-                    nop:2                         ; 2 = 314
-                    bne       Loop@@              ; 3 = 317
-                    rts                           ; 4
+Loop@@              bsr       ?Delay100us
+                    dbnz      time,Loop@@
+                    rts
+
+;*******************************************************************************
+                              #Cycles
+?Delay100us         proc
+                    psha
+                    lda       #DELAY@@
+                              #Cycles
+                    dbnza     *
+                              #temp :cycles
+                    pula
+                    rts
+
+DELAY@@             equ       BUS_KHZ/10-:cycles-:ocycles/:temp
 
 ;*******************************************************************************
 ; LCD Routines
@@ -376,7 +383,7 @@ Loop@@              deca                          ; 3
 ; Write the contents on the display
 
 write_scr           proc
-                    lda       #$80                ; addr = $ 80 row0 column0
+                    lda       #$80                ; addr = $80 row0 column0
                     bsr       LCD_ADDR            ; send addr to LCD
 
                     clrx
@@ -386,7 +393,7 @@ Loop1@@             lda       screen,x            ; Load characters from buffer
                     cmpx      #LCD_COLS
                     bne       Loop1@@             ; top line
 
-                    lda       #$C0                ; addr = $ C0 row1 column0
+                    lda       #$C0                ; addr = $C0 row1 column0
                     bsr       LCD_ADDR            ; send addr to LCD
 
 Loop2@@             lda       screen,x            ; Load characters from buffer
@@ -548,7 +555,7 @@ _7@@                cmpa      #'f'                ; end first character is alrea
                     sta       row                 ; and secure
                     clc                           ; carry delete to zero push
                     rora:3                        ; Slide to the correct position
-                    add       #$80                ; Add $ 80 to 80 or C0
+                    add       #$80                ; Add $80 to $80 or $C0
                     add       parm2               ; Add column load
                     jsr       LCD_ADDR            ; Set address
                     lda       parm2               ; Note column in cursor position
@@ -568,7 +575,7 @@ Force2@@            sta       parm2               ; and secure
                     sta       row                 ; and save cursor position
                     clc                           ; carry delete to zero push
                     rora:3                        ; Slide to the correct position
-                    add       #$80                ; Add $ 80 to 80 or C0
+                    add       #$80                ; Add $80 to $80 or $C0
                     add       parm2               ; Add up column load
                     jsr       LCD_ADDR            ; set address
                     lda       parm2               ; and set splate for cursor position
@@ -593,7 +600,7 @@ KbdIsr              proc
                     pshh                          ; 2 save H-reg
                     sei                           ; 2 do not allow any further interrupts
                     mov       #%00000010,KBIER    ; Disable 4 KB int
-                    bclr      PTA0,PTA            ; 4initialize PTA0 for serial comms
+                    bclr      KEY.,KEY            ; 4 initialize PTA0 for serial comms
                     jsr       GetByte             ; RS232 byte received
                     ldx       inptr               ; Load pointer for receive buffer
                     sta       data,x              ; and secure characters
