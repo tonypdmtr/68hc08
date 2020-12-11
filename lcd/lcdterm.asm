@@ -113,15 +113,15 @@ Start               proc
                     mov       #%00000100,KBSCR    ; Pending ints delete ints allow falling edge
                     mov       #%00000001,KBIER    ; Allow PTA0 interrupt
           ;-------------------------------------- ; Initialize LCD
-                    bsr       LCD_init
+                    bsr       LCD_Init
           ;-------------------------------------- ; further initializations
 
                     lda       #$80                ; Address start of line 1
-                    jsr       LCD_ADDR            ; send addr to LCD
+                    jsr       LCD_Addr            ; send addr to LCD
                     clr       row                 ; and write out cursor position
                     clr       col
 ;                   lda       #$80
-;                   jsr       LCD_ADDR
+;                   jsr       LCD_Addr
                     cli                           ; allow interrupts from now on
           ;-------------------------------------- ; Actual processing begins
 MainLoop@@          jsr       GetChar             ; Fetch characters
@@ -129,7 +129,7 @@ MainLoop@@          jsr       GetChar             ; Fetch characters
                     blo       Ctrl@@              ; < space is control character
 
                     sta       zeichen
-                    jsr       LCD_WRITE           ; Output characters
+                    jsr       LCD_Write           ; Output characters
                     lda       row
                     nsa
                     add       col
@@ -145,7 +145,7 @@ MainLoop@@          jsr       GetChar             ; Fetch characters
                     inc       row                 ; Increase line counter
 
 BeginLine@@         lda       #ROW2ADR            ; Load start address 2nd line
-                    jsr       LCD_ADDR            ; Set address
+                    jsr       LCD_Addr            ; Set address
                     clr       col                 ; Set column to 0
                     bra       MainLoop@@          ; and from the front
 
@@ -153,21 +153,21 @@ Ctrl@@              cmpa      #ESC                ; ESC then command
                     bne       Cont@@              ; others not at first
                     clr       parm1               ; initialize parameters
                     clr       parm2
-                    jsr       vt_command
+                    jsr       VT_Command
           ;--------------------------------------
           ; ignore other control characters first
           ;--------------------------------------
 Cont@@              bra       MainLoop@@          ; and start all over again
 
 ;*******************************************************************************
-;  subroutines
+; Subroutines
 ;*******************************************************************************
 
 ;*******************************************************************************
 ; Wait 100 us for TIME
 ; (@3.2 MHz internal bus frequency, that's 320 cycles)
 
-VAR_DELAY           proc
+VarDelay            proc
 Loop@@              bsr       ?Delay100us
                     dbnz      time,Loop@@
                     rts
@@ -192,56 +192,53 @@ DELAY@@             equ       BUS_KHZ/10-:cycles-:ocycles/:temp
 ;*******************************************************************************
 ; Initialize the display
 
-LCD_init            proc
+LCD_Init            proc
           ;-------------------------------------- ; with 15ms delay
                     bclr      RS,LCD_CTRL         ; LCD auf Instruction setzen
-                    lda       #150
-                    sta       time                ; set delay time
-                    bsr       VAR_DELAY           ; sub for 0.1ms delay
+                    mov       #150,time           ; set delay time
+                    bsr       VarDelay            ; sub for 0.1ms delay
           ;-------------------------------------- ; send init command
                     lda       #FUNCSET            ; LCD init command
                     sta       LCD_DATA
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
           ;-------------------------------------- ; 4.1ms delay
-                    lda       #41
-                    sta       time                ; set delay time
-                    bsr       VAR_DELAY           ; sub for 0.1ms delay
+                    mov       #41,time            ; set delay time
+                    bsr       VarDelay            ; sub for 0.1ms delay
           ;-------------------------------------- ; send init command (2nd time)
                     lda       #FUNCSET            ; LCD init command
                     sta       LCD_DATA
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
           ;-------------------------------------- ; 100us delay
-                    lda       #1
-                    sta       time                ; set delay time
-                    bsr       VAR_DELAY           ; sub for 0.1ms delay
+                    mov       #1,time             ; set delay time
+                    bsr       VarDelay            ; sub for 0.1ms delay
           ;-------------------------------------- ; send init command
                     lda       #FUNCSET            ; LCD init command
-                    jsr       LCD_WRITE           ; write data to LCD
+                    jsr       LCD_Write           ; write data to LCD
           ;--------------------------------------
           ; send function set command
           ; 8 bit bus, 2 rows, 5x7 dots
           ;--------------------------------------
                     lda       #FUNCSET            ; function set command
-                    jsr       LCD_WRITE           ; write data to LCD
+                    jsr       LCD_Write           ; write data to LCD
           ;--------------------------------------
           ; send display ctrl command
           ; display on, cursor off, no blinking
           ;--------------------------------------
                     lda       #DSPON              ; display ctrl command
-                    jsr       LCD_WRITE           ; write data to LCD
+                    jsr       LCD_Write           ; write data to LCD
           ;--------------------------------------
           ; send clear display command
           ; clear display, cursor addr=0
           ;--------------------------------------
-                    bsr       LCD_clear
+                    bsr       LCD_Clear
           ;--------------------------------------
           ; send entry mode command
           ; increment, no display shift
           ;--------------------------------------
                     lda       #$06                ; entry mode command
-                    jsr       LCD_ADDR            ; write data to LCD
+                    jsr       LCD_Addr            ; write data to LCD
           ;--------------------------------------
           ; send messages
           ; set the address, send data
@@ -252,12 +249,11 @@ LCD_init            proc
 ;*******************************************************************************
 ; Clear the LCD
 
-LCD_clear           proc
+LCD_Clear           proc
                     lda       #CLRDISP            ; clear display command
-                    jsr       LCD_ADDR            ; write data to LCD
-                    lda       #16
-                    sta       time                ; set delay time for 1.6ms
-                    bsr       VAR_DELAY           ; sub for 0.1ms delay
+                    jsr       LCD_Addr            ; write data to LCD
+                    mov       #16,time            ; set delay time for 1.6ms
+                    bsr       VarDelay            ; sub for 0.1ms delay
                     clrx
                     lda       #' '
 Loop@@              sta       screen,x            ; and the screen buffer
@@ -269,19 +265,18 @@ Loop@@              sta       screen,x            ; and the screen buffer
 ;*******************************************************************************
 ; Cursor Home
 
-LCD_home            proc
+LCD_Home            proc
                     lda       #CURHOME            ; clear display command
-                    bsr       LCD_ADDR            ; write data to LCD
+                    bsr       LCD_Addr            ; write data to LCD
                     clr       row                 ; cursor Position merken
                     clr       col
-                    lda       #16
-                    sta       time                ; set delay time for 1.6ms
-                    bra       VAR_DELAY           ; sub for 0.1ms delay
+                    mov       #16,time            ; set delay time for 1.6ms
+                    bra       VarDelay            ; sub for 0.1ms delay
 
 ;*******************************************************************************
 ; Scrolls one line
 
-LCD_scroll          proc
+LCD_Scroll          proc
                     clrx                          ; x delete
 Loop@@              lda       screen+LCD_COLS,x   ; load lower line
                     sta       screen,x            ; in upper store
@@ -290,16 +285,16 @@ Loop@@              lda       screen+LCD_COLS,x   ; load lower line
                     incx
                     cmpx      #LCD_COLS
                     bne       Loop@@
-                    bsr       write_scr           ; and spend
+                    bsr       WriteScreen         ; and spend
                     lda       #ROW2ADR
-                    bsr       LCD_ADDR
+                    bsr       LCD_Addr
                     clr       col
                     rts
 
 ;*******************************************************************************
 ; Clear to the end of the line
 
-LCD_clreol          proc
+LCD_ClrEol          proc
                     lda       row                 ; Load line counter
                     bne       _1@@                ; line 1 ?
                     lda       #ROW1ADR            ; otherwise load address from line 0
@@ -308,30 +303,30 @@ LCD_clreol          proc
 _1@@                lda       #ROW2ADR            ; Load address from line 1
 
 _2@@                add       col                 ; Add up the column
-                    bsr       LCD_ADDR            ; set address
+                    bsr       LCD_Addr            ; set address
                     ldx       col                 ; Load the column position of the cursor
                     lda       row
                     bne       Loop2@@             ; line 1 then continue
 
 Loop1@@             lda       #' '                ; load spaces
-                    bsr       LCD_WRITE           ; and spend
+                    bsr       LCD_Write           ; and spend
                     incx                          ; Increase counter
                     cmpx      #LCD_COLS           ; until the end of the line
                     bne       Loop1@@
 
                     lda       #ROW1ADR            ; Load address line 0
                     add       col                 ; Add column
-                    bsr       LCD_ADDR            ; set address
+                    bsr       LCD_Addr            ; set address
                     bra       _5@@                ; and further
 
 Loop2@@             lda       #' '                ; load spaces
-                    bsr       LCD_WRITE           ; and spend
+                    bsr       LCD_Write           ; and spend
                     incx                          ; Increase counter
                     cmpx      #LCD_COLS           ; until the end of the line
                     bne       Loop2@@
                     lda       #ROW2ADR            ; Load address line 1
                     add       col                 ; Add column
-                    bsr       LCD_ADDR            ; set address
+                    bsr       LCD_Addr            ; set address
 
 _5@@                ldx       col                 ; Load line
                     lda       row                 ; load column in x
@@ -356,51 +351,59 @@ Done@@              rts
 ;*******************************************************************************
 ; Write characters in the LCD registers
 
-LCD_WRITE           proc
+LCD_Write           proc
                     sta       LCD_DATA            ; output on data port
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
-                    lda       #30                 ; 2 40us delay für LCD
-Loop@@              deca                          ; 3
-                    bne       Loop@@              ; 3
+;                   bra       ?Delay40us
+
+;*******************************************************************************
+                              #Cycles
+?Delay40us          proc
+                    psha
+                    lda       #DELAY@@
+                              #Cycles
+                    dbnza     *
+                              #temp :cycles
+                    pula
                     rts
+
+DELAY@@             equ       40*BUS_KHZ/1000-:cycles-:ocycles/:temp
 
 ;*******************************************************************************
 ; Sets the LCD address to the value of the registers
 
-LCD_ADDR            proc
+LCD_Addr            proc
                     bclr      RS,LCD_CTRL         ; LCD in command mode
                     sta       LCD_DATA            ; output on data port
                     bset      E,LCD_CTRL          ; clock in data
                     bclr      E,LCD_CTRL
-                    lda       #30                 ; 2 40us delay
-Loop@@              deca                          ; 3
-                    bne       Loop@@              ; 3
+                    bsr       ?Delay40us
                     bset      RS,LCD_CTRL         ; LCD in data mode
                     rts
 
 ;*******************************************************************************
 ; Write the contents on the display
 
-write_scr           proc
+WriteScreen         proc
                     lda       #$80                ; addr = $80 row0 column0
-                    bsr       LCD_ADDR            ; send addr to LCD
+                    bsr       LCD_Addr            ; send addr to LCD
 
                     clrx
-Loop1@@             lda       screen,x            ; Load characters from buffer
-                    bsr       LCD_WRITE           ; write data to LCD
+_1@@                lda       screen,x            ; Load characters from buffer
+                    bsr       LCD_Write           ; write data to LCD
                     incx
                     cmpx      #LCD_COLS
-                    bne       Loop1@@             ; top line
-
+                    bne       _1@@                ; top line
+          ;--------------------------------------
                     lda       #$C0                ; addr = $C0 row1 column0
-                    bsr       LCD_ADDR            ; send addr to LCD
+                    bsr       LCD_Addr            ; send addr to LCD
 
-Loop2@@             lda       screen,x            ; Load characters from buffer
-                    bsr       LCD_WRITE           ; write data to LCD
+_2@@                lda       screen,x            ; Load characters from buffer
+                    bsr       LCD_Write           ; write data to LCD
                     incx
                     cmpx      #::screen
-                    bne       Loop2@@             ; bottom line
+                    bne       _2@@                ; bottom line
                     rts
 
 ;*******************************************************************************
@@ -408,14 +411,8 @@ Loop2@@             lda       screen,x            ; Load characters from buffer
 
 Message1            proc
                     lda       #$84                ; addr = $04 Zeile1 Spalte4
-                    bsr       LCD_ADDR            ; send addr to LCD
-                    clrx
-Loop@@              lda       Msg@@,x             ; load AccA w/char from msg
-                    beq       Done@@              ; end of msg?
-                    bsr       LCD_WRITE           ; write data to LCD
-                    incx
-                    bra       Loop@@              ; loop to finish msg
-Done@@              equ       :AnRTS
+                    ldhx      #Msg@@
+                    bra       ?LCD_Write
 
 Msg@@               fcs       'NITRON'
 
@@ -423,16 +420,21 @@ Msg@@               fcs       'NITRON'
 
 Message2            proc
                     lda       #$C0                ; addr = $C0 Zeile2 Spalte0
-                    bsr       LCD_ADDR            ; send addr to LCD
-                    clrx
-Loop@@              lda       Msg@@,x             ; load AccA w/char from msg
-                    beq       Done@@              ; end of msg?
-                    bsr       LCD_WRITE           ; write data to LCD
-                    incx
-                    bra       Loop@@              ; loop to finish msg
-Done@@              equ       :AnRTS
+                    ldhx      #Msg@@
+                    bra       ?LCD_Write
 
 Msg@@               fcs       'LCD Terminal'
+
+;*******************************************************************************
+
+?LCD_Write          proc
+                    bsr       LCD_Addr            ; send addr to LCD
+Loop@@              lda       ,x                  ; load AccA w/char from msg
+                    beq       Done@@              ; end of msg?
+                    bsr       LCD_Write           ; write data to LCD
+                    aix       #1
+                    bra       Loop@@              ; loop to finish msg
+Done@@              equ       :AnRTS
 
 ;**************************************************************************
 ; End of the LCD routines
@@ -451,7 +453,7 @@ RamInit             proc
                     sta       parm1
                     sta       parm2
                     clrx
-
+          ;--------------------------------------
                     lda       #' '
 Loop@@              clr       data,x
                     sta       screen,x
@@ -464,7 +466,7 @@ Loop@@              clr       data,x
 ; fetches the next character from the buffer and returns it in the battery
 
 GetChar             proc
-                    pshx                          ; x-reg
+                    pshx
 Loop@@              ldx       outptr              ; Output pointer in the receive buffer
                     cmpx      inptr               ; Compare with input pointer
                     beq       Loop@@              ; both right then there is nothing
@@ -474,26 +476,26 @@ Loop@@              ldx       outptr              ; Output pointer in the receiv
                     cmpx      #::data             ; end of the buffer?
                     bne       Done@@              ; no then out
                     clr       outptr              ; otherwise set the pointer to the beginning of the buffer
-Done@@              pulx                          ; Get x-reg back
-                    rts                           ; and back
+Done@@              pulx
+                    rts
 
 ;*******************************************************************************
 ; Edit VT100 commands
 ;
 ; (Force cursor position is not implemented)
 
-vt_command          proc
+VT_Command          proc
                     bsr       GetChar             ; Get character after ESC
                     cmpa      #'c'                ; Reset device?
                     bne       ScrollUp?@@         ; otherwise continue
-                    jsr       LCD_init            ; reset
+                    jsr       LCD_Init            ; reset
                     bsr       RamInit             ; Initialize ram
-                    jsr       LCD_home            ; and set cursor
+                    jsr       LCD_Home            ; and set cursor
                     jmp       Done@@              ; and out
 
 ScrollUp?@@         cmpa      #'M'                ; Scroll Up?
                     bne       _1@@                ; otherwise continue
-                    jsr       LCD_scroll          ; Scroll
+                    jsr       LCD_Scroll          ; Scroll
                     jmp       Done@@              ; and out
 
 _1@@                cmpa      #'['                ; Everything else starts with square brackets
@@ -501,12 +503,12 @@ _1@@                cmpa      #'['                ; Everything else starts with 
                     bsr       GetChar             ; Get the next character
                     cmpa      #'H'                ; Cursor Home?
                     bne       _2@@                ; otherwise continue
-                    jsr       LCD_home            ; Cursor Home
+                    jsr       LCD_Home            ; Cursor Home
 Fail@@              jmp       Done@@              ; and out
 
 _2@@                cmpa      #'K'                ; Clear to end of line
                     bne       _3@@                ; otherwise continue
-                    jsr       LCD_clreol          ; delete line to the end
+                    jsr       LCD_ClrEol          ; delete line to the end
                     jmp       Done@@              ; and out
 
 _3@@                cmpa      #'2'                ; there are several possibilities here
@@ -516,12 +518,12 @@ _3@@                cmpa      #'2'                ; there are several possibilit
                     cmpa      #'K'                ; K is erase line
                     bne       _4@@                ; otherwise keep trying
                     clr       col                 ; set column to 0
-                    jsr       LCD_clreol          ; and delete to the end of the line
+                    jsr       LCD_ClrEol          ; and delete to the end of the line
                     bra       Done@@              ; and out
 
 _4@@                cmpa      #'J'                ; J is clear screen
                     bne       _5@@                ; otherwise continue testing
-                    jsr       LCD_clear
+                    jsr       LCD_Clear
                     bra       Done@@
 
 _5@@                cmpa      #'1'                ; Force cursor position
@@ -557,7 +559,7 @@ _7@@                cmpa      #'f'                ; end first character is alrea
                     rora:3                        ; Slide to the correct position
                     add       #$80                ; Add $80 to $80 or $C0
                     add       parm2               ; Add column load
-                    jsr       LCD_ADDR            ; Set address
+                    jsr       LCD_Addr            ; Set address
                     lda       parm2               ; Note column in cursor position
                     sta       col
                     bra       Done@@              ; and finally
@@ -577,7 +579,7 @@ Force2@@            sta       parm2               ; and secure
                     rora:3                        ; Slide to the correct position
                     add       #$80                ; Add $80 to $80 or $C0
                     add       parm2               ; Add up column load
-                    jsr       LCD_ADDR            ; set address
+                    jsr       LCD_Addr            ; set address
                     lda       parm2               ; and set splate for cursor position
                     sta       col
                     jsr       GetChar             ; should be f
@@ -596,11 +598,10 @@ Done@@              rts
 ; Stop bit is ignored when receiving, therefore after receiving
 ; about 300 bars time before the next character can come.
 
-KbdIsr              proc
-                    pshh                          ; 2 save H-reg
-                    sei                           ; 2 do not allow any further interrupts
+KBD_Handler         proc
+                    pshh
                     mov       #%00000010,KBIER    ; Disable 4 KB int
-                    bclr      KEY.,KEY            ; 4 initialize PTA0 for serial comms
+                    bclr      KEY.,KEY            ; initialize PTA0 for serial comms
                     jsr       GetByte             ; RS232 byte received
                     ldx       inptr               ; Load pointer for receive buffer
                     sta       data,x              ; and secure characters
@@ -611,13 +612,12 @@ KbdIsr              proc
 Save@@              stx       inptr               ; and save
                     mov       #%00000100,KBSCR    ; Write ACK to clear everything
                     mov       #%00000001,KBIER    ; Allow ints on PTA0 again
-                    cli                           ; allow ints again
-                    pulh                          ; Retrieve H-Reg
+                    pulh
                     rti
 
 ;*******************************************************************************
                     #VECTORS
 ;*******************************************************************************
 
-                    @vector   Vkeyboard,KbdIsr
+                    @vector   Vkeyboard,KBD_Handler
                     @vector   Vreset,Start
