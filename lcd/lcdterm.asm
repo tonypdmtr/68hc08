@@ -46,6 +46,7 @@ GetByte             equ       $2D6b               ; ROM routine getbyte on PTA0
           ;-------------------------------------- ; Application Specific Definitions
 LCD_CTRL            equ       $00                 ; PORTA
 LCD_DATA            equ       $01                 ; PORTB
+LCD_COLS            equ       16                  ; LCD columns
 E                   equ       4                   ; PORTA, bit 4
 RS                  equ       5                   ; PORTA, bit 5
 ESC                 def       $1B                 ; Escape Character
@@ -137,7 +138,7 @@ MainLoop@@          jsr       GetChar             ; Fetch characters
                     sta       screen,x
                     inc       col                 ; Count up the column
                     lda       col                 ; Last column ?
-                    cmpa      #$10
+                    cmpa      #LCD_COLS
                     bne       MainLoop@@          ; no then the next sign
                     lda       row                 ; 2nd line?
                     bne       BeginLine@@         ; yes, then get only the beginning
@@ -275,12 +276,12 @@ LCD_home            proc
 
 LCD_scroll          proc
                     clrx                          ; x delete
-Loop@@              lda       screen+$10,x        ; load lower line
+Loop@@              lda       screen+LCD_COLS,x   ; load lower line
                     sta       screen,x            ; in upper store
                     lda       #' '                ; Write blanks on the bottom line
-                    sta       screen+$10,x
+                    sta       screen+LCD_COLS,x
                     incx
-                    cmpx      #$10
+                    cmpx      #LCD_COLS
                     bne       Loop@@
                     bsr       write_scr           ; and spend
                     lda       #ROW2ADR
@@ -308,7 +309,7 @@ _2@@                add       col                 ; Add up the column
 Loop1@@             lda       #' '                ; load spaces
                     bsr       LCD_WRITE           ; and spend
                     incx                          ; Increase counter
-                    cmpx      #$10                ; until the end of the line
+                    cmpx      #LCD_COLS           ; until the end of the line
                     bne       Loop1@@
 
                     lda       #ROW1ADR            ; Load address line 0
@@ -319,7 +320,7 @@ Loop1@@             lda       #' '                ; load spaces
 Loop2@@             lda       #' '                ; load spaces
                     bsr       LCD_WRITE           ; and spend
                     incx                          ; Increase counter
-                    cmpx      #$10                ; until the end of the line
+                    cmpx      #LCD_COLS           ; until the end of the line
                     bne       Loop2@@
                     lda       #ROW2ADR            ; Load address line 1
                     add       col                 ; Add column
@@ -332,11 +333,11 @@ _5@@                ldx       col                 ; Load line
 Loop3@@             lda       #' '                ; Space in battery
                     sta       screen,x            ; and write in screenbuffer
                     incx                          ; x increase
-                    cmpx      #$10                ; to the end of the line
+                    cmpx      #LCD_COLS           ; to the end of the line
                     bne       Loop3@@
                     bra       Done@@              ; and out
 
-_7@@                aix       #$10                ; $ 10 for the second line
+_7@@                aix       #LCD_COLS           ; LCD_COLS for the second line
 Loop4@@             lda       #' '                ; Error in battery
                     sta       screen,x            ; Fill the buffer
                     incx                          ; Increase counter
@@ -382,7 +383,7 @@ write_scr           proc
 Loop1@@             lda       screen,x            ; Load characters from buffer
                     bsr       LCD_WRITE           ; write data to LCD
                     incx
-                    cmpx      #$10
+                    cmpx      #LCD_COLS
                     bne       Loop1@@             ; top line
 
                     lda       #$C0                ; addr = $ C0 row1 column0
@@ -518,7 +519,7 @@ _4@@                cmpa      #'J'                ; J is clear screen
 
 _5@@                cmpa      #'1'                ; Force cursor position
                     bne       _6@@                ; here only with lines 0 and 1
-                    sub       #30                 ; conversion to binary
+                    sub       #'0'                ; conversion to binary
                     sta       parm1               ; save because another value is coming
                     bra       Force@@
 
@@ -556,7 +557,7 @@ _7@@                cmpa      #'f'                ; end first character is alrea
 
 _8@@                cmpa      #'9'                ; The second character cannot be greater than 9
                     bhi       _9@@                ; otherwise out because of errors
-                    sub       $30                 ; make binär
+                    sub       #'0'                ; make binary
                     add       parm2               ; add
                     cmpa      #$0A                ; greater than 10?
                     blo       Force2@@
