@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Always-present Tiny Bootloader
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Segments  : RAM    : Variables
 ;*           : ROM    : Code
 ;* Note(s)   : User vectors are automatically redirected.
@@ -296,7 +296,6 @@ CTS_LINE            @pin      PORTC,7             ;/CTS is output from MCU
                     @?        {SCI}
 
                     @StandardBaudRates            ; Attempt to define all standard bps rates
-
 #ifdef BPS
 ?                   macro
           #if BPS = ~{:loop}.~
@@ -598,9 +597,9 @@ S2@@
 S1@@                @?print   '.'
 
 OK@@                sta       ?rec_type           ;Save the record type
-
-          ;Get length of Record Bytes (including 16-bit address and 8-bit CRC)
-
+          ;--------------------------------------
+          ; Get length of Record Bytes (including 16-bit address and 8-bit CRC)
+          ;--------------------------------------
                     jsr       ?ReadHex            ;Get next 2 characters in binary
                     bcs       ??Error             ;if something wrong, get out with error
                     bsr       ?UpdateCRC
@@ -706,9 +705,9 @@ Loop@@              bsr       ?GetCharLocal
 
 ?CheckAddr          proc
           #ifdef PPAGE
-
-          ;PPAGE 2 (startup default) has a different allowable range
-
+          ;--------------------------------------
+          ; PPAGE 2 (startup default) has a different allowable range
+          ;--------------------------------------
                     @cmp.s    PPAGE #2            ;for all but the default page
                     beq       CheckAddr@@
           ;--------------------------------------
@@ -722,8 +721,8 @@ Loop@@              bsr       ?GetCharLocal
 
                     clc
                     rts
-          #endif
 CheckAddr@@
+          #endif
           #ifdef ALLOW_EEPROM
                     #Message  EEPROM is allowed
                     cphx      #EEPROM
