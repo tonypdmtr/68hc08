@@ -47,78 +47,56 @@ faq.pdf: faq.md
 ################################################################################
 
 tboot_qg8.s: qg8.inc
- $(ASM8) tboot $(OPTS) -dQG8
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dQG8 -b$@
 
 ################################################################################
 
 tboot_qe8.s: qe8.inc
- $(ASM8) tboot $(OPTS) -dQE8
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dQE8 -b$@
 
 ################################################################################
 
 tboot_qe32.s: qe32.inc
- $(ASM8) tboot $(OPTS) -dQE32
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dQE32 -b$@
 
 ################################################################################
 
 tboot_ac32.s: ac32.inc
- $(ASM8) tboot $(OPTS) -dAC32
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dAC32 -b$@
 
 ################################################################################
 
 tboot_ac96.s: ac96.inc
- $(ASM8) tboot $(OPTS) -dAC96
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dAC96 -b$@
 
 ################################################################################
 
 tboot_fl16.s: fl16.inc
- $(ASM8) tboot $(OPTS) -dFL16 -dDISABLE_SURE
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dFL16 -dDISABLE_SURE -b$@
 
 ################################################################################
 
 tboot_qe128.s: qe128.inc
- $(ASM8) tboot $(OPTS) -dQE128
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dQE128 -b$@
 
 ################################################################################
 
 tboot_gb60.s: gb60.inc
- $(ASM8) tboot $(OPTS) -dGB60
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dGB60 -b$@
 
 ################################################################################
 
 tboot_dz32.s: dz32.inc
- $(ASM8) tboot $(OPTS) -dDZ32
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dDZ32 -b$@
 
 ################################################################################
 
 tboot_dz60.s: dz60.inc
- $(ASM8) tboot $(OPTS) -dDZ60
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dDZ60 -b$@
 
 ################################################################################
 
 tboot_sh8.s: sh8.inc
- $(ASM8) tboot $(OPTS) -dSH8
- @copy tboot.s19 $@
- @copy tboot.exp $*.exp
+ $(ASM8) tboot $(OPTS) -dSH8 -b$@
 
 ################################################################################
