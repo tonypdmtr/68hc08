@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : 64/56/48/40/32/24/16-bit stack-based basic math routines (RPN style)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/stakmath.html
 ;* Note(s)   : Use: #Include stakmath.sub
 ;*           :
@@ -340,6 +340,8 @@
 ;*           :                variable is given
 ;*           : 19.10.04 v8.56 Minor HC08 mode optimization in SIGNED ?ToStr [-1 byte]
 ;*           : 20.02.12 v8.57 Replaced #Message with @Msg to silence debugging messages
+;*           : 20.12.27       Silenced a couple of warnings with new ASM8 -G+ option
+;*           : 20.12.31       Directly assigned proc names with corresponding version
 ;*******************************************************************************
 
 ;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
@@ -437,6 +439,7 @@ MATHSIZE            set       32                  ;32-bit quantity (default)
                     @?        32
           #endif
                     #Message  MATHSIZE = {MATHSIZE}-bit version
+?MS                 equ       MATHSIZE
           #ifdef SIGNED
                     #Message  Signed routines enabled
           #endif
@@ -1476,7 +1479,7 @@ _DoStr              macro     BitSize,[Variable],[ResultString]
 
                     #spauto   :ab
 
-?Add                proc
+StackAdd{?MS}       proc
                     push
                     tsx
 
@@ -1510,7 +1513,7 @@ Loop@@              psha
 
                     #spauto   :ab
 
-?Subtract           proc
+StackSub{?MS}       proc
                     push
                     tsx
           #if MATHSIZE <= 16
@@ -1546,7 +1549,7 @@ Loop@@              psha
 ; Note(s):
                     #spauto   :ab
 
-?BitAnd             proc
+StackAnd{?MS}       proc
                     push
                     tsx
 
@@ -1578,7 +1581,7 @@ Loop@@              psha
 ; Note(s):
                     #spauto   :ab
 
-?BitOr              proc
+StackOr{?MS}        proc
                     push
                     tsx
 
@@ -1610,7 +1613,7 @@ Loop@@              psha
 ; Note(s):
                     #spauto   :ab
 
-?BitXor             proc
+StackXor{?MS}       proc
                     push
                     tsx
 
@@ -1646,7 +1649,7 @@ Loop@@              psha
 
                     #spauto   :ab
 
-?ShiftLeft          proc
+StackShl{?MS}       proc
                     push
                     #ais
 
@@ -1694,7 +1697,7 @@ Done@@
 
                     #spauto   :ab
 
-?ShiftRight         proc
+StackShr{?MS}       proc
                     push
                     #ais
 
@@ -1745,7 +1748,7 @@ Done@@
 
                     #spauto   :ab
 
-?Multiply           proc
+StackMul{?MS}       proc
                     push
           #if MATHSIZE = 16
           ;-------------------------------------- ;row 1
@@ -1966,7 +1969,7 @@ CopyResult@@        pula
 ; Note(s):
                     #spauto   :ab
 
-?Divide             proc
+StackDiv{?MS}       proc
                     push
 
                     lda       #?DIVOP_            ;flag for DIV operation
@@ -1995,7 +1998,7 @@ Skip@@
                     #spauto   :ab
 ?pc                 equ       ::,:ab
 
-?Modulo             proc
+StackMod{?MS}       proc
                     push
 
                     clra                          ;flag for MOD operation
@@ -2076,7 +2079,7 @@ ans@@               equ       ?b,::?b             ;result overwrites divisor
           ; if Dividend = 0, we're done
 
                     @_tst_.s  dividend@@,spx
-                    !jeq      Done@@
+                    jeq       Done@@
 
           ; if (divisor = dividend) then quotient := 1; return
           ; if (divisor > dividend) then remainder := dividend; return
@@ -2228,7 +2231,7 @@ SkipSign@@
           #endif
                     pull
                     ais       #?WORD              ;remove top-of-stack ?WORD
-                    rtc
+                    !rtc
 
 ?ReturnCycles       equ       :cycles
 
@@ -2242,7 +2245,7 @@ SkipSign@@
 
                     #spauto   :ab
 
-?Swap               proc
+StackSwap{?MS}      proc
                     push
 
                     lda       #?WORD
@@ -2270,10 +2273,10 @@ Loop@@              @_swap_,  ?a,spx ?b,spx       ;swap A with B ...
 
                     #spauto   :ab
 
-?Abs                proc
+StackAbs{?MS}       proc
                     tst       ?a,sp
                     bpl       Done@@
-;                   bra       ?Negate
+;                   bra       StackNegate{?MS}
 
 Done@@              equ       :AnRTC
 
@@ -2287,7 +2290,7 @@ Done@@              equ       :AnRTC
 
                     #spauto   :ab
 
-?Negate             proc
+StackNegate{?MS}    proc
                     pshhx
           #ifdef SIGNED
                     @lea      ?a,sp
@@ -2315,7 +2318,7 @@ Done@@              equ       :AnRTC
 
                     #spauto   :ab
 
-?Load               proc
+StackLoad{?MS}      proc
 old_rts@@           equ       ::,:ab
                     ais       #-?WORD             ;allocate new TOS memory
                     #temp     ::
@@ -2345,7 +2348,7 @@ tos_num@@           next      :temp,?WORD
 
                     #spauto   :ab
 
-?Save               proc
+StackSave{?MS}      proc
                     #temp     ::
 old_rts@@           next      :temp,:ab
 tos_num@@           next      :temp,?WORD
@@ -2513,7 +2516,7 @@ Done@@              ais       #:ais
 
                     #spauto   :ab                 ;account for RTS/RTC
 
-?ToStr              proc
+Stack{?MS}ToASCIZ   proc
                     push
                     #ais                          ;mark beginning of temporaries
 
@@ -2521,14 +2524,14 @@ Done@@              ais       #:ais
                     clr       ,x                  ;make it an ASCIZ string
 
                     @lea      1,sp                ;HX -> TOS number of caller
-                    call      ?Load               ;load a working copy on stack
+                    call      StackLoad{?MS}      ;load a working copy on stack
 
                     #spadd    ?WORD               ;stack has grown by a ?WORD
 number@@            equ       ::,?WORD
     #ifdef SIGNED
                     tst       number@@,sp
                     bpl       ToStrLoop@@
-                    call      ?Negate
+                    call      StackNegate{?MS}
           #ifhcs
                     ldhx      .buffer@@,sp
           #else
@@ -2580,41 +2583,30 @@ ToStrLoop@@         ldhx      #10                 ;H = 0 (always), X = divisor
 
 ;*******************************************************************************
 ; Assign global names to the various library calls, depending on version used.
-; Different names for each version means you can include any at the same time.
+; Different names for each version means you can include all at the same time.
 ;*******************************************************************************
 
-?                   macro     BitSize             ;temp macro to export symbols
-                    mreq      1:Usage: @~0~ BitSize
-          #if MATHSIZE = ~1~
-StackAdd~1~         exp       ?Add
-StackSub~1~         exp       ?Subtract
-StackMul~1~         exp       ?Multiply
-StackDiv~1~         exp       ?Divide
-StackMod~1~         exp       ?Modulo
-StackSwap~1~        exp       ?Swap
-StackAbs~1~         exp       ?Abs
-StackNegate~1~      exp       ?Negate
-StackLoad~1~        exp       ?Load
-StackSave~1~        exp       ?Save
-Stack~1~ToASCIZ     exp       ?ToStr
-          #ifdef NO_BIT_OPS
-                    mexit                         ;;bit operations not available
-          #endif
-StackAnd~1~         exp       ?BitAnd
-StackOr~1~          exp       ?BitOr
-StackXor~1~         exp       ?BitXor
-StackShl~1~         exp       ?ShiftLeft
-StackShr~1~         exp       ?ShiftRight
-          #endif
+?                   macro
+                    #Export   StackAdd{?MS}
+                    #Export   StackSub{?MS}
+                    #Export   StackMul{?MS}
+                    #Export   StackDiv{?MS}
+                    #Export   StackMod{?MS}
+                    #Export   StackSwap{?MS}
+                    #Export   StackAbs{?MS}
+                    #Export   StackNegate{?MS}
+                    #Export   StackLoad{?MS}
+                    #Export   StackSave{?MS}
+                    #Export   Stack{?MS}ToASCIZ
+
+                    #!Export  StackAnd{?MS}
+                    #!Export  StackOr{?MS}
+                    #!Export  StackXor{?MS}
+                    #!Export  StackShl{?MS}
+                    #!Export  StackShr{?MS}
                     endm
 
-                    @?        64                  ;export 64-bit labels
-                    @?        56                  ;export 56-bit labels
-                    @?        48                  ;export 48-bit labels
-                    @?        40                  ;export 40-bit labels
-                    @?        32                  ;export 32-bit labels
-                    @?        24                  ;export 24-bit labels
-                    @?        16                  ;export 16-bit labels
+                    @?
 
 ;*******************************************************************************
                     #Exit

@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Reverse the bit order of any byte value
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/reversebyte.html
 ;* Note(s)   : Use: #Include reversebyte.sub
 ;* History   : 17.07.21 v1.00 Original (Started on 2017.07.21)

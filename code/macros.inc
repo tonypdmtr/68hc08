@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Sample macro definitions for ASM8 (Win32 & Linux versions, only)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/macros.html
 ;* Note(s)   : Use: #Include macros.inc
 ;*           : All macros are written so that they are compatible with all
@@ -304,8 +304,7 @@ CopyRange           macro     #Source,#Destination,[#]Size
           #ifparm ~,1~~,2~
                     merror    Source/Destination is indexed
           #endif
-                    @@_#_     ~1~
-                    @@_#_     ~2~
+                    @@_#_     ~1~ ~2~
                     @@_not_x_ ~3~
                     mset      0,cphx              ;;default comparison is word
           #ifnb ~3~ = ~#3~                        ;except for immediate mode

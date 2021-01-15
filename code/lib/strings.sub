@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : String and character manipulation related routines
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/strings.html
 ;* History   : 10.07.04 v1.00 Original (subset of a larger library)
 ;*           : 10.07.17 v1.01 Minor optimization in StringDeleteWord
@@ -43,6 +43,8 @@
 ;*           : 15.12.11 v1.25 Minor optimizations [-6 bytes]
 ;*           : 17.03.23       Improved clarity of StringReplaceChars
 ;*           : 17.07.04       Refactored and optimized ?StringCompare [-8 bytes]
+;*           : 20.12.15       Optimized [-5 bytes] and made HC08 compatible
+;*           : 20.12.28       Silenced five warnings with new ASM8 -G+ option
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -98,7 +100,7 @@ StringCopy          macro     [#]SourceASCIZ_String,[#]Destination
                     #psp
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -114,23 +116,19 @@ StringCopy          proc
                     push
                     #ais
                     pshhx     .src@@              ;a working copy of src pointer
-
+          #ifhcs
                     ldhx      .dst@@,sp
                     pshhx     .dst@@              ;a working copy of dst pointer
-
-Loop@@              ldhx      .src@@,sp
-                    lda       ,x                  ;get source byte
-                    aix       #1                  ;bump up source pointer
-                    sthx      .src@@,sp
-
-                    ldhx      .dst@@,sp
-                    sta       ,x                  ;put destination byte
-                    beq       Done@@              ;after copying null, exit
-                    aix       #1                  ;bump up destination pointer
-                    sthx      .dst@@,sp
-
+          #else
+                    tsx
+                    lda       .dst@@+1,spx
+                    psha
+                    lda       .dst@@,spx
+                    psha      .dst@@,2            ;a working copy of dst pointer
+          #endif
+Loop@@              @GetNextA .src@@,sp           ;get source byte and bump up source pointer
+                    @PutNextA .dst@@,sp Done@@    ;put destination byte, exit on null
                     bra       Loop@@              ;repeat for all chars
-
 Done@@              ais       #:ais               ;de-allocate temporaries
                     pull
                     rtc
@@ -207,7 +205,6 @@ StringInsertChar    macro     [[#]Char[,[#]StringVar]]
 StringInsertChar    proc
                     push
                     psha      char_to_ins@@       ;next character to insert
-
 Loop@@              lda       ,x                  ;A = old string character
                     psha                          ;save it for now
                     lda       char_to_ins@@,sp    ;A = new character
@@ -215,10 +212,8 @@ Loop@@              lda       ,x                  ;A = old string character
                     pula                          ;A = old string character
                     beq       Done@@              ;if at terminator, we're done
                     sta       char_to_ins@@,sp    ;save old for next iteration
-
                     aix       #1                  ;HX -> next character position
                     bra       Loop@@              ;repeat for all characters
-
 Done@@              pula                          ;remove temp variable(s)
 ?Success            pull
                     rtc
@@ -248,16 +243,12 @@ StringUpcase        macro     [[#]String]
 
 StringUpcase        proc
                     push
-
 Loop@@              lda       ,x
                     beq       Done@@
-
                     call      Upcase              ;convert to uppercase
                     sta       ,x
-
                     aix       #1
                     bra       Loop@@
-
 Done@@              equ       ?Success
 
 ;*******************************************************************************
@@ -285,14 +276,12 @@ StringDeleteChar    macro     [[#]String]
 
 StringDeleteChar    proc
                     push
-
                     tst       ,x
 Loop@@              beq       Done@@
                     lda       1,x                 ;next character
                     sta       ,x                  ;moves down one spot
                     aix       #1                  ;bump up pointer
                     bra       Loop@@              ;repeat for all chars
-
 Done@@              equ       ?Success
 
 ;*******************************************************************************
@@ -322,7 +311,6 @@ StringTrim          proc
                     clra                          ;character position
                     psha      pos@@
                     pshhx
-
                     bra       Loop@@
 
 Delete@@            lda       pos@@,sp
@@ -376,7 +364,7 @@ StringCompareBuff   macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     lda       ~3~
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pull
@@ -395,7 +383,7 @@ StringCompBuff      macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     lda       ~3~
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pull
@@ -410,7 +398,7 @@ StringCompBuff      proc
                     sec                           ;case-insensitive
                     bra       ?StringCompareBuff
 
-;===============================================================================
+;*******************************************************************************
 
                     #spauto   :ab
 
@@ -418,19 +406,28 @@ StringCompareBuff   proc
                     clc                           ;case-sensitive (original)
 ;                   bra       ?StringCompareBuff
 
-;===============================================================================
+;*******************************************************************************
 
 ?StringCompareBuff  proc
 .str2@@             equ       1
                     push      .str1@@,2
                     pshcc     ccr@@
-
                     #ais
+          #ifhcs
                     ldhx      .str2@@,sp
                     pshhx     .str2@@
 
                     ldhx      .str1@@,sp
+          #else
+                    ldx       .str2@@+1,sp
+                    pshx
+                    ldx       .str2@@,sp
+                    pshx      .str2@@,2
 
+                    ldx       .str1@@,sp
+                    txh
+                    ldx       .str1@@+1,sp
+          #endif
                     tsta                          ;do NOT change to CBEQA (CCR)
                     beq       Done@@              ;zero length always OK
 
@@ -459,9 +456,10 @@ NoCase@@            psha      target@@            ;placeholder for target char l
           #ifhcs
                     ldhx      .str2@@,sp
           #else
-                    ldx       .str2@@,sp
-                    txh
-                    ldx       .str2@@+1,sp
+                    tsx
+                    lda       .str2@@,spx
+                    ldx       .str2@@+1,spx
+                    tah
           #endif
                     lda       ,x
                     call      Upcase
@@ -472,8 +470,7 @@ NoCase@@            psha      target@@            ;placeholder for target char l
                     cmpa      target@@,spx        ;is the same as the one at .str2@@,sp?
 
                     pula:2
-          ;---
-
+          ;--------------------------------------
 Cont@@              pull                          ;restore pointer to 1st memory & length
                     bne       Done@@              ;Not same, get out with result
 
@@ -481,17 +478,11 @@ Cont@@              pull                          ;restore pointer to 1st memory
                     bra       Done@@
 
 NextChar@@          aix       #1                  ;No, let's go check next ones
-
-                    inc       .str2@@+1,sp        ;increment target pointer (LSB)
-                    bne       Loop@@
-
-                    inc       .str2@@,sp          ;increment target pointer (MSB)
+                    @inc.s    .str2@@,sp Loop@@   ;increment target pointer
                     bra       Loop@@
-
           ;---------------------------------------------------------------------
           ; Z flag always in correct state when coming to Done@@
           ;---------------------------------------------------------------------
-
 Done@@              ais       #:ais
 
                     tpa                           ;A = actual CMP result [CCR]
@@ -532,7 +523,7 @@ StringCompare       macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     #psp
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -550,7 +541,7 @@ StringCompareCase   macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     #psp
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -581,13 +572,23 @@ StringCompare       proc
 .str2@@             equ       1
                     push      .str1@@,2
                     pshcc     ccr@@
-
                     #ais
+          #ifhcs
                     ldhx      .str2@@,sp
                     pshhx     .str2@@
 
                     ldhx      .str1@@,sp
+          #else
+                    tsx
+                    lda       .str2@@+1,spx
+                    psha
+                    lda       .str2@@,spx
+                    psha      .str2@@,2
 
+                    lda       .str1@@,spx
+                    ldx       .str1@@+1,spx
+                    tah
+          #endif
 Loop@@              lda       ,x                  ;get char from 1st string
                     aix       #1                  ;bump up 1st ASCIZ pointer
 
@@ -601,11 +602,9 @@ Loop@@              lda       ,x                  ;get char from 1st string
           #endif
                     #psp
 
-                    inc       .str2@@+1,sp        ;bump up 2nd ASCIZ pointer
-                    bne       Compare@@
-                    inc       .str2@@,sp
+                    @inc.s    .str2@@,sp          ;bump up 2nd ASCIZ pointer
 
-Compare@@           psha      a@@                 ;save char from 1st string
+                    psha      a@@                 ;save char from 1st string
 
                     lda       ,x                  ;get char from 2nd string
                     psha      b@@
@@ -671,12 +670,10 @@ StringDeleteChars   macro     [#]ASCIZ_String,[#]Count
 
 StringDeleteChars   proc
                     psha
-
 Loop@@              tst       ,x
                     beq       Done@@
                     call      StringDeleteChar
                     dbnza     Loop@@
-
 Done@@              pula
                     rtc
 
@@ -704,10 +701,8 @@ StringDeleteWord    macro     [#]ASCIZ_String,[#]Delimiter
 
 StringDeleteWord    proc
                     push
-
 Loop@@              tst       ,x                  ;to reset the zero flag (do NOT use CBEQ)
                     beq       Done@@              ;exit on ASCIZ terminator
-
                     cmpa      ,x                  ;is this character the target?
                     psha                          ;save target character
                     tpa                           ;save CMPA result
@@ -715,7 +710,6 @@ Loop@@              tst       ,x                  ;to reset the zero flag (do NO
                     tap                           ;restore CMPA result
                     pula                          ;restore target character
                     bne       Loop@@              ;repeat until target's found
-
 Done@@              pull
                     rtc
 
@@ -749,19 +743,14 @@ StringReplaceChars  proc
 target@@            equ       1
                     psha      replacement@@
                     pshhx
-
 Loop@@              lda       ,x
                     beq       Done@@
-
                     cmpa      target@@,sp
                     bne       Cont@@
-
                     lda       replacement@@,sp
                     sta       ,x
-
 Cont@@              aix       #1
                     bra       Loop@@
-
 Done@@              pull
                     rtc
 
@@ -790,12 +779,11 @@ StringReverseString macro     [[#]ASCIZ_String]
 
 StringReverseString proc
                     push
+                    #ais
 
                     @StringLength                 ;A = length of string
                     cmpa      #2                  ;less-than-two length strings
                     blo       Done@@              ;... are not processed
-
-                    #ais
 
                     psha      length@@            ;placeholder for length
                     pshhx     .left@@             ;left-to-right pointer
@@ -818,20 +806,21 @@ Loop@@
 
                     ldhx      .right@@,sp         ;HX -> right
                     sta       ,x
-
                     aix       #-1                 ;back-up right pointer
                     sthx      .right@@,sp
           #else
-                    ldx       .left@@,sp
-                    txh
-                    ldx       .left@@+1,sp        ;HX -> left
+                    tsx
+                    lda       .left@@,spx
+                    ldx       .left@@+1,spx
+                    tah                           ;HX -> left
 
                     lda       ,x
                     psha
 
-                    ldx       .right@@,sp
-                    txh
-                    ldx       .right@@+1,sp       ;HX -> right
+                    tsx
+                    lda       .right@@,spx
+                    ldx       .right@@+1,spx
+                    tah                           ;HX -> right
 
                     lda       ,x
                     @PutNextA .left@@,sp
@@ -849,9 +838,7 @@ Loop@@
                     stx       .right@@,sp
           #endif
                     dbnz      length@@,sp,Loop@@
-
                     ais       #:ais               ;de-allocate temporaries
-
 Done@@              pull
                     rtc
 
@@ -898,32 +885,24 @@ StringPos           proc
                     psha      target@@
                     pshhx
                     #ais
-
                     clra                          ;Initialize position counter
                     psha      counter@@
-
 Loop@@              inc       counter@@,sp        ;count this character
-
                     lda       ,x                  ;is buffer char ...
                     cmpa      target@@,sp         ;... same as target?
                     aix       #1                  ;(point to next buffer character)
                     beq       Found@@             ;if so, go count the match
-
                     sec                           ;assume 'not found'
                     cbeqa     #0,Done@@           ;if at end of string, we didn't find target
-
-          ; comment out next two lines for ASCIZ strings only
+          ;-------------------------------------- ;for ASCIZ strings only (comment otherwise)
                     cbeqa     #CR,Done@@          ;A CR means end of string
                     cbeqa     #LF,Done@@          ;A LF means end of string
-          ; comment out previous two lines for ASCIZ strings only
-
+          ;--------------------------------------
                     bra       Loop@@              ;and try again
-
 Found@@             tsx
                     lda       counter@@,spx
                     deca                          ;make counter zero-based (for AAX)
                     sta       target@@,spx        ;save result for user
-
                     clc                           ;indicates 'found'
 Done@@              ais       #:ais               ;de-allocate temporaries
                     pull
@@ -959,7 +938,7 @@ StringFindSubStr    macro     [#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[
                     lda       ~2~
                     @@lea     ~1~
                     pshhx
-                    @@_ldhx_, ~3~ 1,psp
+                    @@_ldhx_  ~3~ 1,psp
                     clc
                     call      ~0~
                     ais       #:psp
@@ -973,7 +952,7 @@ StringFindSubStr    macro     [#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[
                     lda       ~2~
                     @@lea     ~1~
                     pshhx
-                    @@_ldhx_, ~3~ hx$$$,sp
+                    @@_ldhx_  ~3~ hx$$$,sp
                     sec
                     call      ~0~
                     ais       #:psp
@@ -990,7 +969,6 @@ StringFindSubStr    proc
 .substr@@           equ       1
                     psha      len@@
                     pshhx     .ans@@
-
                     pshcc     ccr@@
 
                     @StringLength                 ;A=searched-string length
@@ -1001,37 +979,32 @@ StringFindSubStr    proc
                     inca                          ;plus one, A=number of substrings in string
 
 Loop@@              push      .str@@
-
                     @StringCompareBuff .str@@,sp .substr@@,sp len@@,sp
-
                     pull
                     beq       Found@@             ;found, get out
 
                     aix       #1                  ;move one up in searched-string
-
                     dbnza     Loop@@              ;one less comparison, one less length
-
-;-------------------------------------------------------------------------------
-                    #push
-
+          ;--------------------------------------
+                              #push
 Fail@@              pula                          ;shorter PULCC (since RegA
                     tap                           ;will be restored by PULL)
                     pull
                     sec                           ;indicate "failure"
                     rtc
-
-                    #spcheck
-                    #pull
-;-------------------------------------------------------------------------------
-
+                              #spcheck
+                              #pull
+          ;--------------------------------------
 Found@@             lda       ccr@@,sp
                     tap                           ;if entry Carry was set
                     bcc       Done@@
-
+          #ifhcs
+                    sthx      .ans@@,sp           ;update return pointer
+          #else
                     stx       .ans@@+1,sp         ;update return pointer
                     thx
                     stx       .ans@@,sp
-
+          #endif
 Done@@              pula                          ;shorter PULCC (since RegA
                     tap                           ;will be restored by PULL)
                     pull
@@ -1053,7 +1026,7 @@ StringInsertString  macro     [#]StringToInsert,[#]IntoString
                     #psp
                     @@lea     ~1~
                     pshhx
-                    @@_ldhx_, ~2~ 1,psp
+                    @@_ldhx_  ~2~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -1066,16 +1039,20 @@ StringInsertString  macro     [#]StringToInsert,[#]IntoString
 
 StringInsertString  proc
                     push      .str@@,2
-
+          #ifhcs
                     ldhx      1,sp
+          #else
+                    tsx
+                    lda       1,spx
+                    ldx       2,spx
+                    tah
+          #endif
                     @StringLength
                     beq       Done@@              ;Null string causes exit
                     @aax                          ;HX -> end of substring
-
 Loop@@              aix       #-1                 ;HX -> previous substring char
                     @StringInsertChar, ,x .str@@,sp
                     dbnza     Loop@@              ;repeat for all substring chars
-
 Done@@              pull
                     rtc
 
@@ -1133,8 +1110,11 @@ Loop@@              cmpa      1,sp                ;(TOS of caller)
                     @StringInsertChar #' '
                     inca                          ;update string length
                     bra       Loop@@
+          #ifmmu
+Done@@              rts
+          #else
 Done@@              equ       :AnRTS
-
+          #endif
 ;*******************************************************************************
 ; Purpose: Pad an ASCIZ string with trailing blanks upto specific string size
 ; Input  : HX -> ASCIZ string
@@ -1231,18 +1211,20 @@ target@@            equ       1,1                 ;delimiter to use
 
 Loop@@              lda       ,x                  ;get next string character
                     beq       Found?@@            ;end-of-string, found?
-
                     aix       #1                  ;bump up pointer
-
                     cbeq      target@@,sp,Found@@
-
                     cbeqa     #'"',Quoted@@       ;any kind of quote
                     cbeqa     #"'",Quoted@@       ;... is treated as embedded
                     cbeqa     #'`',Quoted@@       ;... string
-
 Cont@@              bra       Loop@@              ;repeat
-
-NewPart@@           sthx      .str@@,sp           ;save pointer to next substring
+NewPart@@
+          #ifhcs
+                    sthx      .str@@,sp           ;save pointer to next substring
+          #else
+                    tha
+                    sta       .str@@,sp           ;save pointer to next substring
+                    stx       .str@@+1,sp
+          #endif
                     bra       Cont@@              ;and repeat
 
 Quoted@@            @SkipChar                     ;skip over quoted part by searching for same quote
@@ -1256,10 +1238,15 @@ Found?@@            dbnz      index@@,sp,NotFound@@
 
 Found@@             dbnz      index@@,sp,NewPart@@          ;right index? if not, go search for another
                     aix       #-1                 ;back up before delimiter
-
-Save@@              sthx      tmp@@,sp
+Save@@
+          #ifhcs
+                    sthx      tmp@@,sp
+          #else
+                    stx       tmp@@+1,sp
+                    thx
+                    stx       tmp@@,sp
+          #endif
                     tsx
-
                     @sub.s    tmp@@,spx .str@@,spx tmp@@,spx
 
                     tst       tmp@@,spx           ;if MSB non-zero, "too long" error
@@ -1267,10 +1254,12 @@ Save@@              sthx      tmp@@,sp
 
                     lda       tmp@@+1,spx         ;A = calculated offset
                     sta       len@@,spx           ;return offset into string
-
+          #ifhcs
                     ldhx      .str@@,sp           ;HX -> most recent substring
                     sthx      .ans@@,sp           ;save as answer
-
+          #else
+                    @mova.s   .str@@,sp .ans@@,sp ;save most recent substring as answer
+          #endif
                     clc                           ;indicate "found"
 Done@@              ais       #:ais               ;de-allocate temporaries
                     pull
@@ -1322,7 +1311,7 @@ FPLoop@@            psha      index@@
 
                     @StringLength       #String1
                     cmpa      #::String1
-                    jne       Failure
+                    jne       ?Failure
                     @StringCopy         #String1,#String
                     @StringInsertChar   #'>',#String
                     @StringUpcase       #String
@@ -1330,16 +1319,16 @@ FPLoop@@            psha      index@@
                     @StringTrim         #String
                     @cop
                     @StringCompareBuff  #String1 #String2 #::String1
-                    jeq       Failure
+                    jeq       ?Failure
                     @cop
                     @StringCompBuff     #String1 #String2 #::String1
-                    jne       Failure
+                    jne       ?Failure
                     @cop
                     @StringCompare      #String1 #String2
-                    jne       Failure
+                    jne       ?Failure
                     @cop
                     @StringCompareCase  #String1 #String2
-                    jeq       Failure
+                    jeq       ?Failure
                     @cop
                     @StringDeleteWord   #String,#' '
                     @StringReverseString #String
@@ -1358,6 +1347,6 @@ FPLoop@@            psha      index@@
                     @StringReverseString #String  ;nothing should happen (2011.07.14 bugfix)
 
                     bra       *
-Failure             bra       *
+?Failure            bra       *
 
                     @vector   Vreset,Start

@@ -166,7 +166,10 @@ BUS_MHZ             def       BUS_KHZ/1000
 
 #ifhcs
 ?calc_fll_factor    macro
-          #ifdef _FL_
+          #ifdef _QD_
+CHOICES$$$          equ       1
+                    mset      0,512
+          #else ifdef _FL_
 CHOICES$$$          equ       2
                     mset      0,512,608
           #else ifdef _PA_¦_PT_¦_PL_
@@ -575,6 +578,19 @@ Var                 macro     Size[,MaxSizeForRAM]
                     endm
 
 ;*******************************************************************************
+
+asciz               macro     Size
+          #if * < EEPROM
+                    rmb       ~1~+1
+          #else
+                    fcb:{~1~+1} 0
+          #endif
+          #ifnb ~label~
+                    #size     ~label~
+          #endif
+                    endm
+
+;*******************************************************************************
 ; Repeat a number of instructions a constant number of times
 ; Example:          @rep      2,lsla,rolx         ;shift left XA twice
 
@@ -742,13 +758,15 @@ _needs_spauto_      macro
 ; (This is meant to be called from other macros -- not to be called directly)
 
 _not_x_             macro
-                    mset      #
+                    mset      #' '
           #ifb ~1~
                     mexit                         ;;nothing to do
           #endif
           #ifparm ~'~,1~'.{:1}~ = x
-                    mstop     X-index not allowed (~1~)
+                    #Error    X-index not allowed (~1~)
           #endif
+                    mdel      1
+                    mtop
                     endm
 
 ;*******************************************************************************
@@ -756,12 +774,15 @@ _not_x_             macro
 ; (This is meant to be called from other macros -- not to be called directly)
 
 _not_#_             macro
+                    mset      #' '
           #ifb ~1~
                     mexit                         ;;nothing to do
           #endif
           #ifparm ~#~
-                    mstop     Immediate mode not allowed (~1~)
+                    #Error    Immediate mode not allowed (~1~)
           #endif
+                    mdel      1
+                    mtop
                     endm
 
 ;*******************************************************************************
@@ -769,12 +790,15 @@ _not_#_             macro
 ; (This is meant to be called from other macros -- not to be called directly)
 
 _#_                 macro
+                    mset      #' '
           #ifb ~1~
                     mexit                         ;;nothing to do
           #endif
           #ifb ~#~
-                    mstop     Immediate mode expected (~1~)
+                    #Error    Immediate mode expected (~1~)
           #endif
+                    mdel      1
+                    mtop
                     endm
 
 ;*******************************************************************************
@@ -854,17 +878,28 @@ _size_              macro     Label[,ExpectedSize]*
 ; Finally, load HX from the referenced location, regardless of addressing mode.
 ; (This is meant to be called from other macros -- not to be called directly)
 
-_ldhx_              macro     Parm[,RegHX]
+_ldhx_              macro     Parm[ RegHX]
+                    mset      #' '
                     mreq      1:Parm[,RegHX]
                     mdef      2,~text~
                     mset      0,~2~               ;;use this as new default
           #ifb ~2~
                     merror    RegHX location is needed 1st time
           #endif
-          #ifnoparm ~,1~ = ,spx                   ;except for SPX mode ...
           #ifparm ~'~,1~'.{:1}~ = x               ;for any X-indexed mode
+            #ifparm ~,1~ = ,spx                   ;for SPX mode ...
+                    tsx                           ;reload stack frame pointer
+            #else                                 ;for all others
+              #ifhcs
                     ldhx      ~2~                 ;reload original HX
-          #endif
+              #else
+                    psha
+                    lda       ~2~                 ;reload original HX
+                    ldx       ~2,~+1~,2~
+                    tah
+                    pula
+              #endif
+            #endif
           #endif
                     @lea      ~1~                 ;load actual parameter
                     endm
@@ -970,32 +1005,58 @@ PUE                 macro     PortLabel
                     endm
 
 ;*******************************************************************************
+; Check if a parameter is pointer
+
+_need_pointer_      macro     pointer_variable
+                    mreq      1:pointer_variable
+                    mset      0,Pointer (~1~) must be a word variable
+          #ifparm ~#~
+                    mstop     ~text~
+          #else if ::~1,~ <> 2
+                    mstop     ~text~
+          #endif
+          #ifb ~1.1.1~ = .
+          #ifb ~1.1.2~ = ?.
+          #ifb ~1,~ == _PC_
+          #ifb ~1.1.2~ == pc
+                    #Hint     By convention, start pointers with dot (~1~ => .~1~)
+          #endif
+          #endif
+          #endif
+          #endif
+                    endm
+
+;*******************************************************************************
 ; Get A from the location pointed to by the parm, while bumping up that pointer
 
-GetNextA            macro     Pointer
-                    mreq      1:Pointer
-          #ifparm ~#~
-                    mstop     Pointer (~1~) must be a word variable
-          #endif
+GetNextA            macro     Pointer [DoneOnZero]
+                    mset      #' '
+                    @@_need_pointer_ ~1~
                     @@_not_x_ ~@~
           #ifhcs
-                    ldhx      ~@~
+                    ldhx      ~1~
                     lda       ,x
+            #ifnb ~2~
+                    beq       ~2~
+            #endif
                     aix       #1
-                    sthx      ~@~
+                    sthx      ~1~
           #else
                     #push
                     #spauto   :sp
-                    ldx       ~@~
+                    ldx       ~1~
                     pshx
-                    ldx       ~1,~+1~,1~,~2~
+                    ldx       ~1,~+1~,1~
                     pulh
                     lda       ,x
+            #ifnb ~2~
+                    beq       ~2~
+            #endif
                     aix       #1
-                    stx       ~1,~+1~,1~,~2~
+                    stx       ~1,~+1~,1~
                     pshx
                     thx
-                    stx       ~@~
+                    stx       ~1~
                     pulx
                     #pull
           #endif
@@ -1004,30 +1065,34 @@ GetNextA            macro     Pointer
 ;*******************************************************************************
 ; Put A into the location pointed to by the parm, while bumping up that pointer
 
-PutNextA            macro     Pointer
-                    mreq      1:Pointer
-          #ifparm ~#~
-                    mstop     Pointer (~1~) must be a word variable
-          #endif
-                    @@_not_x_ ~@~
+PutNextA            macro     Pointer [DoneOnZero]
+                    mset      #' '
+                    @@_need_pointer_ ~1~
+                    @@_not_x_ ~1~
           #ifhcs
-                    ldhx      ~@~
+                    ldhx      ~1~
                     sta       ,x
+            #ifnb ~2~
+                    beq       ~2~
+            #endif
                     aix       #1
-                    sthx      ~@~
+                    sthx      ~1~
           #else
                     #push
                     #spauto   :sp
-                    ldx       ~@~
+                    ldx       ~1~
                     pshx
-                    ldx       ~1,~+1~,1~,~2~
+                    ldx       ~1,~+1~,1~
                     pulh
                     sta       ,x
+            #ifnb ~2~
+                    beq       ~2~
+            #endif
                     aix       #1
-                    stx       ~1,~+1~,1~,~2~
+                    stx       ~1,~+1~,1~
                     pshx
                     thx
-                    stx       ~@~
+                    stx       ~1~
                     pulx
                     #pull
           #endif
@@ -1513,14 +1578,15 @@ clr.s               macro     Variable [Size]
 ;*******************************************************************************
 ; INC for any sized variable
 
-inc.s               macro     Variable
-                    mset      #
+inc.s               macro     Variable [Branch]
+                    mset      #' '
                     mreq      1
+                    mdef      2,Done$$$
                     @@_nosize_ ~1~
                     mdo
                     inc       ~1,~+{::~1,~-:mloop}~,1~
           #if :mloop <> ::~1,~
-                    bne       Done$$$
+                    bne       ~2~
           #endif
                     mloop     ::~1,~
 Done$$$

@@ -558,37 +558,18 @@ TPMC0SC             equ       $45,1               ;TPM channel 0 status and cont
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
-                    @bitnum   CH0F,7              ;channel 0 flag
-                    @bitnum   CH0IE,6             ;ch 0 interrupt enable
-                    @bitnum   MS0B,5              ;mode select B
-                    @bitnum   MS0A,4              ;mode select A
-                    @bitnum   ELS0B,3             ;edge/level select B
-                    @bitnum   ELS0A,2             ;edge/level select A
+                    @bitnum   CHxF,7              ;channel 0 flag
+                    @bitnum   CHxIE,6             ;ch 0 interrupt enable
+                    @bitnum   MSxB,5              ;mode select B
+                    @bitnum   MSxA,4              ;mode select A
+                    @bitnum   ELSxB,3             ;edge/level select B
+                    @bitnum   ELSxA,2             ;edge/level select A
 
 TPMC0V              equ       $46,2               ;TPM channel 0 value register
 TPMC0VH             equ       $46,1               ;TPM channel 0 value register (high)
 TPMC0VL             equ       $47,1               ;TPM channel 0 value register (low)
 
 TPMC1SC             equ       $48,1               ;TPM channel 1 status and control
-
-; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
-
-                    @bitnum   CH1F,7              ;channel 1 flag
-                    @bitnum   CH1IE,6             ;ch 1 interrupt enable
-                    @bitnum   MS1B,5              ;mode select B
-                    @bitnum   MS1A,4              ;mode select A
-                    @bitnum   ELS1B,3             ;edge/level select B
-                    @bitnum   ELS1A,2             ;edge/level select A
-
-; TPM Channel n Status and Control Register (TPMxCnSC)
-
-                    @bitnum   CHnF,7              ;Channel n Flag
-                    @bitnum   CHnIE,6             ;Channel n Interrupt Enable
-                    @bitnum   MSnB,5              ;Mode Select B for TPM Channel n
-                    @bitnum   MSnA,4              ;Mode Select A for TPM Channel n
-                    @bitnum   ELSnB,3             ;Edge/Level Select Bits
-                    @bitnum   ELSnA,2
-
 TPMC1V              equ       $49,2               ;TPM channel 1 value register
 TPMC1VH             equ       $49,1               ;TPM channel 1 value register (high)
 TPMC1VL             equ       $4A,1               ;TPM channel 1 value register (low)

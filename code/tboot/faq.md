@@ -41,7 +41,7 @@ So, your options are:
 
 1. Zero the size of the reserved-by-default configuration area by adding `-dFLASH_DATA_SIZE` to your assembly process (if your app does not require any user configuration memory).
 
-2. Move your application to start at `$E200` (instead of `$E000`) in the case of QE8, or similar for other MCU variants.  In other words, move the app code to the beginning of the sector right the reserved one for user configuration.
+2. Move your application to start at `$E200` (instead of `$E000`) in the case of QE8, or similar for other MCU variants.  In other words, move the app code to the beginning of the sector right after the reserved one for user configuration.
 
 3. Add `-dALLOW_EEPROM` to your assembly process to enable erasing & programming of the reserved data flash used as simulated EEPROM. (Not recommended.)
 

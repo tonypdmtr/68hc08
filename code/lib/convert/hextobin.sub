@@ -17,14 +17,15 @@ HexToBin            proc
                     call      Upcase
 
                     cmpa      #'A'
-                    blo       DecToBin            ;go check for Number
+                    blo       DecToBin@@          ;go check for Number
 
                     cmpa      #'F'
-                    bhi       DecToBin            ;go check for Number
+                    bhi       DecToBin@@          ;go check for Number
 
                     sub       #'A'-10             ;convert letter to binary (also does CLC)
                     rtc
 
+DecToBin@@          equ       DecToBin
 ;*******************************************************************************
                     #sp
 ;*******************************************************************************

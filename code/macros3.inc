@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Sample macro definitions for ASM8 (Win32 & Linux versions, only)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/macros3.html
 ;* Note(s)   : Use: #Include macros3.inc
 ;*           :
@@ -358,7 +358,7 @@ Start               proc
                     @ora.m    Op1,Op2,Ans
                     @ror.m    Op1
                     @sub.m    Op1,Op2,Ans
-          ;---------------------------------------------------------------------
+          ;--------------------------------------
                     #ParmS    space
                     @add.m    Op1,sp Op2,x Ans,spx
                     @asr.m    Op1,sp
@@ -374,6 +374,6 @@ Start               proc
                     @ora.m    Op1,sp Op2,x Ans,spx
                     @ror.m    Op1,sp
                     @sub.m    Op1,sp Op2,x Ans,spx
-          ;---------------------------------------------------------------------
+          ;--------------------------------------
                     #ParmS
                     @sub.m    Op1,Op2

@@ -233,12 +233,12 @@ TPM2C0SC            equ       $15,1               ;TPM2 Timer Channel 0 Status a
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
-                    @bitnum   CHnF,7              ;channel 0 flag
-                    @bitnum   CHnIE,6             ;ch 0 interrupt enable
-                    @bitnum   MSnB,5              ;mode select B
-                    @bitnum   MSnA,4              ;mode select A
-                    @bitnum   ELSnB,3             ;edge/level select B
-                    @bitnum   ELSnA,2             ;edge/level select A
+                    @bitnum   CHxF,7              ;channel 0 flag
+                    @bitnum   CHxIE,6             ;ch 0 interrupt enable
+                    @bitnum   MSxB,5              ;mode select B
+                    @bitnum   MSxA,4              ;mode select A
+                    @bitnum   ELSxB,3             ;edge/level select B
+                    @bitnum   ELSxA,2             ;edge/level select A
 
 TPM2C0V             equ       $16,2               ;TPM2 Timer Channel 0 Value Register
 TPM2C0VH            equ       $16,1               ;TPM2 Timer Channel 0 Value Register High
@@ -300,24 +300,6 @@ TPM1C3SC            equ       $2E,1               ;TPM1 Timer Channel 3 Status a
 TPM1C3V             equ       $2F,2               ;TPM1 Timer Channel 3 Value Register
 TPM1C3VH            equ       $2F,1               ;TPM1 Timer Channel 3 Value Register High
 TPM1C3VL            equ       $30,1               ;TPM1 Timer Channel 3 Value Register Low
-
-; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
-
-                    @bitnum   ELS2A,2             ;Edge/Level Select Bit A
-                    @bitnum   ELS2B,3             ;Edge/Level Select Bit B
-                    @bitnum   MS2A,4              ;Mode Select A for TPM Channel 2
-                    @bitnum   MS2B,5              ;Mode Select B for TPM Channel 2
-                    @bitnum   CH2IE,6             ;Channel 2 Interrupt Enable
-                    @bitnum   CH2F,7              ;Channel 2 Flag
-
-; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
-
-                    @bitnum   ELS3A,2             ;Edge/Level Select Bit A
-                    @bitnum   ELS3B,3             ;Edge/Level Select Bit B
-                    @bitnum   MS3A,4              ;Mode Select A for TPM Channel 3
-                    @bitnum   MS3B,5              ;Mode Select B for TPM Channel 3
-                    @bitnum   CH3IE,6             ;Channel 3 Interrupt Enable
-                    @bitnum   CH3F,7              ;Channel 3 Flag
 
 ; **** System Integration Module (SIM) *****************************************
 

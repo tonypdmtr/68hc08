@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Print 8-bit or 16-bit integer to output device
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/printint.html
 ;* Note(s)   : Use: #Include printint.sub
 ;*           :
@@ -46,6 +46,7 @@
 ;*           : 13.02.11       New MACROS.INC
 ;*           : 13.05.06       Retouched. No functional changes
 ;*           : 17.06.12       BugFix: Replaced all BSR with CALL due to final RTC
+;*           : 20.12.28       Silenced eight warnings with new ASM8 -G+ option
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -100,7 +101,7 @@ PrintByte           proc
 
                     bra       ?PrintWord
 
-;-------------------------------------------------------------------------------
+;*******************************************************************************
 
                     #spauto
 
@@ -119,9 +120,10 @@ PrintWordHX         proc
                     push
 ;                   bra       ?PrintWord
 
-;===============================================================================
+;*******************************************************************************
 
-?PrintWord          clra
+?PrintWord          proc
+                    clra
                     psha                          ;ASCIZ terminator
 
 Loop@@              pshhx     t@@                 ;save (current) dividend
@@ -158,55 +160,65 @@ Print@@             pula                          ;get next ASCIZ char
                     #spauto
 
 DispByte            proc
-                    call      DispByte@@
-                    bra       PrintByte
+                    !call     ?DispByte
+                    !bra      PrintByte
 
-DispByte@@          push
+;*******************************************************************************
+
+?DispByte           proc
+                    push
 
                     clrh                          ;H = dividend (MSB)
                     tax                           ;X = dividend (LSB)
 
                     lda       #BYTEWIDTH          ;maximum number of ASCII digits
-                    bra       Disp@@
+                    bra       ?Disp
 
 ;-------------------------------------------------------------------------------
 
                     #spauto
 
-DispWordXA          call      DispWordXA@@
-                    bra       PrintWordXA
+DispWordXA          !call     ?DispWordXA
+                    !bra      PrintWordXA
 
-DispWordXA@@        push
+;*******************************************************************************
 
+?DispWordXA         proc
+                    push
                     txh                           ;H = dividend (MSB)
                     tax                           ;X = dividend (LSB)
-
                     bra       DispWord@@
 
-;-------------------------------------------------------------------------------
+;*******************************************************************************
 
                     #spauto
 
-DispWordHX          call      DispWordHX@@
-                    bra       PrintWordHX
+DispWordHX          !call     DispWordHX@@
+                    !bra      PrintWordHX
 
 DispWordHX@@        push
 
 DispWord@@          lda       #WORDWIDTH          ;maximum number of ASCII digits
-                    bra       Disp@@
+                    bra       ?Disp
 
-;-------------------------------------------------------------------------------
+;*******************************************************************************
 
                     #spauto
 
-DispLenHX           call      DispHX@@
-                    bra       PrintWordHX
+DispLenHX           proc
+                    !call     ?DispHX
+                    !bra      PrintWordHX
 
-DispHX@@            push                          ;A = maximum number of ASCII digits
+;*******************************************************************************
 
-;===============================================================================
+?DispHX             proc
+                    push                          ;A = maximum number of ASCII digits
+;                   bra       ?Disp
 
-Disp@@              psha      len@@               ;save fill-width counter
+;*******************************************************************************
+
+?Disp               proc
+                    psha      len@@               ;save fill-width counter
 
                     tpa                           ;A = caller's CCR
                     psha                          ;save caller's CCR for later

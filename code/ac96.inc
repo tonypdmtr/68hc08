@@ -465,15 +465,6 @@ NVOPT               equ       $FFBF,1             ;Non-volatile Flash Options Re
 
 ;*** TPMxC0SC - TPMx Timer Channel 0 Status and Control Register
 
-                    @bitnum   ELS0A,2             ;Edge/Level Select Bit A
-                    @bitnum   ELS0B,3             ;Edge/Level Select Bit B
-                    @bitnum   MS0A,4              ;Mode Select A for TPM Channel 0
-                    @bitnum   MS0B,5              ;Mode Select B for TPM Channel 0
-                    @bitnum   CH0IE,6             ;Channel 0 Interrupt Enable
-                    @bitnum   CH0F,7              ;Channel 0 Flag
-
-;*** TPMC0V - TPMx Timer Channel 0 Value Register
-
                     @bitnum   ELSxA,2             ;Edge/Level Select Bit A
                     @bitnum   ELSxB,3             ;Edge/Level Select Bit B
                     @bitnum   MSxA,4              ;Mode Select A for TPM Channel x
@@ -879,11 +870,8 @@ FLASH_END           set       BOOTROM-1
 HZ                  def       16777216            ;Cyclone 32768*512
 #endif
 ;-------------------------------------------------------------------------------
-; Vectors
+                    #temp     VECTORS             ; Vectors
 ;-------------------------------------------------------------------------------
-
-                    #temp     VECTORS
-
 Vspi2               next      :temp,2             ;SPI2 vector
 Vtpm3ovf            next      :temp,2             ;TPM3 overflow
                     next      :temp,2*16          ;(reserved)

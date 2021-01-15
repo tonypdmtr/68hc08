@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Less often used macros for ASM8 (Win32 & Linux versions, only)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/macros2.html
 ;* Note(s)   : Use: #Include macros2.inc
 ;*******************************************************************************
@@ -23,19 +23,19 @@ lda_xpp             macro     AddressPtr
                     aix       #1
                     sthx      ~@~
                     endm
-
+;-------------------------------------------------------------------------------
 sta_xpp             macro     AddressPtr
                     ldhx      ~@~
                     sta       ,x
                     aix       #1
                     sthx      ~@~
                     endm
-
+;-------------------------------------------------------------------------------
 mova_xpp            macro     FromPtr,ToPtr
                     @@lda_xpp ~1~
                     @sta_xpp  ~2~
                     endm
-
+;-------------------------------------------------------------------------------
 mov_xpp             macro     FromPtr,ToPtr
                     #push
                     #spauto   :sp
@@ -93,15 +93,13 @@ lslxa               macro     [Count]             ;Logical Shift Left XA
 
 ;*******************************************************************************
 ; Compare A to X
-
-          #ifnomdef cax
+#ifnomdef cax
 cax                 macro
                     pshx
                     cmpa      1,asp
                     pulx
                     endm
-          #endif
-
+#endif
 ;*******************************************************************************
 ; Return with RTS and de-allocate specified number of stack bytes
 
@@ -281,9 +279,9 @@ Loop$$$
 #ifnomdef gcd
 gcd                 macro     a,b
           #if ~1~ = ~2~
-              #ifparm ~label~
+            #ifparm ~label~
 ~label~             set       ~1~
-              #endif
+            #endif
                     mexit     ~1~
           #endif
           #if ~1~ > ~2~
@@ -309,7 +307,6 @@ lcm                 macro     a,b
                     mexit     {~1~}/:mexit*{~2~}
                     endm
 #endif
-
 ;*******************************************************************************
 ; Calculate paced loop coefficients from a list of task execution intervals,
 ; all using a common counter counting up (modulo MAX_PACE_TIME).
@@ -337,9 +334,9 @@ MAX_PACE_TIME       set       :mexit
 Str7                macro     String
                     mset      #                   ;;unite all parms into one
                     mstr      1                   ;;make it a proper string
-              #if :1 < 3
+          #if :1 < 3
                     merror    Null string not allowed
-              #endif
+          #endif
                     mdo       2
           #if :mloop = :1-1
                     fcb       \@~c1~\@|$80
@@ -349,7 +346,7 @@ Str7                macro     String
                     mloop     :1-1
                     endm
 
-;-------------------------------------------------------------------------------
+;*******************************************************************************
 ; Alternate coding does not force leading chars to 7-bit but it's shorter/faster
 ;                   #Drop     Str7                ;uncomment to test 2nd version
 
@@ -368,7 +365,6 @@ Str7                macro     String
                     fcc       ~2~~3~
                     endm
 #endif
-
 ;*******************************************************************************
 ; Delay current assembly by some arbitrary constant
 
@@ -408,13 +404,11 @@ Font                macro     GraphicBitmapPattern
           #endif
           #if :1 <= 8
                     fcb       {~9~(H)}            ;~1~
-                    mexit
-          #endif
-          #if :1 <= 16
+          #else if :1 <= 16
                     dw        {~9~(H)}            ;~1~
-                    mexit
-          #endif
+          #else
                     long      {~9~(H)}            ;~1~
+          #endif
                     endm
 
 ;*******************************************************************************
@@ -472,8 +466,7 @@ AllowedConditionals macro     Conditional Description[,Conditional Description]*
           #endif
                     mloop     :n
   #Hint +===================================================
-  #Hint Run ASM8 -Dx (where x is any of the above)
-  #Fatal Can't continue
+  #Fatal Run ASM8 -Dx (where x is any of the above)
 #endif
                     endm
 
@@ -497,12 +490,12 @@ b                   def       80
 
                     @lcm      a,b
                     #Message  lcm({a},{b})={:mexit}
-          ;---
+          ;--------------------------------------
                     @CalcPacedLoop 4,7,12,21,42
                     @CalcPacedLoop 10,50,200
-          ;---
+          ;--------------------------------------
                     @Clear    $80,$100
-          ;---
+          ;--------------------------------------
                     #HcsOff
                     @ldhx     1,sp
                     @ldhx     1,x
@@ -515,23 +508,23 @@ b                   def       80
                     @ldhx,    1,x
                     @ldhx     1,ax
                     @ldhx     1,spx
-          ;---
+          ;--------------------------------------
                     @lsrxa
-          ;---
+          ;--------------------------------------
                     @lsrxa    2
-          ;---
+          ;--------------------------------------
                     @lslxa
-          ;---
+          ;--------------------------------------
                     @lslxa    2
-          ;---
+          ;--------------------------------------
                     @aix      -768                ;from -1 to -768 it uses AIX
-          ;---
+          ;--------------------------------------
                     @aix      -769                ;below that it uses ADDHX
-          ;---
+          ;--------------------------------------
                     @aix      762                 ;from 1 to 762 it uses AIX
-          ;---
+          ;--------------------------------------
                     @aix      763                 ;above that it uses ADDHX
-          ;---
+          ;--------------------------------------
                     @IsPowerOfTwo 512,32,2
           #ifmmu
                     @leap     $123456
@@ -544,7 +537,7 @@ b                   def       80
                     @FillROM  $8000,$80FF,$AA     ;fill range with $AA
                     @FillROM  $8100,$81FF         ;fill range with low address byte
                     @FillROMString $8200,$82FF,'UNUSED'
-          ;---
+          ;--------------------------------------
                     @font     __OOOO__
                     @font     _OO__OO_
                     @font     OO____OO
@@ -553,6 +546,6 @@ b                   def       80
                     @font     OO____OO
                     @font     OO____OO
                     @font     ________
-          ;---
+          ;--------------------------------------
                     @Str7     'Quoted String'
                     @Str7     Written by <tonyp@acm.org>

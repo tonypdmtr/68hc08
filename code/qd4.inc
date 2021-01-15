@@ -178,8 +178,6 @@ TPM2C0VL            equ       $27,1               ;TPM channel 0 value register 
 
 ICSC1               equ       $38,1               ;ICS Control Register 1
 
-; ICSC1
-
                     @bitnum   CLKS1,7             ;Clock Source Select
                     @bitnum   CLKS0,6
                     @bitnum   RDIV2,5             ;Reference Divider
@@ -195,8 +193,6 @@ ICSC2               equ       $39,1               ;ICS Control Register 2
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
-; ICSC2
-
                     @bitnum   BDIV1,7             ;Bus Frequency Divider
                     @bitnum   BDIV0,6
                     @bitnum   RANGE_SEL,5         ;Frequency Range Select
@@ -209,7 +205,6 @@ ICSC2               equ       $39,1               ;ICS Control Register 2
 ;-------------------------------------------------------------------------------
 
 ICSTRM              equ       $3A,1               ;ICS Trim Register
-
 ICSSC               equ       $3B,1               ;ICS Status & Control Register
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
@@ -235,28 +230,18 @@ TPMC0SC             equ       $45,1               ;TPM channel 0 status and cont
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
-                    @bitnum   CH0F,7              ;channel 0 flag
-                    @bitnum   CH0IE,6             ;ch 0 interrupt enable
-                    @bitnum   MS0B,5              ;mode select B
-                    @bitnum   MS0A,4              ;mode select A
-                    @bitnum   ELS0B,3             ;edge/level select B
-                    @bitnum   ELS0A,2             ;edge/level select A
+                    @bitnum   CHxF,7              ;channel 0 flag
+                    @bitnum   CHxIE,6             ;ch 0 interrupt enable
+                    @bitnum   MSxB,5              ;mode select B
+                    @bitnum   MSxA,4              ;mode select A
+                    @bitnum   ELSxB,3             ;edge/level select B
+                    @bitnum   ELSxA,2             ;edge/level select A
 
 TPMC0V              equ       $46,2               ;TPM channel 0 value register
 TPMC0VH             equ       $46,1               ;TPM channel 0 value register (high)
 TPMC0VL             equ       $47,1               ;TPM channel 0 value register (low)
 
 TPMC1SC             equ       $48,1               ;TPM channel 1 status and control
-
-; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
-
-                    @bitnum   CH1F,7              ;channel 1 flag
-                    @bitnum   CH1IE,6             ;ch 1 interrupt enable
-                    @bitnum   MS1B,5              ;mode select B
-                    @bitnum   MS1A,4              ;mode select A
-                    @bitnum   ELS1B,3             ;edge/level select B
-                    @bitnum   ELS1A,2             ;edge/level select A
-
 TPMC1V              equ       $49,2               ;TPM channel 1 value register
 TPMC1VH             equ       $49,1               ;TPM channel 1 value register (high)
 TPMC1VL             equ       $4A,1               ;TPM channel 1 value register (low)
@@ -426,7 +411,6 @@ PTADS               equ       $1842,1             ;I/O port A drive strength sel
 
 NVFTRIM             equ       $FFAE,1             ;NV FTRIM
 NVICSTRM            equ       $FFAF,1             ;NV ICS Trim
-
 NVBACKKEY           equ       $FFB0,8             ;8-byte backdoor comparison key ($FFB0..$FFB7)
 
 ; following 2 registers transfered from flash to working regs at reset

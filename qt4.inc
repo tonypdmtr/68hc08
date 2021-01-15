@@ -28,8 +28,8 @@ EEPROM              equ       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
 EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
-RAM                 equ       $0080               ;Start of on-chip RAM
-RAM_END             equ       $00FF               ;End of on-chip RAM
+RAM                 equ       $80                 ;Start of on-chip RAM
+RAM_END             equ       $FF                 ;End of on-chip RAM
 ROM                 equ       EEPROM_END+1        ;Start of ROM after data area
 ROM_END             equ       $FDFF               ;End of ROM
 VECTORS             equ       $FFDE               ;Start of Vectors
@@ -40,7 +40,7 @@ FLBPR_MASK          equ       ROM>6&$FF           ;mask to use for FLBPR
                     #Error    FLASH_DATA_SIZE is larger than available Flash
           #endif
                     #MEMORY   EEPROM    ROM_END
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
 
                     #EEPROM
                     org       EEPROM
@@ -163,7 +163,7 @@ KHZ                 def       12800               ;12.8 MHz internal oscillator
 
                     @bitnum   CHxF,7
                     @bitnum   CHxIE,6
-                    @bitnum   MS0B,5
+                    @bitnum   MSxB,5
                     @bitnum   MSxA,4
                     @bitnum   ELSxB,3
                     @bitnum   ELSxA,2

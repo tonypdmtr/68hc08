@@ -36,7 +36,7 @@ StringFindSubStr    macro     [#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[
                     lda       ~2~
                     @@lea     ~1~
                     pshhx
-                    @@_ldhx_, ~3~ 1,psp
+                    @@_ldhx_  ~3~ 1,psp
                     clc
                     call      ~0~
                     ais       #:psp
@@ -50,7 +50,7 @@ StringFindSubStr    macro     [#]SubString,[#]SizeOf(SubString),[#]ASCIZ_String[
                     lda       ~2~
                     @@lea     ~1~
                     pshhx
-                    @@_ldhx_, ~3~ hx$$$,sp
+                    @@_ldhx_  ~3~ hx$$$,sp
                     sec
                     call      ~0~
                     ais       #:psp

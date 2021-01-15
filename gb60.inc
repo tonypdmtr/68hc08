@@ -388,19 +388,12 @@ TPM2C0SC            equ       $65,1               ;TPM2 channel 0 status and con
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
-                    @bitnum   CHnF,7              ;Channel n Flag
-                    @bitnum   CHnIE,6             ;Channel n Interrupt Enable
-                    @bitnum   MSnB,5              ;Mode Select B for TPM Channel n
-                    @bitnum   MSnA,4              ;Mode Select A for TPM Channel n
-                    @bitnum   ELSnB,3             ;Edge/Level Select Bits
-                    @bitnum   ELSnA,2
-
-                    @bitnum   CH0F,7              ;channel 0 flag
-                    @bitnum   CH0IE,6             ;ch 0 interrupt enable
-                    @bitnum   MS0B,5              ;mode select B
-                    @bitnum   MS0A,4              ;mode select A
-                    @bitnum   ELS0B,3             ;edge/level select B
-                    @bitnum   ELS0A,2             ;edge/level select A
+                    @bitnum   CHxF,7              ;Channel n Flag
+                    @bitnum   CHxIE,6             ;Channel n Interrupt Enable
+                    @bitnum   MSxB,5              ;Mode Select B for TPM Channel n
+                    @bitnum   MSxA,4              ;Mode Select A for TPM Channel n
+                    @bitnum   ELSxB,3             ;Edge/Level Select Bits
+                    @bitnum   ELSxA,2
 
 TPM1C0V             equ       $36,2               ;TPM1 channel 0 value register
 TPM1C0VH            equ       $36,1               ;TPM1 channel 0 value register (high)
@@ -417,15 +410,6 @@ TPM1C1SC            equ       $38,1               ;TPM1 channel 1 status and con
 TPMC1SC             equ       TPM1C1SC,1
 TPM2C1SC            equ       $68,1               ;TPM2 channel 1 status and control
 
-; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
-
-                    @bitnum   CH1F,7              ;channel 1 flag
-                    @bitnum   CH1IE,6             ;ch 1 interrupt enable
-                    @bitnum   MS1B,5              ;mode select B
-                    @bitnum   MS1A,4              ;mode select A
-                    @bitnum   ELS1B,3             ;edge/level select B
-                    @bitnum   ELS1A,2             ;edge/level select A
-
 TPM1C1V             equ       $39,2               ;TPM1 channel 1 value register
 TPM1C1VH            equ       $39,1               ;TPM1 channel 1 value register (high)
 TPM1C1VL            equ       $3A,1               ;TPM1 channel 1 value register (low)
@@ -441,15 +425,6 @@ TPM1C2SC            equ       $3B,1               ;TPM1 channel 2 status and con
 TPMC2SC             equ       TPM1C2SC,1
 TPM2C2SC            equ       $6B,1               ;TPM2 channel 2 status and control
 
-; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
-
-                    @bitnum   CH2F,7              ;channel 2 flag
-                    @bitnum   CH2IE,6             ;ch 2 interrupt enable
-                    @bitnum   MS2B,5              ;mode select B
-                    @bitnum   MS2A,4              ;mode select A
-                    @bitnum   ELS2B,3             ;edge/level select B
-                    @bitnum   ELS2A,2             ;edge/level select A
-
 TPM1C2V             equ       $3C,2               ;TPM1 channel 2 value register
 TPM1C2VH            equ       $3C,1               ;TPM1 channel 2 value register (high)
 TPM1C2VL            equ       $3D,1               ;TPM1 channel 2 value register (low)
@@ -462,31 +437,11 @@ TPM2C2VH            equ       $6C,1               ;TPM2 channel 1 value register
 TPM2C2VL            equ       $6D,1               ;TPM2 channel 1 value register (low)
 
 TPM2C3SC            equ       $6E,1               ;TPM2 channel 3 status and control
-
-; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
-
-                    @bitnum   CH3F,7              ;channel 3 flag
-                    @bitnum   CH3IE,6             ;ch 3 interrupt enable
-                    @bitnum   MS3B,5              ;mode select B
-                    @bitnum   MS3A,4              ;mode select A
-                    @bitnum   ELS3B,3             ;edge/level select B
-                    @bitnum   ELS3A,2             ;edge/level select A
-
 TPM2C3V             equ       $6F,2               ;TPM2 channel 1 value register
 TPM2C3VH            equ       $6F,1               ;TPM2 channel 1 value register (high)
 TPM2C3VL            equ       $70,1               ;TPM2 channel 1 value register (low)
 
 TPM2C4SC            equ       $71,1               ;TPM2 channel 4 status and control
-
-; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
-
-                    @bitnum   CH4F,7              ;channel 4 flag
-                    @bitnum   CH4IE,6             ;ch 4 interrupt enable
-                    @bitnum   MS4B,5              ;mode select B
-                    @bitnum   MS4A,4              ;mode select A
-                    @bitnum   ELS4B,3             ;edge/level select B
-                    @bitnum   ELS4A,2             ;edge/level select A
-
 TPM2C4VH            equ       $72,1               ;TPM2 channel 1 value register (high)
 TPM2C4VL            equ       $73,1               ;TPM2 channel 1 value register (low)
 
@@ -788,6 +743,9 @@ Vreset              next      :temp,2             ;reset vector
 ;-------------------------------------------------------------------------------
 ; Aliases for certain vectors
 ;-------------------------------------------------------------------------------
+Viicx               equ       Viic,2
+Vspi1               equ       Vspi,2
+
 Vtpmovf             equ       Vtpm1ovf,2
 Vtpmch2             equ       Vtpm1ch2,2
 Vtpmch1             equ       Vtpm1ch1,2

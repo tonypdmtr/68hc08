@@ -3,11 +3,12 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : General-purpose block insert/delete functions
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/insdel.html
 ;* Note(s)   : Use: #Include insdel.sub
 ;*           : The insert operation only make room for the data.
 ;* History   : 13.11.29 v1.00 Original (Started on 2013.11.29)
+;*           : 20.12.13       Made HC08 compatible
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -54,10 +55,15 @@ MakeRoomForRecord   proc
                     #ais
 
                     pshhx     .end@@              ;actual termination pointer is current location
-
+          #ifhcs
                     ldhx      .user_end@@,sp      ;last byte is our start point
                     pshhx     .dst@@              ;destination pointer
-
+          #else
+                    lda       .user_end@@+1,sp    ;last byte is our start point
+                    psha
+                    lda       .user_end@@,sp
+                    psha      .dst@@,2            ;destination pointer
+          #endif
                     txa                           ;calculate the pointer
                     tsx
                     sub       recsize@@,spx       ; to the previous record
@@ -65,21 +71,45 @@ MakeRoomForRecord   proc
                     lda       .dst@@,spx          ; size
                     sbc       #0                  ; (also MSB)
                     psha      .src@@,2            ;source pointer
-
-Loop@@              ldhx      .src@@,sp
-                    cphx      .end@@,sp
-                    blo       Done@@
-
+Loop@@
+          #ifhcs
                     ldhx      .src@@,sp
+                    cphx      .end@@,sp
+          #else
+                    @cmp.s    .src@@,sp .end@@,sp
+          #endif
+                    blo       Done@@
+          #ifhcs
+                    ldhx      .src@@,sp
+          #else
+                    lda       .src@@,sp
+                    ldx       .src@@+1,sp
+                    tah
+          #endif
                     lda       ,x                  ;copy a byte from current record
                     clr       ,x                  ;zero removed item (optional but useful)
                     aix       #-1
+          #ifhcs
                     sthx      .src@@,sp
-
                     ldhx      .dst@@,sp           ; to next record until the last
+          #else
+                    stx       .src@@+1,sp
+                    thx
+                    stx       .src@@,sp
+
+                    ldx       .dst@@,sp           ; to next record until the last
+                    txh
+                    ldx       .dst@@+1,sp
+          #endif
                     sta       ,x
                     aix       #-1
+          #ifhcs
                     sthx      .dst@@,sp
+          #else
+                    stx       .dst@@+1,sp
+                    thx
+                    stx       .dst@@,sp
+          #endif
                     bra       Loop@@              ;repeat for all bytes
 
 Done@@              ais       #:ais
@@ -122,9 +152,13 @@ DeleteRecord        proc
                     pshhx     .dst@@              ;destination pointer
                     @aax                          ;HX -> next record
                     pshhx     .src@@              ;source pointer
-
-Loop@@              ldhx      .src@@,sp           ;until the last byte of the
+Loop@@
+          #ifhcs
+                    ldhx      .src@@,sp           ;until the last byte of the
                     cphx      .end@@,sp           ;array is processed
+          #else
+                    @cmp.s    .src@@,sp .end@@,sp
+          #endif
                     bhi       Done@@
 
                     @GetNextA .src@@,sp           ;copy a byte from next record
@@ -152,7 +186,7 @@ entry3              rmb       4
 Start               proc
                     @rsp
                     clra
-
+          ;--------------------------------------
                     @Copy     RomTable table
                     @MakeRoomForRecord #::entry1,#entry1,#table+::table-1
 
@@ -161,7 +195,7 @@ Start               proc
 
                     @Copy     RomTable table
                     @MakeRoomForRecord #::entry1,#entry3,#table+::table-1
-          ;---
+          ;--------------------------------------
                     @Copy     RomTable table
                     @DeleteRecord      #::entry1,#entry1,#table+::table-1
 

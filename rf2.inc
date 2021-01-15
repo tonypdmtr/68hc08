@@ -46,8 +46,8 @@ FLBPR_MASK          def       %00000010           ;0-128 bytes of Flash
 #endif
 FLBPR_MASK          def       %00000001           ;all Flash is protected
 
-RAM                 def       $0080               ;Start of on-chip RAM
-RAM_END             def       $00FF               ;End of on-chip RAM
+RAM                 def       $80                 ;Start of on-chip RAM
+RAM_END             def       $FF                 ;End of on-chip RAM
 ROM                 def       EEPROM+FLASH_DATA_SIZE ;Start of ROM after data area
 ROM_END             def       $7FEE               ;End of ROM
 VECTORS             def       $FFF2               ;Start of Vectors
@@ -56,7 +56,7 @@ VECTORS             def       $FFF2               ;Start of Vectors
                     #Error    FLASH_DATA_SIZE is larger than available Flash
           #endif
                     #MEMORY   EEPROM    ROM_END
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
 
                     #EEPROM
                     org       EEPROM
@@ -130,7 +130,7 @@ ICGMRVALUE          def       HZ/307200
           ; TIM - Time Interface Module
 
                     @port     PS0,PS1,PS2,,TRST,TSTOP,TOIE,TOF
-                    @port     CHxMAX,TOVx,ELSxA,ELSxB,MSxA,MS0B,CHxIE,CHxF
+                    @port     CHxMAX,TOVx,ELSxA,ELSxB,MSxA,MSxB,CHxIE,CHxF
 
           ; A/D - Analog-to-Digital definitions
 

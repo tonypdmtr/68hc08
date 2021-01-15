@@ -25,7 +25,7 @@ StringCompare       macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     #psp
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -43,7 +43,7 @@ StringCompareCase   macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     #psp
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -58,7 +58,7 @@ StringCompareCase   proc
                     clc                           ;case-sensitive
                     bra       ?StringCompare
 
-;-------------------------------------------------------------------------------
+;*******************************************************************************
 
                     #spauto   :ab
 
@@ -66,7 +66,7 @@ StringCompare       proc
                     sec                           ;case-insensitive
 ;                   bra       ?StringCompare
 
-;===============================================================================
+;*******************************************************************************
 
                     #spauto   :ab
 
@@ -75,26 +75,21 @@ StringCompare       proc
                     push      .str1@@,2
                     tpa                           ;shorter PSHCC (A need not be preserved)
                     psha      ccr@@
-
                     #ais
           #ifhcs
                     ldhx      .str2@@,sp
-          #else
-                    tsx
-                    lda       .str2@@,spx
-                    psha
-                    ldx       .str2@@+1,spx
-                    pulh
-          #endif
                     pshhx     .str2@@
-          #ifhcs
                     ldhx      .str1@@,sp
           #else
                     tsx
-                    lda       .str1@@,spx
+                    lda       .str2@@+1,spx
                     psha
+                    lda       .str2@@,spx
+                    psha      .str2@@,2
+
+                    lda       .str1@@,spx
                     ldx       .str1@@+1,spx
-                    pulh
+                    tah
           #endif
 Loop@@              lda       ,x                  ;get char from 1st string
                     aix       #1                  ;bump up 1st ASCIZ pointer
@@ -109,11 +104,9 @@ Loop@@              lda       ,x                  ;get char from 1st string
           #endif
                     #psp
 
-                    inc       .str2@@+1,sp        ;bump up 2nd ASCIZ pointer
-                    bne       Compare@@
-                    inc       .str2@@,sp
-
-Compare@@           psha      a@@                 ;save char from 1st string
+                    @inc.s    .str2@@,sp          ;bump up 2nd ASCIZ pointer
+          ;-------------------------------------- ;compare
+                    psha      a@@                 ;save char from 1st string
 
                     lda       ,x                  ;get char from 2nd string
                     psha      b@@
@@ -142,11 +135,9 @@ DoneCase@@          lda       a@@,spx             ;compare chars from both strin
 
                     cbeqa     #0,Done@@           ;on terminator, we're done
                     bra       Loop@@
-
           ;---------------------------------------------------------------------
           ; Z flag always in correct state when coming here
           ;---------------------------------------------------------------------
-
 Done@@              ais       #:ais
 
                     tpa                           ;A = actual CMP result [CCR]

@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Example for BRSET equivalent using macro/subroutine combination
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/brif.html
 ;* Note(s)   : Use: #Include brif.sub
 ;*******************************************************************************
@@ -46,7 +46,7 @@ BRIFSET             macro     BitPos,Variable,BranchAddress
                     #spauto   :ab
 
 BRIFSET             proc
-pc@@                equ       ::+{:ab-2}
+pc@@                equ       ::+{:ab-2},2
                     push
 
 PBS@@               equ       0                   ;Offsets (from original return PC) into hardcoded parameter block
@@ -57,19 +57,24 @@ branch@@            next      PBS@@,2             ;branch-to address
                     tpa
                     psha      ccr@@
                     #ais
-
+          #ifhcs
                     ldhx      pc@@,sp             ;HX = return PC
-
+          #else
+                    tsx
+                    lda       pc@@,spx            ;HX = return PC
+                    ldx       pc@@+1,spx
+                    tah
+          #endif
                     lda       branch@@+1,x        ;get branch address parameter
                     psha
                     lda       branch@@,x
-                    psha      branch@@            ;stacked branch address
+                    psha      branch@@,2          ;stacked branch address
 
                     lda       var@@+1,x           ;get variable address
                     psha
                     lda       var@@,x
                     and       #$1F                ;mask off the bit position
-                    psha      var@@               ;stacked pure variable address
+                    psha      var@@,2             ;stacked pure variable address
 
                     lda       ccr@@,sp
                     and       #CCR_C_^NOT         ;clear the return CCR[Carry]
@@ -79,8 +84,13 @@ branch@@            next      PBS@@,2             ;branch-to address
                     and       #$E0                ;mask off the variable address
 
                     aix       #PBS@@              ;non-branch returns after parms
+          #ifhcs
                     sthx      pc@@,sp             ;update default return PC
-
+          #else
+                    stx       pc@@+1,sp           ;update default return PC
+                    thx
+                    stx       pc@@,sp
+          #endif
                     nsa                           ;bit position into lower nibble
                     lsra                          ;align to Bit0 (Bits 0..2)
                     inca                          ;make bit position one-based
@@ -92,15 +102,23 @@ PosToMask@@         rola
                     dbnzx     PosToMask@@         ;at the end of loop, A = mask
 
 ;;;;;;;;;;;;;;;;;;; sei                           ;uncomment for atomic execution
-
+          #ifhcs
                     ldhx      var@@,sp            ;HX -> variable to test
+          #else
+                    ldx       var@@,sp            ;HX -> variable to test
+                    txh
+                    ldx       var@@+1,sp
+          #endif
                     and       ,x                  ;do the actual bit test
                     beq       Done@@              ;bit is clear, so exit
-
+          #ifhcs
                     ldhx      branch@@,sp         ;update return address with
                     sthx      pc@@,sp             ;branch address parameter
-
                     tsx
+          #else
+                    tsx
+                    @mova.s   branch@@,spx pc@@,spx ;update return address with branch address parameter
+          #endif
                     lda       ccr@@,spx
                     ora       #CCR_C_             ;set the return CCR[Carry]
                     sta       ccr@@,spx

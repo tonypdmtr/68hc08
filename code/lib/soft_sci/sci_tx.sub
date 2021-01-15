@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Software SCI TX (transmitter)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Segments  : To be placed in user defined segment (MMU compatible)
 ;* Subsystems: None -- Fully software driven (bit-banged)
 ;*******************************************************************************
@@ -38,39 +38,56 @@ BPS_RATE            def       9600
 ;*******************************************************************************
 ; Purpose: Send char in RegA to the SCI
 ; Input  : A = character
-; Output : None [CCR destroyed]
-; Notes  : Interrupts may have to be disabled during transmission
+; Output : None
+; Notes  : Interrupts are disabled during transmission and restored afterwards
 
                     #spauto
 
 SCI_PutChar         proc
-                    push
+                    psha      ch@@
+                    pshhx
+                    #ais
 
-                    @Output   ?TX                 ;insure data line is output
+                    tpa
+                    psha      ccr@@
+                    sei                           ;disable interrupts during send
 
+                    @On       ?TX                 ;insure data line is output high
+
+                    lda       ch@@,sp             ;A = char to send
+          ;--------------------------------------
                     ldx       #9                  ;number of data bits to send (including start bit)
                     bra       Zero@@              ;send the start bit (a zero)
           ;-------------------------------------- ;send the data bits
-Loop@@              @cop                          ;reset COP to be safe
-                    lsra                          ;SCI is lsb first
+                              #Cycles
+Loop@@              lsra                          ;SCI is lsb first
                     bcc       Zero@@
 
                     bset      ?TX                 ;a 'HIGH' bit
                     bra       Cont@@
-
+                              #temp :cycles
 Zero@@              bclr      ?TX                 ;a 'LOW' bit
-                              #Cycles
+                    brn       *                   ;(for timing symmetry)
+                              #Cycles :temp
 Cont@@              bsr       ?DelayBitTime       ;delay one bit time
-                              #temp :cycles       ;?BSR_CYCLES
                     dbnzx     Loop@@              ;not done yet, put another bit
+                              #temp :cycles
           ;--------------------------------------
                     bset      ?TX                 ;send the stop bit (a one)
                     bsr       ?DelayBitTime
+          ;--------------------------------------
+          #iftos ccr@@
+                    pula
+          #else
+                    lda       ccr@@,sp
+                    ais       #:ais
+          #endif
+                    tap                           ;restore caller's CCR[I]
                     pull
                     rtc
 
 ;*******************************************************************************
-; Purpose: Delay a full bit time (based on ?bps_value) including JSR & RTS
+; Purpose: Delay a full bit time (based on ?bps_value) including context code
 ; Input  : None
 ; Output : None
 ; Note(s):

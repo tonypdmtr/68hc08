@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Copy routine(s)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/copy.html
 ;* Note(s)   : Can be placed in any memory (normal or paged).  Always use CALL.
 ;* History   : 03.08.14 v1.00 Original
@@ -28,6 +28,7 @@
 ;*           :                Added CCR[C] parm to CopyTo function for ASCIZ[0]/normal[1] destination [+11 bytes]
 ;*           : 20.09.13       BugFix: CopyTo single-byte destination case [+7 bytes]
 ;*           :                BugFix: CopyTo did not initialize local len@@ in normal case [+1 byte]
+;*           : 20.12.09 v2.00 Made HC08 compatible and forbade X-indexed @Copy parameters
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -39,9 +40,6 @@
                     #MapOff
           #endif
 #endif ;------------------------------------------------------------------------
-          #ifnhcs
-                    #Error    Coded for 9S08 only
-          #endif
 ?_OBJECT_?
 ;*******************************************************************************
 ; Macro to perform Copy in a single command
@@ -69,7 +67,7 @@ Copy                macro     From To [[#]Count]
                     ldhx      ~3~
           #endif
                     pshhx
-                    @@_ldhx_, ~2~ 1,psp
+                    @@_ldhx_  ~2~ 1,psp
                     pshhx
                     @@_ldhx_  ~1~
                     pshhx
@@ -109,17 +107,28 @@ Copy                proc
 
                     @pushv    ,x 2 '.src@@'       ;make local copy of src pointer
                     @pushv    2,x 2 '.dst@@'      ;make local copy of dst pointer
-
+          #ifhcs
                     ldhx      4,x
                     pshhx     counter@@           ;make local copy of counter
+          #else
+                    lda       5,x
+                    psha
+                    lda       4,x
+                    psha      counter@@,2         ;make local copy of counter
+                    ora       5,x
+          #endif
                     beq       Done@@              ;zero length means exit now
 
 Loop@@              @GetNextA .src@@,sp           ;read source byte
                     @PutNextA .dst@@,sp           ;write destination byte
-
+          #ifhcs
                     ldhx      counter@@,sp
                     aix       #-1                 ;decrement counter
                     sthx      counter@@,sp
+          #else
+                    tsx
+                    @dec.s    counter@@,spx
+          #endif
                     bne       Loop@@              ;repeat until counter = zero
 
 Done@@              ais       #:ais
@@ -141,7 +150,13 @@ CopyTo              macro     Variable
                     lda       #::~1,~             ;;get destination byte length
                     sta       3,psp               ;;save length of destination
                     @@lea     ~1~                 ;;HX -> destination variable
+          #ifhcs
                     sthx      1,psp               ;;save it on stack
+          #else
+                    tha
+                    sta       1,psp               ;;save it on stack
+                    stx       2,psp
+          #endif
                     pull
                     sec                           ;;indicate normal target
                     call      ~0~
@@ -164,7 +179,13 @@ CopyToZ             macro     ASCIZ_variable
                     lda       #::~1,~             ;;get destination byte length
                     sta       3,psp               ;;save length of destination
                     @@lea     ~1~                 ;;HX -> destination variable
+          #ifhcs
                     sthx      1,psp               ;;save it on stack
+          #else
+                    tha
+                    sta       1,psp               ;;save it on stack
+                    stx       2,psp
+          #endif
                     pull
                     clc                           ;;indicate ASCIZ target
                     call      CopyTo
@@ -204,16 +225,30 @@ CopyTo              proc
 
                     dec       len@@,spx           ;adjust for ASCIZ terminator
                     bne       Go@@                ;if at least one char to copy, go
-
+          #ifhcs
                     ldhx      .dst@@,sp           ;otherwise 1-byte case, so just
+          #else
+                    tsx
+                    lda       .dst@@,spx          ;otherwise 1-byte case, so just
+                    ldx       .dst@@+1,spx
+                    tah
+          #endif
                     clr       ,x                  ;put the ASCIZ terminator
                     bra       Done@@              ;and get out
           ;--------------------------------------
 Go@@                @MinA     len@@,spx           ;not more than destination size
                     sta       len@@,spx           ;update length to use
           ;-------------------------------------- ;clear destination memory regardless of source size
+          #ifhcs
                     lda       dstlen@@,spx        ;(RegA counter rather than decrement dstlen@@,sp directly)
                     ldhx      .dst@@,sp
+          #else
+                    tsx
+                    lda       .dst@@,spx
+                    ldx       .dst@@+1,spx
+                    tah
+                    lda       dstlen@@,sp         ;(RegA counter rather than decrement dstlen@@,sp directly)
+          #endif
 ClrLoop@@           clr       ,x
                     aix       #1
                     dbnza     ClrLoop@@

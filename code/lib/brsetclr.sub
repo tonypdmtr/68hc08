@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : General-purpose B[R]SET/B[R]CLR equivalents
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/brsetclr.html
 ;* Note(s)   : Use: #Include brsetclr.sub
 ;*******************************************************************************
@@ -59,13 +59,28 @@ pc@@                equ       ::,2
                     bsr       ?ConvertPosToMask   ;convert position to bit mask
                     and       ,x                  ;mask sought bits
                     tpa                           ;keep CCR from destruction
+          #ifhcs
                     ldhx      pc@@,sp
+          #else
+                    ldx       pc@@,sp
+                    txh
+                    ldx       pc@@+1,sp
+          #endif
                     tap                           ;restore decisive CCR
                     bne       Branch@@
                     aix       #?PARM_SIZE         ;skip hard-coded parameters
                     bra       Done@@
+          #ifhcs
 Branch@@            ldhx      ?TARGET,x
 Done@@              sthx      pc@@,sp
+          #else
+Branch@@            lda       ?TARGET,x
+                    ldx       ?TARGET+1,x
+                    tah
+Done@@              tha
+                    sta       pc@@,sp
+                    stx       pc@@+1,sp
+          #endif
                     pula                          ;shorter PULCC
                     tap
                     pull
@@ -77,9 +92,17 @@ Done@@              sthx      pc@@,sp
 
 ?ConvertPosToMask   proc
 pc@@                equ       5,2
+          #ifhcs
                     ldhx      pc@@,sp
                     ldhx      ?BITPOS,x
                     tha
+          #else
+                    ldx       pc@@,sp
+                    txh
+                    ldx       pc@@+1,sp
+                    lda       ?BITPOS,x
+                    ldx       ?BITPOS+1,x
+          #endif
                     and       #%11100000          ;keep only "opcode" bits
                     lsra                          ;move to bits 6..4
                     nsa                           ;move to bits 2..0
@@ -132,13 +155,28 @@ pc@@                equ       ::,2
                     coma                          ;used for opposite test
                     and       ,x                  ;mask sought bits
                     tpa                           ;keep CCR from destruction
+          #ifhcs
                     ldhx      pc@@,sp
+          #else
+                    ldx       pc@@,sp
+                    txh
+                    ldx       pc@@+1,sp
+          #endif
                     tap                           ;restore decisive CCR
                     beq       Branch@@
                     aix       #?PARM_SIZE         ;skip hard-coded parameters
                     bra       Done@@
+          #ifhcs
 Branch@@            ldhx      ?TARGET,x
 Done@@              sthx      pc@@,sp
+          #else
+Branch@@            lda       ?TARGET,x
+                    ldx       ?TARGET+1,x
+                    tah
+Done@@              tha
+                    sta       pc@@,sp
+                    stx       pc@@+1,sp
+          #endif
                     pula                          ;shorter PULCC
                     tap
                     pull

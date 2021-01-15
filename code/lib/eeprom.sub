@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Routines to program the EEPROM of 9S08 DZ, or compatible
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Note(s)   : This version tested on 9S08DZ32.
 ;*           :
 ;*           : Synopsis -- The following calls are currently available:
@@ -26,6 +26,7 @@
 ;*           : 17.10.01       Removed use of deprecated _push_ macro call
 ;*           : 18.04.26 v1.02 Optimized ?StackRoutine by using ?PullOut [-2 bytes]
 ;*           : 18.04.30       Optimized ?StackRoutine for no PSHCC/PULCC [-12 bytes]
+;*           : 20.12.30       Made MMU compatible
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -339,7 +340,7 @@ EE_CopyBlock        macro     SourceBegin,SourceEnd,Destination
                     #psp
                     ldhx      ~1~
                     pshhx
-                    @@_ldhx_, ~2~ 1,psp
+                    @@_ldhx_  ~2~ 1,psp
                     pshhx
                     @@_ldhx_  ~3~
                     pshhx

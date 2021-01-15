@@ -22,7 +22,7 @@ StringInsertString  macro     [#]StringToInsert,[#]IntoString
                     #psp
                     @@lea     ~1~
                     pshhx
-                    @@_ldhx_, ~2~ 1,psp
+                    @@_ldhx_  ~2~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx

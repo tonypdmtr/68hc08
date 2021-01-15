@@ -41,9 +41,16 @@ Loop@@              tst       ,x
                     cbeq      x+,Found@@
                     inc       len@@,sp
                     bra       Loop@@
-
-Found@@             sthx      .str@@,sp
+Found@@
+          #ifhcs
+                    sthx      .str@@,sp
                     tsx
+          #else
+                    stx       .str@@+1,sp
+                    tha
+                    tsx
+                    sta       .str@@,spx
+          #endif
                     lda       len@@,spx
                     sta       target@@,spx
                     clc                           ;indicate 'success'

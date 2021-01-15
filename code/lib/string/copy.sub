@@ -19,7 +19,7 @@ StringCopy          macro     [#]SourceASCIZ_String,[#]Destination
                     #psp
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pulhx

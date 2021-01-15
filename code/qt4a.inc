@@ -164,7 +164,7 @@ KHZ                 def       12800               ;12.8 MHz internal oscillator
 
                     @bitnum   CHxF,7
                     @bitnum   CHxIE,6
-                    @bitnum   MS0B,5
+                    @bitnum   MSxB,5
                     @bitnum   MSxA,4
                     @bitnum   ELSxB,3
                     @bitnum   ELSxA,2

@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : CRC Calculation
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/asmcrc.html
 ;* History   : 10.12.09 v1.00 Original
 ;*           : 11.07.14       Minor change in test code
@@ -111,9 +111,17 @@ GetAsmCRC           macro     [#]FromA,[#]ToB[,[#]CRC] ;CRC parm only for 1st ca
 GetAsmCRC           proc
                     @parms    .a,.b,my_crc 2      ;define caller parameters
                     push
-
-Loop@@              ldhx      .a@@,sp
+Loop@@
+          #ifhcs
+                    ldhx      .a@@,sp
                     cphx      .b@@,sp
+          #else
+                    tsx
+                    @cmp.s    .a@@,spx .b@@,spx
+                    lda       .a@@,spx
+                    ldx       .a@@+1,spx
+                    tah
+          #endif
                     bhi       Done@@
 
                     @cop                          ;in case of many iterations
@@ -130,8 +138,14 @@ Loop@@              ldhx      .a@@,sp
                     pula
                     adc       my_crc@@,spx
                     sta       my_crc@@,spx
-
+          #ifhcs
                     ldhx      .a@@,sp
+          #else
+                    tsx
+                    lda       .a@@,spx
+                    ldx       .a@@+1,spx
+                    tah
+          #endif
                     lda       ,x
                     thx
                     mul                           ;high address with data byte
@@ -140,9 +154,7 @@ Loop@@              ldhx      .a@@,sp
                     sta       my_crc@@,spx
 
 Skip@@              tsx
-                    inc       .a@@+1,spx
-                    bne       Loop@@
-                    inc       .a@@,spx
+                    @inc.s    .a@@,spx Loop@@
                     bra       Loop@@
 
 Done@@              pull

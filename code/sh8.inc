@@ -305,12 +305,12 @@ NVOPT               equ       $FFBF,1             ;Non-volatile Flash Options Re
 
 ; TPM Channel n Status and Control Register (TPMxCnSC)
 
-                    @bitnum   CHnF,7              ;Channel n Flag
-                    @bitnum   CHnIE,6             ;Channel n Interrupt Enable
-                    @bitnum   MSnB,5              ;Mode Select B for TPM Channel n
-                    @bitnum   MSnA,4              ;Mode Select A for TPM Channel n
-                    @bitnum   ELSnB,3             ;Edge/Level Select Bits
-                    @bitnum   ELSnA,2
+                    @bitnum   CHxF,7              ;Channel n Flag
+                    @bitnum   CHxIE,6             ;Channel n Interrupt Enable
+                    @bitnum   MSxB,5              ;Mode Select B for TPM Channel n
+                    @bitnum   MSxA,4              ;Mode Select A for TPM Channel n
+                    @bitnum   ELSxB,3             ;Edge/Level Select Bits
+                    @bitnum   ELSxA,2
 
 ;-------------------------------------------------------------------------------
 ; Serial Communications Interface (S08SCIV4)

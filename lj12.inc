@@ -29,8 +29,8 @@ EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 FLBPR_MASK          def       EEPROM_END<1&$FF    ;mask to use for FLBPR
 
-RAM                 def       $0060               ;Start of on-chip RAM
-RAM_END             def       $00FF               ;End of zero-page RAM
+RAM                 def       $60                 ;Start of on-chip RAM
+RAM_END             def       $FF                 ;End of zero-page RAM
 
 XRAM                equ       $0100
 XRAM_END            def       $025F               ;End of on-chip RAM
@@ -44,7 +44,7 @@ VECTORS             def       $FFDA               ;Start of Vectors
                     #Error    FLASH_DATA_SIZE is larger than available Flash
           #endif
                     #MEMORY   EEPROM    ROM_END
-                    #MEMORY   VECTORS   VECTORS|$00FF
+                    #MEMORY   VECTORS   VECTORS|$FF
 
                     #EEPROM
                     org       EEPROM
@@ -205,7 +205,7 @@ COPCTL              def       $FFFF,1             ;COP Control Register (low byt
 
                     @bitnum   CHxF,7
                     @bitnum   CHxIE,6
-                    @bitnum   MS0B,5
+                    @bitnum   MSxB,5
                     @bitnum   MSxA,4
                     @bitnum   ELSxB,3
                     @bitnum   ELSxA,2

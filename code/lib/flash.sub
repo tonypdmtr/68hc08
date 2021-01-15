@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Routines to program the Flash of 9S08 GB, QG8, QE, or compatible
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/flash.html
 ;* Note(s)   : This version tested on 9S08GB60, 9S08QG8, 9S08QE32, 9S08QE128.
 ;*           :
@@ -31,6 +31,7 @@
 ;*           : 18.02.11       Added FLASH_TEST_FIRST condition for safer writes [+6 bytes]
 ;*           : 18.04.30       Optimized ?StackRoutine for no PSHCC/PULCC [-12 bytes]
 ;*           : 20.07.21       Removed warnings from non-GB60 stand-alone assembly
+;*           : 20.12.31       Added ! prefix to an RTC instruction to silence warning
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -43,7 +44,7 @@ FLASH_DATA_SIZE     def       1024
                     #ListOn
 #endif ;------------------------------------------------------------------------
           #ifnhcs
-                    #Error    FLASH.SUB requires 9S08 MCU (#HcsOn directive)
+                    #Fatal    FLASH.SUB requires 9S08 MCU (#HcsOn directive)
           #endif
 ;*******************************************************************************
 ; Flash programming command codes
@@ -137,8 +138,7 @@ Flash_Write         proc
 ; Input  : HX -> Flash memory location
 ;        : A = Flash command to perform
 ; Output : None
-; Note(s): Destroys all registers
-
+; Note(s):
                     #spauto
 
 ?StackRoutine       proc
@@ -146,9 +146,9 @@ Flash_Write         proc
 addr@@              next      :temp,2
 val@@               next      :temp
           ;--------------------------------------
-          ;Prepare the Flash memory for programming
-          ;FCLK must fall between 150-200KHz [FCLK=FBUS/(DIV+1)] and DIV=0..63
-
+          ; Prepare the Flash memory for programming
+          ; FCLK must fall between 150-200KHz [FCLK=FBUS/(DIV+1)] and DIV=0..63
+          ;--------------------------------------
 ;                   ldx       FCDIV               ;(redundant check)
 ;                   bmi       DoFSTAT@@
 
@@ -197,7 +197,7 @@ Loop@@              psha      code@@              ;save command for later use by
 
 ?Failure            sec                           ;indicate "error"
                     pull
-                    rtc                           ;error code is propagated to caller
+                    !rtc                          ;error code is propagated to caller
 
 ;*******************************************************************************
 ; Purpose: Erase an internal Flash page by page number
@@ -319,7 +319,7 @@ Flash_CopyBlock     macro     SourceBegin,SourceEnd,Destination
                     #psp
                     ldhx      ~1~
                     pshhx
-                    @@_ldhx_, ~2~ 1,psp
+                    @@_ldhx_  ~2~ 1,psp
                     pshhx
                     @@_ldhx_  ~3~
                     pshhx

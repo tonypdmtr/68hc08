@@ -67,8 +67,8 @@ MAX_OS_CALLS        def       64                  ;default room for OS calls
 ; Memory Map and Interrupt Vectors
 ;*******************************************************************************
 
-RAM                 def       $0040               ;start of RAM
-RAM_END             def       $00FF
+RAM                 def       $40                 ;start of RAM
+RAM_END             def       $FF
 
 XRAM                def       $0100
 XRAM_END            def       $023F               ;last RAM location

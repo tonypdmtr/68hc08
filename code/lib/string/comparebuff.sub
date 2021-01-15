@@ -27,7 +27,7 @@ StringCompareBuff   macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     lda       ~3~
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pull
@@ -46,7 +46,7 @@ StringCompBuff      macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     lda       ~3~
                     @@lea     ~2~
                     pshhx
-                    @@_ldhx_, ~1~ 1,psp
+                    @@_ldhx_  ~1~ 1,psp
                     call      ~0~
                     ais       #:psp
                     pull
@@ -61,7 +61,7 @@ StringCompBuff      proc
                     sec                           ;case-insensitive
                     bra       ?StringCompareBuff
 
-;===============================================================================
+;*******************************************************************************
 
                     #spauto   :ab
 
@@ -69,25 +69,31 @@ StringCompareBuff   proc
                     clc                           ;case-sensitive (original)
 ;                   bra       ?StringCompareBuff
 
-;===============================================================================
+;*******************************************************************************
 
 ?StringCompareBuff  proc
 .str2@@             equ       1
-                    push      .str1@@,2
-                    psha      ccr@@               ;shorter PSHCC sequence
-                    tsx
-                    psha
+                    psha      max_size@@
+                    pshhx     .str1@@
                     tpa
-                    sta       ccr@@,spx
-                    pula
-
+                    psha      ccr@@               ;shorter PSHCC sequence
                     #ais
+          #ifhcs
                     ldhx      .str2@@,sp
                     pshhx     .str2@@
-
                     ldhx      .str1@@,sp
+          #else
+                    tsx
+                    lda       .str2@@+1,spx
+                    psha
+                    lda       .str2@@,spx
+                    psha      .str2@@,2
 
-                    tsta                          ;do NOT change to CBEQA (CCR)
+                    lda       .str1@@,spx
+                    ldx       .str1@@+1,spx
+                    tah
+          #endif
+                    lda       max_size@@,sp
                     beq       Done@@              ;zero length always OK
 
 Loop@@              push                          ;save length & pointer to 1st memory
@@ -115,9 +121,10 @@ NoCase@@            psha      target@@            ;placeholder for target char l
           #ifhcs
                     ldhx      .str2@@,sp
           #else
-                    ldx       .str2@@,sp
-                    txh
-                    ldx       .str2@@+1,sp
+                    tsx
+                    lda       .str2@@,spx
+                    ldx       .str2@@+1,spx
+                    tah
           #endif
                     lda       ,x
                     call      Upcase
@@ -136,17 +143,11 @@ Cont@@              pull                          ;restore pointer to 1st memory
                     bra       Done@@
 
 NextChar@@          aix       #1                  ;No, let's go check next ones
-
-                    inc       .str2@@+1,sp        ;increment target pointer (LSB)
-                    bne       Loop@@
-
-                    inc       .str2@@,sp          ;increment target pointer (MSB)
+                    @inc.s    .str2@@,sp Loop@@   ;increment target pointer
                     bra       Loop@@
-
           ;---------------------------------------------------------------------
           ; Z flag always in correct state when coming to Done@@
           ;---------------------------------------------------------------------
-
 Done@@              ais       #:ais
 
                     tpa                           ;A = actual CMP result [CCR]

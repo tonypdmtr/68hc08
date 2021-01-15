@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Replace all occurrences of one string to another inside a string
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/changestr.html
 ;* History   : 11.11.30 v1.00 Original
 ;*           : 11.12.05 v1.01 BugFix: If S1 (target) string is null, skip action
@@ -11,6 +11,7 @@
 ;*           : 12.01.31 v1.03 BugFix: If S2 is null, simply delete S1
 ;*           : 12.02.03 v1.04 Removed redundant check of S2 length
 ;*           :                (which is now done in string/stringinsertstring)
+;*           : 20.12.09 v1.05 Made HC08 compatible
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -40,7 +41,7 @@ ChangeStr           macro     [#]String,[#]TargetStr,[#]ReplacementStr
                     #psp
                     ldhx      ~3~
                     pshhx
-                    @@_ldhx_, ~2~ 1,psp
+                    @@_ldhx_  ~2~ 1,psp
                     pshhx
                     @@_ldhx_  ~1~
                     pshhx
@@ -58,10 +59,15 @@ ChangeStr           proc
                     @parms    .s,.s1,.s2
                     push
                     #ais
-
+          #ifhcs
                     ldhx      .s@@,sp
                     pshhx     .s@@                ;.s@@ now holds local copy
-
+          #else
+                    lda       .s@@+1,sp
+                    psha
+                    lda       .s@@,sp
+                    psha      .s@@,2              ;.s@@ now holds local copy
+          #endif
                     @local    len1,len2,.pos      ;len(target), len(replacement), current string pointer
 
                     tsx
@@ -75,17 +81,23 @@ ChangeStr           proc
 Loop@@              @cop                          ;in case of many iterations
                     @StringFindSubStr, .s1@@,sp len1@@,sp .s@@,sp update
                     bcs       Done@@
+          #ifhcs
                     sthx      .pos@@,sp
-
                     tsx
+          #else
+                    stx       .pos@@+1,sp
+                    tha
+                    tsx
+                    sta       .pos@@,spx
+          #endif
                     lda       len1@@,spx
 Delete@@            @StringDeleteChar, .pos@@,spx
                     dbnza     Delete@@
 
                     @StringInsertString, .s2@@,sp .pos@@,sp
-          ;---
-          ;Update the s pointer to point past the replaced string to avoid
-          ;infinite loop in case s2 contains s1 (2012.01.30)
+          ;--------------------------------------
+          ; Update the s pointer to point past the replaced string to avoid
+          ; infinite loop in case s2 contains s1 (2012.01.30)
 
                     lda       len2@@,spx
                     add       .pos@@+1,spx
@@ -93,7 +105,7 @@ Delete@@            @StringDeleteChar, .pos@@,spx
                     clra
                     adc       .pos@@,spx
                     sta       .s@@,spx
-          ;---
+          ;--------------------------------------
                     bra       Loop@@
 
 Done@@              ais       #:ais

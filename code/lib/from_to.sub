@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Makes it easier to work with FROM .. TO memory ranges
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2020 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/from_to.html
 ;* Note(s)   : You must provide the following:
 ;*           : A 'reader' routine that gets a single byte into RegA from RegHX.
@@ -13,6 +13,9 @@
 ;*           : Then, simply call the FromTo subroutine.
 ;* History   : 10.05.17 v1.00 Original
 ;*           : 10.08.19 v1.10 Added related macro
+;*           : 20.12.14       Optimized [-2 bytes] and made HC08 compatible
+;*           :                FromTo macro now automatically calculates length
+;*           :                Added more example cases
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -30,22 +33,47 @@ QE128
 ; Macros
 ;*******************************************************************************
 
-FromTo              macro     [#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]DestRoutine
-                    mreq      1,2,3,4,5:[#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]DestRoutine
+FromTo              macro     Source Dest SourceRoutine DestRoutine
+                    mset      #' '
+                    mreq      1,2,3,4:Source Dest SourceRoutine DestRoutine
+                    @@_not_#_ ~1~ ~2~ ~3~ ~4~
                     #push
                     #spauto   :sp
                     pshhx
                     #psp
-                    ldhx      ~5~
+          #ifb ~,4~
+                    ldhx      #~4~                          ;;destination routine
+          #else
+                    ldhx      ~4~                           ;;destination routine
+          #endif
                     pshhx
-                    @@_ldhx_, ~4~ 1,psp
+          #ifb ~,3~
+                    @@_ldhx_  #~3~ 1,psp                    ;;source routine
+          #else
+                    @@_ldhx_  ~3~ 1,psp                     ;;source routine
+          #endif
                     pshhx
-                    @@_ldhx_  ~3~
+          ;--------------------------------------
+          #if ::~2,~ < ::~1,~
+                    @@_ldhx_  #::~2,~                       ;;size
+          #else
+                    @@_ldhx_  #::~1,~                       ;;size
+          #endif
                     pshhx
-                    @@_ldhx_  ~2~
+          ;--------------------------------------
+          #ifb ~,2~
+                    @@_ldhx_  #~2~                          ;;destination
+          #else
+                    @@_ldhx_  ~2~                           ;;destination
+          #endif
                     pshhx
-                    @@_ldhx_  ~1~
+          #ifb ~,1~
+                    @@_ldhx_  #~1~                          ;;source
+          #else
+                    @@_ldhx_  ~1~                           ;;source
+          #endif
                     pshhx
+
                     call      ~0~
                     ais       #:psp
                     pulhx
@@ -72,61 +100,110 @@ FromTo              macro     [#]Source,[#]Dest,[#]Size,[#]SourceRoutine,[#]Dest
 ;        :          pshhx
 ;        :          call      FromTo
 ;        :          ais       #:psp
-; Size   : 78 bytes
+; Size   : 76 bytes (HC08: 110 bytes)
 ;===============================================================================
 
                     #spauto   :ab
 
 FromTo              proc
                     #temp     1
-.src_data@@         next      :temp,2             ;data source pointer
-.dst_data@@         next      :temp,2             ;data destination pointer
-data_size@@         next      :temp,2             ;data size
-.src_rtn@@          next      :temp,2             ;source routine pointer
-.dst_rtn@@          next      :temp,2             ;destination routine pointer
+.src@@              next      :temp,2             ;data source pointer
+.dst@@              next      :temp,2             ;data destination pointer
+bytes@@             next      :temp,2             ;data size in bytes
+.reader@@           next      :temp,2             ;pointer to reader routine
+.writer@@           next      :temp,2             ;pointer to writer routine
 
                     push
                     #ais
-          ;-------------------------------------- ;initialize local work variables
-                    ldhx      .src_data@@,sp
-                    pshhx     .src_data@@         ;local copy of source pointer
+          ;-------------------------------------- ;make local work variables
+          #ifhcs
+                    ldhx      .src@@,sp
+                    pshhx     .src@@              ;local copy of source pointer
 
-                    ldhx      .dst_data@@,sp
-                    pshhx     .dst_data@@         ;local copy of dest pointer
+                    ldhx      .dst@@,sp
+                    pshhx     .dst@@              ;local copy of dest pointer
 
-                    ldhx      data_size@@,sp
-                    pshhx     data_size@@         ;local copy of size counter
+                    ldhx      bytes@@,sp
+                    pshhx     bytes@@             ;local copy of size counter
+          #else
+                    psha      reg_a@@
+                    tsx
+                    lda       .src@@+1,spx
+                    psha
+                    lda       .src@@,spx
+                    psha      .src@@,2            ;local copy of source pointer
+
+                    lda       .dst@@+1,spx
+                    psha
+                    lda       .dst@@,spx
+                    psha      .dst@@,2            ;local copy of dest pointer
+
+                    lda       bytes@@+1,spx
+                    psha
+                    lda       bytes@@,spx
+                    psha      bytes@@,2           ;local copy of size counter
+          #endif
           ;--------------------------------------
           ; For each iteration call the user source and destination routines
           ; with the appropriate values in RegHX and RegA
           ;--------------------------------------
 Loop@@              ldhx      #RetSource@@
                     pshhx                         ;stack return address
-                    ldhx      .src_rtn@@,sp
+          #ifhcs
+                    ldhx      .reader@@,sp
                     pshhx                         ;stack execution address
-                    ldhx      .src_data@@,sp
-                    RTS                           ;make the call
+                    ldhx      .src@@,sp
+          #else
+                    tsx
+                    lda       .reader@@+1,spx
+                    psha
+                    lda       .reader@@,spx
+                    psha                          ;stack execution address
+                    lda       .src@@,spx
+                    psha
+                    lda       reg_a@@,spx         ;(redundant if reader ignores RegA)
+                    ldx       .src@@+1,spx
+                    pulh
+          #endif
+                    RTS                           ;make the call to reader
                     #spadd    -4                  ;less the from/to addresses
 
-RetSource@@         ldhx      .src_data@@,sp
-                    aix       #1
-                    sthx      .src_data@@,sp
+RetSource@@         tsx
+          #ifnhcs
+                    sta       reg_a@@,spx
+          #endif
+                    @inc.s    .src@@,spx
 
                     ldhx      #RetDest@@
                     pshhx                         ;stack return address
-                    ldhx      .dst_rtn@@,sp
+          #ifhcs
+                    ldhx      .writer@@,sp
                     pshhx                         ;stack execution address
-                    ldhx      .dst_data@@,sp
-                    RTS                           ;make the call
+                    ldhx      .dst@@,sp
+          #else
+                    tsx
+                    lda       .writer@@+1,spx
+                    psha
+                    lda       .writer@@,spx
+                    psha                          ;stack execution address
+                    lda       .dst@@,spx
+                    psha
+                    lda       reg_a@@,spx
+                    ldx       .dst@@+1,spx
+                    pulh
+          #endif
+                    RTS                           ;make the call to writer
                     #spadd    -4                  ;less the from/to addresses
 
-RetDest@@           ldhx      .dst_data@@,sp
-                    aix       #1
-                    sthx      .dst_data@@,sp
-
-                    ldhx      data_size@@,sp
+RetDest@@           tsx
+                    @inc.s    .dst@@,spx
+          #ifhcs
+                    ldhx      bytes@@,sp
                     aix       #-1
-                    sthx      data_size@@,sp
+                    sthx      bytes@@,sp
+          #else
+                    @dec.s    bytes@@,spx
+          #endif
                     bne       Loop@@
 
                     ais       #:ais               ;de-allocate local variables
@@ -147,6 +224,8 @@ MyData              fcc       'Copy this data block to RAM'
                     #RAM
 
 mydest              rmb       ::MyData
+smaller             equ       mydest,10
+bigger              equ       mydest,::MyData+10
 
                     #ROM
 
@@ -157,24 +236,36 @@ Start               proc
                     clra
                     clrhx
 
-                    @FromTo   #MyData,#mydest,#::MyData,#MyLoad,#MySave
-
+                    @FromTo   MyData mydest MyLoad MySave
+                    @FromTo   MyData smaller MyLoad MySave
+                    @FromTo   MyData bigger MyLoad MySave
+          ;--------------------------------------
+                    lda       #$AA
+                    psha
+                    pshhx     ans@@
+                    @FromTo   MyData ans@@,sp MyLoad MySave
+                    pulhx
+                    pula
+          ;--------------------------------------
+                    lda       #$55
+                    psha
+                    pshhx     ans@@
+                    @FromTo   ans@@,sp mydest MyLoad MySave
+                    pulhx
+                    pula
+          ;--------------------------------------
 Stop                bra       *
-
-;-------------------------------------------------------------------------------
-; Example LOAD routine
-;-------------------------------------------------------------------------------
-
+          ;--------------------------------------
+          #ifndef MAP
+                    #MapOff
+          #endif
+          ;-------------------------------------- ; Example LOAD routine
                     #spauto
 
 MyLoad              proc
                     lda       ,x
                     rts
-
-;-------------------------------------------------------------------------------
-; Example SAVE routine
-;-------------------------------------------------------------------------------
-
+          ;-------------------------------------- ; Example SAVE routine
                     #spauto
 
 MySave              proc
