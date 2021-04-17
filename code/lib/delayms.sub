@@ -117,17 +117,13 @@ DelayMS             proc
                     txa
                     adc       #0
                     psha      burn_cycles@@,3     ;24-bit cycle total (full size)
-
-          ;subtract the overhead cycles
-
+          ;-------------------------------------- ;subtract the overhead cycles
                     tsx
                     @sub.s    burn_cycles@@,spx #EXTRACYCLES@@ burn_cycles@@,spx
-
-          ;divide total burn cycles by loop cycles
-
-                    ldx       #LOOPCYCLES@@
-                    clrh
-                    @div.s    burn_cycles@@,sp
+          ;--------------------------------------
+          ; divide total burn cycles by loop cycles
+          ;--------------------------------------
+                    @div.s    burn_cycles@@,sp #LOOPCYCLES@@
 
                     tsx
 

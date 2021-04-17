@@ -899,7 +899,7 @@ RVECTORS            set       BOOTROM+:temp&$FFFF ;start of redirected vectors
           #endif
 ?NVPROT_MASK        def       127-:temp<1|1
           #ifmmu
-TRUE_ROM            equ       $4000               ;start(!) of 128K paged flash (do NOT use $2080-$3FFF which is also PPAGE 0)
+TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $2080-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
           #else
 TRUE_ROM            equ       $2080               ;start(!) of ~56K non-paged flash
           #endif
@@ -916,13 +916,11 @@ EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 #endif
 
 ROM                 def       EEPROM_END+1
-          #ifmmu
-ROM_END             def       :PAGE_START-1       ;end of pre-window flash
-
-XROM                def       :PAGE_END+1
-XROM_END            def       $FF9F               ;end of all flash (before NV registers and fixed vectors)
-          #endif
 ROM_END             def       $FF9F               ;end of all flash (before NV registers and fixed vectors)
+          #ifmmu
+XROM                def       $2080
+XROM_END            def       :PAGE_START-1       ;end of pre-window flash
+          #endif
 
 #ifdef BOOT&BOOTROM
   #ifdef XROM_END
@@ -1013,8 +1011,7 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
 ;-------------------------------------------------------------------------------
           #ifmmu
 ?                   macro
-                    #SEG{:loop-1}
-                    org       :PAGE_START
+                    #SEG{:loop-1} :PAGE_START
                     mtop      8
                     endm
 
@@ -1036,13 +1033,12 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
 
 ?                   macro     Page
                     mswap     1,:loop
-                    #SEG~1~
-                    org       PPAGE~1~
+                    #SEG~1~   PPAGE~1~
                     #MEMORY   PPAGE~1~  PPAGE~1~+PPAGE_SIZE-1
                     mtop      :n
                     endm
 
-                    @?        0,2,4,5,6,7         ;define memory for PPAGEs
+                    @?        0,1,2,4,5,6,7       ;define memory for PPAGEs
           #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
@@ -1109,20 +1105,13 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
 ;                   org       NVICSTRIM           ;NV ICS Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.
-                    #VECTORS
-                    org       VECTORS
-
-                    #XRAM
-                    org       XRAM
-
-                    #RAM
-                    org       RAM
+                    #VECTORS  VECTORS
+                    #XRAM     XRAM
+                    #RAM      RAM
           #ifdef XROM
-                    #XROM
-                    org       XROM
+                    #XROM     XROM
           #endif
-                    #ROM
-                    org       ROM
+                    #ROM      ROM
 
                     #MEMORY   ROM       ROM_END
           #ifndef OS8PRELOADED

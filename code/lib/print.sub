@@ -35,6 +35,9 @@
 ;*           : 20.04.01 v1.38 Replaced #Message with Msg macro in PrintStr and
 ;*           :                PrintNum macros to silence debugging messages
 ;*           :                unless SHOW_ALL_MESSAGES is defined
+;*           : 21.02.18 v1.39 Guarantee FCS to be in #ROM segment under #MMU
+;*           : 21.04.13 v1.40 BugFix: Strings no longer get trimmed
+;*           :                BugFix: Strings including | are parsed correctly
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -68,10 +71,16 @@ PrintStr            macro
                     @putc
                     mexit
             #endif
-                    bra       Go$$$
+                    #push
+            #ifmmu
+                    #ROM
+            #endif
+                    bra       _$$$
                     #temp     :pc
                     fcs       ~1~                 ;;string constant
-Go$$$               ldhx      #[[{:temp}          ;;HX -> constant string
+_$$$
+                    #pull
+                    ldhx      #[[{:temp}          ;;HX -> constant string
           #else
                     @@lea     ~1~                 ;;HX -> user string
           #endif
@@ -133,7 +142,7 @@ s$$$                equ       ::,{:ais}           ;;assign it a name (and size)
 ; variable, you can either put an expression inside parentheses, or simply end it
 ; with a colon even if no formatting parameters will be used.
 
-Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:DotsConstant])+
+Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:Decimals][:Width])+
                     mset      #' '                ;;re-split on space delimiter
           #ifnb ~1~ = $
                     mdel      1
@@ -164,8 +173,11 @@ Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:
                     #spauto   :sp
                     mdo
                     mswap     1,:mloop
+                    mset      0
+          #ifnostr ~1~
                     mset      0,~'|'2~
                     mset      1,~'|'1~
+          #endif
                     #temp
           #ifdef ~#1~                             ;;if a defined symbol
             #ifnostr ~1~                          ;;but not a string
@@ -185,7 +197,7 @@ Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:
           #endif
           #ifstr ~1~                              ;;explicit string constant
                     #temp     2
-                    @@PrintStr ~1~|~text~
+                    @@PrintStr,, ~1~|~text~
           #endif
           #ifparm \@~1.1.1~\@ = \@.\@             ;;pointer to string variable
                     #temp     3

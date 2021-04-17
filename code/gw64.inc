@@ -1641,7 +1641,6 @@ PTBPF4              equ       $1947,1             ;Port B Routing Register 4
 PTBPF4_B6           equ       0                   ;Port PTB6 Pin Mux Controls
 PTBPF4_B7           equ       4                   ;Port PTB7 Pin Mux Controls
 
-
 PTCPF1              equ       $1948,1             ;Port C Routing Register 1
 
 PTCPF1_C0           equ       0                   ;Port PTC0 Pin Mux Controls
@@ -1842,15 +1841,14 @@ Vreset              next      :temp,2             ;$FFFE Reset vector
 
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE     ;round to next higher block
           #ifmmu
-TRUE_ROM            equ       $C000               ;start(!) of 64K paged flash (do NOT use $1960-$3FFF which is also PPAGE 0)
+TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $2080-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
           #else
 TRUE_ROM            equ       $1960               ;start(!) of ~58K non-paged flash
           #endif
           #ifmmu
 EEPROM              equ       $10C0
-          #else
-EEPROM              def       TRUE_ROM
           #endif
+EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
 EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
@@ -1862,14 +1860,17 @@ EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 
 ROM                 def       TRUE_ROM
 ROM_END             equ       $FF95               ;end of all flash (before NV registers and fixed vectors)
+          #ifmmu
+XROM                def       $1960
+XROM_END            def       :PAGE_START-1       ;end of pre-window flash
+          #endif
+XROM                def       EEPROM_END+1
+XROM_END            def       $17FF
 
 #ifdef BOOT&BOOTROM
 ROM_END             set       BOOTROM-1
 #endif
-          #ifnommu
-XROM                equ       $10C0
-XROM_END            equ       $17FF
-          #endif
+
 ?                   macro
                     #temp     $10000              ;;count down from 64K
                     mdo
@@ -1916,8 +1917,7 @@ MAX_FLASH_KHZ       def       1000
 ;-------------------------------------------------------------------------------
           #ifmmu
 ?                   macro
-                    #SEG{:loop-1}
-                    org       :PAGE_START
+                    #SEG{:loop-1} :PAGE_START
                     mtop      8
                     endm
 
@@ -1936,13 +1936,12 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
 
 ?                   macro     Page
                     mswap     1,:loop
-                    #SEG~1~
-                    org       PPAGE~1~
+                    #SEG~1~   PPAGE~1~
                     #MEMORY   PPAGE~1~  PPAGE~1~+PPAGE_SIZE-1
                     mtop      :n
                     endm
 
-                    @?        0,2                 ;define memory for PPAGEs
+                    @?        0,1,2               ;define memory for PPAGEs
           #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
@@ -1989,17 +1988,10 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
 ;                   org       NVICSTRIM           ;NV ICS Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #XRAM
-                    org       XRAM
-
-                    #ROM
-                    org       ROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #XRAM     XRAM
+                    #ROM      ROM
 
                     #MEMORY   ROM       ROM_END
                     #MEMORY   EEPROM    EEPROM_END

@@ -108,15 +108,13 @@ BDIV                def       1
           #ifdef QE8¦QE32
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
+                    #ListOff
             #ifdef QE8
-                    #ListOff
                     #Uses     qe8.inc
-                    #ListOn
             #else
-                    #ListOff
                     #Uses     qe32.inc
-                    #ListOn
             #endif
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef FL16
@@ -138,44 +136,38 @@ BDIV                equ       1                   ;(actually, no BDIV in GB60)
           #ifdef AC32¦AC96
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
+                    #ListOff
             #ifdef AC32
-                    #ListOff
                     #Uses     ac32.inc
-                    #ListOn
             #else
-                    #ListOff
                     #Uses     ac96.inc
-                    #ListOn
             #endif
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef QD2¦QD4
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
 SCI                 set       -1
+                    #ListOff
             #ifdef QD2
-                    #ListOff
                     #Uses     qd2.inc
-                    #ListOn
             #else
-                    #ListOff
                     #Uses     qd4.inc
-                    #ListOn
             #endif
+                    #ListOn
           #endif
 ;-------------------------------------------------------------------------------
           #ifdef DZ32¦DZ60
 HZ                  def       32000000            ;MCU & Cyclone's default
 BDIV                def       1
+                    #ListOff
             #ifdef DZ32
-                    #ListOff
                     #Uses     dz32.inc
-                    #ListOn
             #else
-                    #ListOff
                     #Uses     dz60.inc
-                    #ListOn
             #endif
+                    #ListOn
                     #temp     NVOPT_VALUE>5&1     ;isolate EPGMOD
                     #Message  EPGMOD = {:temp} ({:temp*4+4}-byte mode)
           #endif
@@ -214,11 +206,8 @@ APP_CODE_END        def       BOOTROM-1
 
 ;-------------------------------------------------------------------------------
 
-                    #XRAM
-                    org       RAM                 ;used only for boot
-
-                    #ROM
-                    org       BOOTROM
+                    #XRAM     RAM                 ;used only for boot
+                    #ROM      BOOTROM
 
 ;*******************************************************************************
 #if SCI < 0
@@ -606,7 +595,7 @@ OK@@                sta       ?rec_type           ;Save the record type
 
                     sub       #3                  ;adjust for 2-byte address and 1-byte CRC
                     sta       ?length             ;save Length of record (without address & CRC)
-          ;-------------------------------------- ;now, get the load address
+          ;-------------------------------------- ;get optional PPAGE of load address
           #ifdef PPAGE
                     mov       #2,PPAGE            ;assume default PPAGE for every new S record
 
@@ -620,6 +609,7 @@ OK@@                sta       ?rec_type           ;Save the record type
                     bsr       ?UpdateCRC
                     sta       PPAGE               ;update PPAGE for this record
           #endif
+          ;-------------------------------------- ;now, get the load address
 GetAddress@@        jsr       ?ReadHex            ;Get MSB of address
                     bcs       ??Error
 

@@ -506,17 +506,10 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
 ;                   org       NVICGTRIM           ;NV ICG Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #XRAM
-                    org       ROM                 ;to cause #VARIABLE error(s)
-
-                    #ROM
-                    org       ROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #XRAM     ROM                 ;to cause #VARIABLE error(s)
+                    #ROM      ROM
 
                     #MEMORY   ROM       ROM_END
                     #MEMORY   EEPROM    EEPROM_END

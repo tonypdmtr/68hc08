@@ -19,9 +19,9 @@
 ;*******************************************************************************
 ; Common offsets
 
-                    #temp     0
+                    #temp
 ?BITPOS             next      :temp,2
-?TARGET             next      :temp,2
+?TARGET             next      :temp,:ab
 ?PARM_SIZE          equ       :temp
 
 ;*******************************************************************************
@@ -42,17 +42,17 @@ BRIFSET             macro     BitPos,Address,Target
           #ifparm ~3~ = *
                     mset      3,{*}
           #endif
-                    !jsr      ~0~
+                    call      ~0~
                     dw        ~2~&$1FFF|{~1~<13}  ;BitPos (15..13) & Variable (12..0)
-                    dw        ~3~                 ;Target
+                    far       ~3~                 ;Target
                     endm
 
 ;-------------------------------------------------------------------------------
 
-                    #spauto   2
+                    #spauto   :ab
 
 BRIFSET             proc
-pc@@                equ       ::,2
+pc@@                equ       ::,:ab
                     push
                     tpa                           ;shorter PSHCC
                     psha
@@ -60,7 +60,7 @@ pc@@                equ       ::,2
                     and       ,x                  ;mask sought bits
                     tpa                           ;keep CCR from destruction
           #ifhcs
-                    ldhx      pc@@,sp
+                    ldhx      pc@@+:ab-2,sp
           #else
                     ldx       pc@@,sp
                     txh
@@ -69,10 +69,28 @@ pc@@                equ       ::,2
                     tap                           ;restore decisive CCR
                     bne       Branch@@
                     aix       #?PARM_SIZE         ;skip hard-coded parameters
+          #ifmmu
+                    lda       pc@@,sp
+                    sta       LAP2
+                    lda       pc@@+1,sp
+                    sta       LAP1
+                    lda       pc@@+1,sp
+                    sta       LAP0
+                    @lap_linear                   ;convert from paged to linear
+                    lda       LB
+          #endif
                     bra       Done@@
           #ifhcs
-Branch@@            ldhx      ?TARGET,x
-Done@@              sthx      pc@@,sp
+Branch@@
+            #ifmmu
+                    lda       ?TARGET,x
+            #endif
+                    ldhx      ?TARGET+:ab-2,x
+Done@@
+            #ifmmu
+                    sta       pc@@,sp
+            #endif
+                    sthx      pc@@+:ab-2,sp
           #else
 Branch@@            lda       ?TARGET,x
                     ldx       ?TARGET+1,x
@@ -84,16 +102,16 @@ Done@@              tha
                     pula                          ;shorter PULCC
                     tap
                     pull
-                    rts
+                    RTC
 
 ;*******************************************************************************
 
                     #spauto   2
 
 ?ConvertPosToMask   proc
-pc@@                equ       5,2
+pc@@                equ       5,:ab
           #ifhcs
-                    ldhx      pc@@,sp
+                    ldhx      pc@@+:ab-2,sp
                     ldhx      ?BITPOS,x
                     tha
           #else
@@ -137,17 +155,17 @@ BRIFCLR             macro     BitPos,Address,Target
           #ifparm ~3~ = *
                     mset      3,{*}
           #endif
-                    !jsr      ~0~
+                    call      ~0~
                     dw        ~2~&$1FFF|{~1~<13}  ;BitPos (15..13) & Variable (12..0)
-                    dw        ~3~                 ;Target
+                    far       ~3~                 ;Target
                     endm
 
 ;-------------------------------------------------------------------------------
 
-                    #spauto   2
+                    #spauto   :ab
 
 BRIFCLR             proc
-pc@@                equ       ::,2
+pc@@                equ       ::,:ab
                     push
                     tpa                           ;shorter PSHCC
                     psha
@@ -156,7 +174,7 @@ pc@@                equ       ::,2
                     and       ,x                  ;mask sought bits
                     tpa                           ;keep CCR from destruction
           #ifhcs
-                    ldhx      pc@@,sp
+                    ldhx      pc@@+:ab-2,sp
           #else
                     ldx       pc@@,sp
                     txh
@@ -165,10 +183,28 @@ pc@@                equ       ::,2
                     tap                           ;restore decisive CCR
                     beq       Branch@@
                     aix       #?PARM_SIZE         ;skip hard-coded parameters
+          #ifmmu
+                    lda       pc@@,sp
+                    sta       LAP2
+                    lda       pc@@+1,sp
+                    sta       LAP1
+                    lda       pc@@+1,sp
+                    sta       LAP0
+                    @lap_linear                   ;convert from paged to linear
+                    lda       LB
+          #endif
                     bra       Done@@
           #ifhcs
-Branch@@            ldhx      ?TARGET,x
-Done@@              sthx      pc@@,sp
+Branch@@
+            #ifmmu
+                    lda       ?TARGET,x
+            #endif
+                    ldhx      ?TARGET+:ab-2,x
+Done@@
+            #ifmmu
+                    sta       pc@@,sp
+            #endif
+                    sthx      pc@@+:ab-2,sp
           #else
 Branch@@            lda       ?TARGET,x
                     ldx       ?TARGET+1,x
@@ -180,7 +216,7 @@ Done@@              tha
                     pula                          ;shorter PULCC
                     tap
                     pull
-                    rts
+                    RTC
 
 ;*******************************************************************************
                     #Exit

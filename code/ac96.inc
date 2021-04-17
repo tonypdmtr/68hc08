@@ -98,14 +98,21 @@ DDRJ                equ       $1B,1               ;I/O port J Data Direction Reg
 ADC1SC1             equ       $10,1               ;Status and Control Register 1
 ADCSC1              equ       $10,1               ;Status and Control Register 1
 ADC1SC2             equ       $11,1               ;Status and Control Register 2
+ADCSC2              equ       $11,1               ;Status and Control Register 2
 ADC1R               equ       $12,2               ;Data Result Register
 ADCR                equ       $12,2               ;Data Result Register
 ADC1RH              equ       $12,1               ;Data Result High Register
+ADCRH               equ       $12,1               ;Data Result High Register
 ADC1RL              equ       $13,1               ;Data Result Low Register
+ADCRL               equ       $13,1               ;Data Result Low Register
 ADC1CV              equ       $14,2               ;Compare Value Register
+ADCCV               equ       $14,2               ;Compare Value Register
 ADC1CVH             equ       $14,1               ;Compare Value High Register
+ADCCVH              equ       $14,1               ;Compare Value High Register
 ADC1CVL             equ       $15,1               ;Compare Value Low Register
+ADCCVL              equ       $15,1               ;Compare Value Low Register
 ADC1CFG             equ       $16,1               ;Configuration Register
+ADCCFG              equ       $16,1               ;Configuration Register
 APCTL1              equ       $17,1               ;Pin Control 1 Register
 APCTL2              equ       $18,1               ;Pin Control 2 Register
 
@@ -805,9 +812,9 @@ RVECTORS            set       BOOTROM+:temp&$FFFF ;start of redirected vectors
 ?NVPROT_MASK        def       95-:temp<1|1
 
           #ifmmu
-TRUE_ROM            equ       $4000               ;start(!) of 96K paged flash (do NOT use $1870-$3FFF which is also PPAGE 0)
+TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $2080-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
           #else
-TRUE_ROM            equ       $20F0               ;start(!) of ~55K non-paged flash
+TRUE_ROM            equ       $1870               ;start(!) of ~58K non-paged flash
           #endif
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
@@ -822,13 +829,10 @@ EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 #endif
 
 ROM                 def       EEPROM_END+1
-          #ifmmu
-ROM_END             def       :PAGE_START-1       ;end of pre-window flash
-
-XROM                def       :PAGE_END+1
-XROM_END            def       $FF9B               ;end of all flash (before NV registers and fixed vectors)
-          #else
 ROM_END             def       $FF9B               ;end of all flash (before NV registers and fixed vectors)
+          #ifmmu
+XROM                def       $1870
+XROM_END            def       :PAGE_START-1       ;end of pre-window flash
           #endif
 
 #ifdef BOOT&BOOTROM
@@ -920,8 +924,7 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
 ;-------------------------------------------------------------------------------
           #ifmmu
 ?                   macro
-                    #SEG{:loop-1}
-                    org       :PAGE_START
+                    #SEG{:loop-1} :PAGE_START
                     mtop      8
                     endm
 
@@ -942,13 +945,12 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
 
 ?                   macro     Page
                     mswap     1,:loop
-                    #SEG~1~
-                    org       PPAGE~1~
+                    #SEG~1~   PPAGE~1~
                     #MEMORY   PPAGE~1~  PPAGE~1~+PPAGE_SIZE-1
                     mtop      :n
                     endm
 
-                    @?        0,2,4,5             ;define memory for PPAGEs
+                    @?        0,1,2,4,5           ;define memory for PPAGEs
           #endif
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
@@ -983,20 +985,13 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
 ;                   org       NVICSTRIM           ;NV ICS Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.
-                    #VECTORS
-                    org       VECTORS
-
-                    #XRAM
-                    org       XRAM
-
-                    #RAM
-                    org       RAM
+                    #VECTORS VECTORS
+                    #XRAM     XRAM
+                    #RAM      RAM
           #ifdef XROM
-                    #XROM
-                    org       XROM
+                    #XROM     XROM
           #endif
-                    #ROM
-                    org       ROM
+                    #ROM      ROM
 
                     #MEMORY   ROM       ROM_END
           #ifndef OS8PRELOADED

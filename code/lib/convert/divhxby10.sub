@@ -15,9 +15,7 @@
 
 DivHXby10           proc
                     pshhx     ans@@
-                    clrh
-                    ldx       #10
-                    @div.s    ans@@,sp
+                    @div.s    ans@@,sp #10
                     tha                           ;fractional bits of result
                     pulhx
                     rtc

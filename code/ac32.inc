@@ -95,14 +95,21 @@ DDRG                equ       $0D,1               ;I/O port G Data Direction Reg
 ADC1SC1             equ       $10,1               ;Status and Control Register 1
 ADCSC1              equ       $10,1               ;Status and Control Register 1
 ADC1SC2             equ       $11,1               ;Status and Control Register 2
+ADCSC2              equ       $11,1               ;Status and Control Register 2
 ADC1R               equ       $12,2               ;Data Result Register
 ADCR                equ       $12,2               ;Data Result Register
 ADC1RH              equ       $12,1               ;Data Result High Register
+ADCRH               equ       $12,1               ;Data Result High Register
 ADC1RL              equ       $13,1               ;Data Result Low Register
+ADCRL               equ       $13,1               ;Data Result Low Register
 ADC1CV              equ       $14,2               ;Compare Value Register
+ADCCV               equ       $14,2               ;Compare Value Register
 ADC1CVH             equ       $14,1               ;Compare Value High Register
+ADCCVH              equ       $14,1               ;Compare Value High Register
 ADC1CVL             equ       $15,1               ;Compare Value Low Register
+ADCCVL              equ       $15,1               ;Compare Value Low Register
 ADC1CFG             equ       $16,1               ;Configuration Register
+ADCCFG              equ       $16,1               ;Configuration Register
 APCTL1              equ       $17,1               ;Pin Control 1 Register
 APCTL2              equ       $18,1               ;Pin Control 2 Register
 
@@ -849,17 +856,10 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
 ;                   org       NVICSTRIM           ;NV ICS Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #XRAM
-                    org       XRAM
-
-                    #ROM
-                    org       ROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #XRAM     XRAM
+                    #ROM      ROM
 
                     #MEMORY   ROM       ROM_END
                     #MEMORY   NVBACKKEY NVBACKKEY+7

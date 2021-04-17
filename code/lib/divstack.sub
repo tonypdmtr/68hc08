@@ -9,6 +9,7 @@
 ;* History   : 10.02.02 v1.00 Original
 ;*           : 11.04.13       Moved test code at EOF (for #EXIT optimization)
 ;*           : 11.07.01       Minor change in test code, and added macro
+;*           : 21.04.14       Minor refactoring
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -41,12 +42,11 @@ DivideStackedWord   macro     8-bit divisor
                     #spauto   :ab                 ;account for RTS/RTC
 
 DivideStackedWord   proc
+ans@@               equ       1,2
                     psha
                     pshh
-
                     clrh                          ;H is initially zero (always)
-                    @div.w,   1,sp
-
+                    @div.s    ans@@,sp
                     pulh
                     pula
                     rtc
