@@ -33,9 +33,7 @@
 ; Erase Line            <ESC>[2K                     ok
 ; Erase Screen          <ESC>[2J                     ok
 ;*******************************************************************************
-
                     #Uses     qy4.inc
-
 ;*******************************************************************************
 ; SYSTEM DEFINITIONS AND EQUATES
 ;*******************************************************************************
@@ -115,7 +113,6 @@ Start               proc
           ;-------------------------------------- ; Initialize LCD
                     bsr       LCD_Init
           ;-------------------------------------- ; further initializations
-
                     lda       #$80                ; Address start of line 1
                     jsr       LCD_Addr            ; send addr to LCD
                     clr       row                 ; and write out cursor position
@@ -301,7 +298,6 @@ LCD_ClrEol          proc
                     bra       _2@@                ; continue
 
 _1@@                lda       #ROW2ADR            ; Load address from line 1
-
 _2@@                add       col                 ; Add up the column
                     bsr       LCD_Addr            ; set address
                     ldx       col                 ; Load the column position of the cursor
@@ -616,8 +612,6 @@ Save@@              stx       inptr               ; and save
                     rti
 
 ;*******************************************************************************
-                    #VECTORS
-;*******************************************************************************
-
                     @vector   Vkeyboard,KBD_Handler
                     @vector   Vreset,Start
+;*******************************************************************************
