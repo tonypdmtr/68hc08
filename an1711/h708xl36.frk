@@ -642,7 +642,7 @@ LVIRST             def        0            ;LVI Reset Enabled
 RAM                def        $0050
 EPROM              def        $6E00
 
-Vectors            def        $FFE0
+VECTORS            def        $FFE0
 IRQ2_INT           def        $FFE0
 KeyPad_INT         def        $FFE0
 SCITrans_INT       def        $FFE2
@@ -667,56 +667,28 @@ RESET              def        $FFFE
 ; For any interrupts used, the ORG and DW statement given below must be
 ; placed in the routine using the interrupt.
 ;*******************************************************************************
-;                 org     Vectors
-;
-;                 org     IRQ2_INT
-;                 dw      IRQ2_SVR
-;
-;                 org     KeyPad_INT
-;                 dw      KeyPad_SVR
-;
-;                 org     SCITrans_INT
-;                 dw      SCITrans_SVR
-;
-;                 org     SCIRec_INT
-;                 dw      SCIRec_SVR
-;
-;                 org     SCIError_INT
-;                 dw      SCIError_SVR
-;
-;                 org     SPITrans_INT
-;                 dw      SPITrans_SVR
-;
-;                 org     SPIRec_INT
-;                 dw      SPIRec_SVR
-;
-;                 org     TIMOver_INT
-;                 dw      TIMOver_SVR
-;
-;                 org     TIMCh3_INT
-;                 dw      TIMCh3_SVR
-;
-;                 org     TIMCH2_INT
-;                 dw      TIMCh2_SVR
-;
-;                 org     TIMCh1_INT
-;                 dw      TIMCh1_SVR
-;
-;                 org     TIMCh0_INT
-;                 dw      TIMCh0_SVR
-;
-;                 org     DMA_INT
-;                 dw      DMA_SVR
-;
-;                 org     PLL_INT
-;                 dw      PLL_SVR
-;
-;                 org     IRQ1_INT
-;                 dw      IRQ1_SVR
-;
-;                 org     SWI_INT
-;                 dw      SWI_SVR
-;
-;                 org     RESET
-;                 dw      Start
+
+?                   macro
+                   ;org       ~1~
+                   ;dw        ~2~
+                    endm
+
+                    @?        IRQ2_INT,IRQ2_SVR
+                    @?        KeyPad_INT,KeyPad_SVR
+                    @?        SCITrans_INT,SCITrans_SVR
+                    @?        SCIRec_INT,SCIRec_SVR
+                    @?        SCIError_INT,SCIError_SVR
+                    @?        SPITrans_INT,SPITrans_SVR
+                    @?        SPIRec_INT,SPIRec_SVR
+                    @?        TIMOver_INT,TIMOver_SVR
+                    @?        TIMCh3_INT,TIMCh3_SVR
+                    @?        TIMCh2_INT,TIMCh2_SVR
+                    @?        TIMCh1_INT,TIMCh1_SVR
+                    @?        TIMCh0_INT,TIMCh0_SVR
+                    @?        DMA_INT,DMA_SVR
+                    @?        PLL_INT,PLL_SVR
+                    @?        IRQ1_INT,IRQ1_SVR
+                    @?        SWI_INT,SWI_SVR
+                    @?        RESET,Start
+
 ;*******************************************************************************
