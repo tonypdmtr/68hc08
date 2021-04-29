@@ -40,8 +40,9 @@ ERAHVEN             equ       %00001010           ;erase and high voltage bits i
 ;FLBPR              equ       $FFBE               ;flash block protect reg (flash)
 ;FLCR               equ       $FE08               ;FLASH control register
 
-                    #ROM
-                    org       $FD00
+;*******************************************************************************
+                    #ROM      $FD00
+;*******************************************************************************
 
 ;*******************************************************************************
 ;*  RdBlock - Reads a block of data from FLASH and puts it in RAM              *
@@ -96,7 +97,7 @@ Skip@@              lda       ,x                  ;get first byte of data
 WrtBlock            proc
                     mov       #13,CPUSpd          ;3.2MHz/0.25MHz = 13
                     clr       CtrlByt             ;page (not mass) erase
-                    psha                          ;save block size
+                    psha      bs@@                ;save block size
                     bsr       FindClear           ;find first available erased block
                     cbeqa     #$FF,Found@@        ;if erased block found, write to it
                     bsr       EEEPage             ;if not then erase page
@@ -106,7 +107,7 @@ WrtBlock            proc
 
 Found@@             pula                          ;get block size
                     pshx                          ;save start address LS byte
-                    add       1,asp               ;add block size to LS byte
+                    add       bs@@,sp             ;add block size to LS byte
                     deca                          ;back to last address in block
                     tax                           ;last address now in H:X
                     sthx      LstAddr             ;save in RAM for use by ROM routine
@@ -181,7 +182,7 @@ EEEinRAM            proc
 
                     lda       #ERAHVEN            ;ERASE and HVEN bit
                     sta       FLCR                ;set HVEN bit in control register
-
+          ;--------------------------------------
                     pshhx
                     ldhx      #DELAY@@            ;for 4ms of HVEN high
                               #Cycles
@@ -192,7 +193,7 @@ Loop@@              aix       #-1
                     pulhx
 
 DELAY@@             equ       4*BUS_KHZ/:temp
-
+          ;--------------------------------------
                     lda       #HVEN
                     sta       FLCR                ;clear ERASE bit
                     lda       #7                  ;3 cycle loop so 7 times for delay
