@@ -896,8 +896,7 @@ HighRegs_End        equ       $30FF               ;end of high page registers
 
 ;*******************************************************************************
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -935,9 +934,7 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVOPT
                     #MEMORY   NV_FSEC
                     #MEMORY   VECTORS   VECTORS|$FF
-          #ifdef CRC_LOCATION
-                    #MEMORY   CRC_LOCATION CRC_LOCATION+1
-          #endif
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1
 
 ;*******************************************************************************
                     #Uses     pa_cop.inc

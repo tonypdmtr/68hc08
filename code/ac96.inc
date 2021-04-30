@@ -956,8 +956,7 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -995,9 +994,7 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
 
                     #MEMORY   ROM       ROM_END
           #ifndef OS8PRELOADED
-            #ifdef XROM
-                    #MEMORY   XROM      XROM_END
-            #endif
+                    #!MEMORY  XROM      XROM_END
           #endif
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
@@ -1006,6 +1003,4 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
           #ifnz FLASH_DATA_SIZE
                     #MEMORY   EEPROM EEPROM_END
           #endif
-          #ifdef CRC_LOCATION
-                    #MEMORY   CRC_LOCATION CRC_LOCATION+1
-          #endif
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1

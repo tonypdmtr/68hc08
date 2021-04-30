@@ -305,14 +305,7 @@ COP                 @port     COPCTL
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
 
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #XRAM
-                    org       XRAM
-
-                    #ROM
-                    org       ROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #XRAM     XRAM
+                    #ROM      ROM

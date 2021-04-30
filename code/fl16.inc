@@ -797,8 +797,7 @@ DMX_                equ       ~3~<DMX32.
 
 ;*******************************************************************************
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -835,9 +834,7 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVPROT
                     #MEMORY   NVOPT
                     #MEMORY   VECTORS   VECTORS|$FF
-          #ifdef CRC_LOCATION
-                    #MEMORY   CRC_LOCATION CRC_LOCATION+1
-          #endif
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1
 
 ;*******************************************************************************
                     #Uses     newcop.inc

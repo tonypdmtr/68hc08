@@ -42,17 +42,10 @@ VECTORS             def       $FFDE               ;Start of Vectors
                     #MEMORY   EEPROM    ROM_END
                     #MEMORY   VECTORS   VECTORS|$FF
 
-                    #EEPROM
-                    org       EEPROM
-
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #ROM
-                    org       ROM
+                    #EEPROM   EEPROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #ROM      ROM
 
           ; REGISTER BLOCK ABSOLUTES
 
@@ -109,14 +102,9 @@ COP                 def       COPCTL,1            ;for "STA COP"
 
                     #MEMORY   CONFIG1 CONFIG2
 
-          #ifndef NO_CODE
-                    #SEG1
-
-          ; THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
-
+          #ifndef NO_CODE                         ;THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
                     #MEMORY   FLBPR
-
-                    org       FLBPR
+                    #SEG1     FLBPR
                     fcb       FLBPR_MASK          ;QT needs this as flash programmed
           #endif
                     #ROM

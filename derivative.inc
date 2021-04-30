@@ -226,6 +226,10 @@
                     @?        sh32,mc9s08sh32.inc
                     @?        sl16,mc9s08sl16.inc
 
+          #ifndef ?DONE
+                    #Uses     mc9s08gb60a.inc
+          #endif
+
 #ifnomdef feed_watchdog
 feed_watchdog       macro                         ;Watchdog feed macro
                     sta       SRS                 ;feed the watchdog

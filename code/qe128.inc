@@ -1078,8 +1078,7 @@ DMX_                equ       ~3~<DMX32.
 ;                   @pin      SPI_SS,PORTE,3      ;SPI /SS port
 ;                   @pin      SPI2_SS,PORTD,3     ;SPI /SS port
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -1115,9 +1114,7 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
 
                     #MEMORY   ROM       ROM_END
           #ifndef OS8PRELOADED
-            #ifdef XROM
-                    #MEMORY   XROM      XROM_END
-            #endif
+                    #!MEMORY  XROM      XROM_END
           #endif
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT
@@ -1126,6 +1123,4 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
           #ifnz FLASH_DATA_SIZE
                     #MEMORY   EEPROM EEPROM_END
           #endif
-          #ifdef RVECTORS
-                    #MEMORY   RVECTORS  RVECTORS|$FF
-          #endif
+                    #!MEMORY  RVECTORS  RVECTORS|$FF

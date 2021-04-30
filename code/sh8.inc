@@ -747,8 +747,7 @@ HZ                  def       33554432            ;Cyclone 32768*1024
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -785,6 +784,4 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   NVOPT
                     #MEMORY   VECTORS   VECTORS|$FF
                     #MEMORY   EEPROM    EEPROM_END
-          #ifdef CRC_LOCATION
-                    #MEMORY   CRC_LOCATION CRC_LOCATION+1
-          #endif
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1

@@ -58,17 +58,10 @@ VECTORS             def       $FFF2               ;Start of Vectors
                     #MEMORY   EEPROM    ROM_END
                     #MEMORY   VECTORS   VECTORS|$FF
 
-                    #EEPROM
-                    org       EEPROM
-
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #ROM
-                    org       ROM
+                    #EEPROM   EEPROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #ROM      ROM
 
 ; REGISTER BLOCK ABSOLUTES
 

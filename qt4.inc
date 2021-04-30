@@ -42,17 +42,10 @@ FLBPR_MASK          equ       ROM>6&$FF           ;mask to use for FLBPR
                     #MEMORY   EEPROM    ROM_END
                     #MEMORY   VECTORS   VECTORS|$FF
 
-                    #EEPROM
-                    org       EEPROM
-
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #ROM
-                    org       ROM
+                    #EEPROM   EEPROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #ROM      ROM
 
           ; REGISTER BLOCK ABSOLUTES
 
@@ -108,14 +101,9 @@ COPCTL              equ       $FFFF,1             ;COP Control Register (low byt
 COP                 equ       COPCTL,1            ;for "STA COP"
 
                     #MEMORY   CONFIG1 CONFIG2
-          #ifndef NO_CODE
-                    #SEG1
-
-          ; THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
-
+          #ifndef NO_CODE                         ;THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
                     #MEMORY   FLBPR
-
-                    org       FLBPR
+                    #SEG1     FLBPR
                     fcb       FLBPR_MASK          ;QT needs this as flash programmed
           #endif
                     #ROM

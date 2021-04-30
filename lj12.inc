@@ -46,20 +46,11 @@ VECTORS             def       $FFDA               ;Start of Vectors
                     #MEMORY   EEPROM    ROM_END
                     #MEMORY   VECTORS   VECTORS|$FF
 
-                    #EEPROM
-                    org       EEPROM
-
-                    #VECTORS
-                    org       VECTORS
-
-                    #RAM
-                    org       RAM
-
-                    #XRAM
-                    org       XRAM
-
-                    #ROM
-                    org       ROM
+                    #EEPROM   EEPROM
+                    #VECTORS  VECTORS
+                    #RAM      RAM
+                    #XRAM     XRAM
+                    #ROM      ROM
 
                   * REGISTER BLOCK ABSOLUTES *
 

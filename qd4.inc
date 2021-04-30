@@ -475,8 +475,7 @@ KHZ                 def       16000               ;16 MHz internal oscillator
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -522,9 +521,5 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
 ;                   #MEMORY   NVICSTRM
                     #MEMORY   NVOPT
                     #MEMORY   VECTORS   VECTORS|$FF
-          #ifdef CRC_LOCATION
-                    #MEMORY   CRC_LOCATION CRC_LOCATION+1
-          #endif
-          #ifdef RVECTORS
-                    #MEMORY   RVECTORS  RVECTORS|$FF
-          #endif
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1
+                    #!MEMORY  RVECTORS  RVECTORS|$FF

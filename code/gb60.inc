@@ -830,8 +830,7 @@ BDIV                def       1                   ;actually GB60 does not have a
 
 ;                   @pin      SPI_SS,PORTE,2      ;SPI /SS pin
 
-                    #EEPROM
-                    org       EEPROM
+                    #EEPROM   EEPROM
 
                     #DATA
 
@@ -870,15 +869,8 @@ NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on 
           #if EEPROM < HighRegs
                     #MEMORY   EEPROM    HighRegs-1
           #endif
-
           #if EEPROM_END > HighRegs_End
                     #MEMORY   HighRegs_End+1 EEPROM_END
           #endif
-
-          #ifdef RVECTORS
-                    #MEMORY   RVECTORS  RVECTORS|$FF
-          #endif
-
-          #ifdef CRC_LOCATION
-                    #MEMORY   CRC_LOCATION CRC_LOCATION+1
-          #endif
+                    #!MEMORY  RVECTORS  RVECTORS|$FF
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1

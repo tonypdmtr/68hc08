@@ -102,14 +102,9 @@ COPCTL              equ       $FFFF,1             ;COP Control Register (low byt
 COP                 equ       COPCTL,1            ;for "STA COP"
 
                     #MEMORY   CONFIG1 CONFIG2
-          #ifndef NO_CODE
-                    #SEG1
-
-          ; THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
-
+          #ifndef NO_CODE                         ;THIS MUST BE PROGRAMMED WHEN BURNING THE DEVICE
                     #MEMORY   FLBPR
-
-                    org       FLBPR
+                    #SEG1     FLBPR
                     fcb       FLBPR_MASK          ;QT needs this as flash programmed
           #endif
                     #ROM
