@@ -32,7 +32,7 @@ CtrlByt             equ       $88                 ;control byte for ROM subrouti
 CPUSpd              equ       $89                 ;CPU speed in units of 0.25MHz
 LstAddr             equ       $8A                 ;last FLASH address to be programmed
 
-;*  Additional equates
+; Additional equates
 
 ERASE               equ       %00000010           ;erase bit in FLCR
 HVEN                equ       %00001000           ;high voltage bit in FLCR
@@ -51,11 +51,11 @@ ERAHVEN             equ       %00001010           ;erase and high voltage bits i
 ;*                         lda    #Blk1Size                                    *
 ;*                         jsr    RdBlock                                      *
 ;*                                                                             *
-;*  Inputs:  H:X - pointing to start of FLASH page used for data               *
-;*           A   - block size                                                  *
+;*  Inputs:  HX - pointing to start of FLASH page used for data               *
+;*           A  - block size                                                  *
 ;*                                                                             *
-;*  Returns: H:X - pointing to start of FLASH block containing data            *
-;*           A   - data from first byte of block                               *
+;*  Returns: HX - pointing to start of FLASH block containing data            *
+;*           A  - data from first byte of block                               *
 ;*                                                                             *
 ;*  Uses:    FindClear                                                         *
 ;*******************************************************************************
@@ -65,7 +65,7 @@ ERAHVEN             equ       %00001010           ;erase and high voltage bits i
 RdBlock             proc
                     psha      blocksize@@         ;save block size
                     bsr       FindClear           ;find first erased block
-                    cmp       #$FF                ;was an erased block found ?
+                    cmpa      #$FF                ;was an erased block found ?
                     bne       Skip@@              ;if not then don't go back a block
                     txa                           ;get LS byte of address
                     and       #$3F                ;only look at address within page
@@ -84,8 +84,8 @@ Skip@@              lda       ,x                  ;get first byte of data
 ;*                         lda    #Blk1Size                                    *
 ;*                         jsr    WrtBlock                                     *
 ;*                                                                             *
-;*  Inputs:  H:X - pointing to start of FLASH page used for data               *
-;*           A   - block size                                                  *
+;*  Inputs:  HX - pointing to start of FLASH page used for data               *
+;*           A  - block size                                                  *
 ;*                                                                             *
 ;*  Returns: nothing                                                           *
 ;*                                                                             *
@@ -103,26 +103,26 @@ WrtBlock            proc
                     bsr       EEEPage             ;if not then erase page
                     txa                           ;get LS byte of FLASH address
                     and       #$C0                ;and reset it to start of page
-                    tax                           ;H:X now pointing to first block
+                    tax                           ;HX now pointing to first block
 
 Found@@             pula                          ;get block size
                     pshx                          ;save start address LS byte
                     add       bs@@,sp             ;add block size to LS byte
                     deca                          ;back to last address in block
-                    tax                           ;last address now in H:X
+                    tax                           ;last address now in HX
                     sthx      LstAddr             ;save in RAM for use by ROM routine
                     pulx                          ;restore X (H hasn't changed)
                     jmp       PgrRnge             ;program block (includes RTS)
 
 ;*******************************************************************************
 ; Purpose: Finds first erased block within page
-; Input  : H:X -> start of page used for required data
+; Input  : HX -> start of page used for required data
 ;        : Stack - block size last thing on stack
 ; Output : if erased block found:
-;        : H:X -> start of first erased block in page
+;        : HX -> start of first erased block in page
 ;        : A = $FF
 ;        : if no erased block found (page full):
-;        : H:X -> start of last written block
+;        : HX -> start of last written block
 ;        : A = $00
 
                     #spauto   2                   ;2 [RTS]
@@ -172,7 +172,7 @@ EEEinRAM            proc
                     psha                          ;save CCR
                     lda       RAMSIZE,x           ;retrieve FLASH address MSB from RAM
                     ldx       RAMSIZE+1,x         ;and LS byte
-                    tah                           ;MSB into h (address is now in H:X)
+                    tah                           ;MSB into h (address is now in HX)
                     lda       #ERASE
                     sta       FLCR                ;set ERASE bit in control register
                     lda       FLBPR               ;read block protection register
@@ -182,9 +182,9 @@ EEEinRAM            proc
 
                     lda       #ERAHVEN            ;ERASE and HVEN bit
                     sta       FLCR                ;set HVEN bit in control register
-          ;--------------------------------------
+          ;-------------------------------------- ;delay 4ms of HVEN high
                     pshhx
-                    ldhx      #DELAY@@            ;for 4ms of HVEN high
+                    ldhx      #DELAY@@
                               #Cycles
 Loop@@              aix       #-1
                     cphx      #0
@@ -205,13 +205,14 @@ DELAY@@             equ       4*BUS_KHZ/:temp
                     brn       *                   ;3 more cycles ie >1us
                     rts
 
-          #if *-EEEinRAM <> RAMSIZE
-                    #Warning  Change RAMSIZE to {*-EEEinRAM}
+                    #size     EEEinRAM
+          #if ::EEEinRAM <> RAMSIZE
+                    #Warning  Change RAMSIZE to {::EEEinRAM}
           #endif
 
 ;*******************************************************************************
 ; Purpose: Erases a page of emulated EEPROM FLASH
-; Input  : H:X -> FLASH page to be erased
+; Input  : HX -> FLASH page to be erased
 ; Output : None
 ; Note(s): Call:    ldhx   #EEPage
 ;        :          jsr    EEEpage

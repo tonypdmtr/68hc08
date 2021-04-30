@@ -1,6 +1,5 @@
 #ifmain ;-----------------------------------------------------------------------
-                    #RAM
-                    org       *
+                    #RAM      *
 mult1               rmb       2
 mult2               rmb       2
 product             rmb       4
@@ -21,6 +20,7 @@ product             rmb       4
 
 UMULT16             proc                          ; Setup stack frame structure
                     ais       #-5                 ; Temp storage & product result
+                    #ais
                     #temp     ::
 prod32@@            next      :temp,4             ; MS byte Product
 temp16@@            next      :temp
@@ -81,8 +81,9 @@ _4@@                lda       prod32@@,spx
                     add       temp16@@,spx
                     sta       prod32@@,spx
           ;-------------------------------------- ; Unload stack frame structure
-                    ais       #4                  ; Adjust stack pointer
+                    ais       #:ais               ; Adjust stack pointer
                     ldhx      #product
+          #iftos prod32@@
                     pula
                     sta       ,x
                     pula
@@ -91,7 +92,19 @@ _4@@                lda       prod32@@,spx
                     sta       2,x
                     pula
                     sta       3,x
-                    ais       #1                  ; Adjust stack pointer
+          #else
+                    lda       prod32@@,sp
+                    sta       ,x
+                    lda       prod32@@+1,sp
+                    sta       1,x
+                    lda       prod32@@+2,sp
+                    sta       2,x
+                    lda       prod32@@+3,sp
+                    sta       3,x
+          #endif
+          #ifnz :sp
+                    ais       #:sp
+          #endif
                     rts
 
 ;*******************************************************************************
@@ -122,7 +135,7 @@ Loop@@              sta       counter@@,sp        ; digit counter
           ;--------------------------------------
                     dbnza     Loop@@              ; loop for next digit
                     pula                          ; remove counter
-                    #spadd    4
+                    #spadd    5-1
           ;-------------------------------------- ; Get buffer address into HX
                     ldhx      .buffer@@,sp        ; HX = buffer address
           ;-------------------------------------- ; Transfer stack contents to buffer
