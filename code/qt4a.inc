@@ -135,7 +135,7 @@ Virq                equ       $FFFA               ;/IRQ vector
 Vswi                equ       $FFFC               ;SWI vector
 Vreset              equ       $FFFE               ;/RESET
 
-#ifndef MHZ¦HZ
+#ifndef MHZ||HZ
 KHZ                 def       12800               ;12.8 MHz internal oscillator
 #endif
 ;-------------------------------------------------------------------------------

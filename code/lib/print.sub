@@ -38,6 +38,7 @@
 ;*           : 21.02.18 v1.39 Guarantee FCS to be in #ROM segment under #MMU
 ;*           : 21.04.13 v1.40 BugFix: Strings no longer get trimmed
 ;*           :                BugFix: Strings including | are parsed correctly
+;*           : 21.06.23 v1.41 Improved Print macro to use BSR instead of JSR when distance allows
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -217,7 +218,11 @@ Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:
           #endif
           #ifparm \@~1.1.1~\@ = \@@\@             ;;subroutine call
                     #temp     6
-                    !jsr      ~1.2~
+            #!if :pc-~1.2~ < 127
+                    bsr       ~1.2~
+            #else
+                    jsr       ~1.2~
+            #endif
           #endif
           #ifz :temp                              ;;assume math expression
                     @@PrintNum ~1~

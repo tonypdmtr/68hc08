@@ -18,6 +18,7 @@
 ;*           : 11.10.06: Minor optimization (two bytes), minor changes in test code
 ;*           : 13.05.13: New COMMON.INC and minor optimizations (ClrVar)
 ;*           : 19.08.23: Added HC08 compatibility
+;*           : 21.05.13: Optimized SP => SPX in HC08 mode [-3 bytes]
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -82,13 +83,13 @@ BigMultiply         proc
 ZeroAns@@           clr       ,x                  ;initialize product to zero
                     aix       #1
                     dbnza     ZeroAns@@
-
 Loop@@
           #ifhcs
                     ldhx      .a@@,sp
           #else
-                    lda       .a@@,sp
-                    ldx       .a@@+1,sp
+                    tsx
+                    lda       .a@@,spx
+                    ldx       .a@@+1,spx
                     tah
           #endif
                     lda       index_a@@,sp
@@ -98,8 +99,9 @@ Loop@@
           #ifhcs
                     ldhx      .b@@,sp
           #else
-                    lda       .b@@,sp
-                    ldx       .b@@+1,sp
+                    tsx
+                    lda       .b@@,spx
+                    ldx       .b@@+1,spx
                     tah
           #endif
                     lda       index_b@@,sp
@@ -120,8 +122,9 @@ Loop@@
                     ldhx      .ans@@,sp
           #else
                     psha
-                    lda       .ans@@,sp
-                    ldx       .ans@@+1,sp
+                    tsx
+                    lda       .ans@@,spx
+                    ldx       .ans@@+1,spx
                     tah
                     pula
           #endif

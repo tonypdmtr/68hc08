@@ -70,12 +70,12 @@ pc@@                equ       ::,:ab
                     bne       Branch@@
                     aix       #?PARM_SIZE         ;skip hard-coded parameters
           #ifmmu
-                    lda       pc@@,sp
-                    sta       LAP2
-                    lda       pc@@+1,sp
-                    sta       LAP1
-                    lda       pc@@+1,sp
-                    sta       LAP0
+                    pshhx
+                    @lea      pc@@,sp
+                    mov       x+,LAP2
+                    mov       x+,LAP1
+                    mov       x+,LAP0
+                    pulhx
                     @lap_linear                   ;convert from paged to linear
                     lda       LB
           #endif
@@ -184,12 +184,12 @@ pc@@                equ       ::,:ab
                     beq       Branch@@
                     aix       #?PARM_SIZE         ;skip hard-coded parameters
           #ifmmu
-                    lda       pc@@,sp
-                    sta       LAP2
-                    lda       pc@@+1,sp
-                    sta       LAP1
-                    lda       pc@@+1,sp
-                    sta       LAP0
+                    pshhx
+                    @lea      pc@@,sp
+                    mov       x+,LAP2
+                    mov       x+,LAP1
+                    mov       x+,LAP0
+                    pulhx
                     @lap_linear                   ;convert from paged to linear
                     lda       LB
           #endif

@@ -51,7 +51,7 @@ MultiplyPI32        proc
 
 TESTVALUE           def       3183                ;x PI=9999 (decimal part lost)
 
-MyVar               @var      DWORD
+my_var              @var      DWORD
 
 SampleNumber        long      TESTVALUE
 
@@ -60,22 +60,19 @@ SampleNumber        long      TESTVALUE
 Start               proc
                     @rsp
                     clra                          ;(keeps simulator happy)
-
-          ;Copy number to RAM (result overwrites number, so it can't be in ROM)
-
-                    @Eval     MyVar = SampleNumber
-
-          ;Multiply number with the Greek PI
-
-                    ldhx      #MyVar
+          ;--------------------------------------
+          ; copy number to RAM (result overwrites number, so it can't be in ROM)
+          ;--------------------------------------
+                    @Eval     my_var = SampleNumber
+          ;-------------------------------------- ;multiply number with the Greek PI
+                    ldhx      #my_var
                     call      MultiplyPI32
-
-          ;Check result for correctness
-
-                    @cmp.s    MyVar #TESTVALUE*355/113  ;TESTVALUE * PI
+          ;-------------------------------------- ;check result for correctness
+                    @cmp.s    my_var #TESTVALUE*355/113 ;TESTVALUE * PI
                     bne       *                   ;Unexpected result
                     bra       *                   ;Expected result
 
+;*******************************************************************************
                     @vector   Vreset,Start
-
+;*******************************************************************************
                     end       :s19crc

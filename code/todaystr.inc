@@ -10,30 +10,30 @@
 Date                macro     DateFormat
                     mreq      1:DateFormat
 ;;------------------------------------------------------------------------------
-#ifparm ~1~ = yyyymmdd
+          #ifparm ~1~ = yyyymmdd
                     fcc       '{:year}.{:month(z)}.{:date(z)}'
-#else ifparm ~1~ = ddmmyyyy
-                    fcc       '{:date}/{:month}/{:year}'
-#else ifparm ~1~ = mmddyyyy
-                    fcc       '{:month}/{:date}/{:year}'
-#else ifparm ~1~ = USA
+          #else ifparm ~1~ = ddmmyyyy
+                    fcc       '{:date(z)}/{:month(z)}/{:year}'
+          #else ifparm ~1~ = mmddyyyy
+                    fcc       '{:month(z)}/{:date(z)}/{:year}'
+          #else ifparm ~1~ = USA
                     @@DayName
                     fcc       ', '
                     @@MonthName
                     fcc       ' {:date}, {:year}'
-#else ifparm ~1~ = EU
+          #else ifparm ~1~ = EU
                     @@DayName
                     fcc       ', {:date} '
                     @@MonthName
                     fcc       ' {:year}'
-#else
+          #else
                     #Error    Missing Format code. Possible formats:
                     #Error    yyyymmdd = 'YYYY.MM.DD' Global
                     #Error    ddmmyyyy = 'DD/MM/YYYY' Europe
                     #Error    mmddyyyy = 'MM/DD/YYYY' USA
                     #Error    USA = 'Day, Month n, Year'
                     #Error    EU = 'Day, n Month Year'
-#endif
+          #endif
                     endm
 
 ;*******************************************************************************
@@ -79,10 +79,8 @@ GetDayOfWeek        macro     YYYY,MM,DD
           #endif
                     mset      4,{~1~/100}
                     mset      1,{~1~\100}
-
           ; temp := (trunc((13 * month - 1) div 5) + day + yr +
           ;         (yr div 4) + (cent div 4) - cent - cent) mod 7;
-
                     mset      4,{~4~/4+{~1~/4+{13*~2~-1/5+~3~+~1~}}-~4~-~4~}\7
           #if ~4~ < 0                             ;if temp < 0 then Inc(temp, 7);
                     mset      4,~4~+7

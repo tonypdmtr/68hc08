@@ -32,6 +32,7 @@
 ;*           : 18.04.30       Optimized ?StackRoutine for no PSHCC/PULCC [-12 bytes]
 ;*           : 20.07.21       Removed warnings from non-GB60 stand-alone assembly
 ;*           : 20.12.31       Added ! prefix to an RTC instruction to silence warning
+;*           : 21.05.13       Replaced ?RAM_Execute_End label with computation
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -82,7 +83,7 @@ FLASH_DATA_SIZE     def       1024
                                                   ;instead of NOP (moves FCBEF -> FCCF for later BIT)
 Loop@@              bit       FSTAT               ;Step 4 - Wait for completion
                     beq       Loop@@              ;check FCCF_ for completion
-?RAM_Execute_End    rts                           ;after exit, check FSTAT for FPVIOL and FACCERR
+                    rts                           ;after exit, check FSTAT for FPVIOL and FACCERR
 
                     #size     ?RAM_Execute
 
@@ -157,8 +158,8 @@ val@@               next      :temp
 ;DoFSTAT@@
                     ldx       #FPVIOL_|FACCERR_   ;clear possible errors
                     stx       FSTAT
-          ;--------------------------------------
-                    ldhx      #[[?RAM_Execute_End ;HX -> end of routine
+          ;-------------------------------------- ;copy the routine to stack RAM (backwards)
+                    ldhx      #?RAM_Execute+::?RAM_Execute-1&$FFFF ;HX -> end of routine
 
 Loop@@              psha      code@@              ;save command for later use by RAM routine
                     psha

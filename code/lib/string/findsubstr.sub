@@ -5,7 +5,6 @@
 #endif ;------------------------------------------------------------------------
                     #Uses     length.sub
                     #Uses     comparebuff.sub
-
 ;*******************************************************************************
 ; Purpose: Find a substring inside another string
 ; Input  : TOS -> ASCII substring for which to search
@@ -79,29 +78,18 @@ StringFindSubStr    proc
                     inca                          ;plus one, A=number of substrings in string
 
 Loop@@              push      .str@@
-
                     @StringCompareBuff .str@@,sp .substr@@,sp len@@,sp
-
                     pull
                     beq       Found@@             ;found, get out
 
                     aix       #1                  ;move one up in searched-string
-
                     dbnza     Loop@@              ;one less comparison, one less length
-
-;-------------------------------------------------------------------------------
-                    #push
-
+    #push ;--------------------------------------
 Fail@@              pula                          ;shorter PULCC (since RegA
                     tap                           ;will be restored by PULL)
-                    pull
                     sec                           ;indicate "failure"
-                    rtc
-
-                    #spcheck
-                    #pull
-;-------------------------------------------------------------------------------
-
+                    bra       Return@@
+    #pull ;--------------------------------------
 Found@@             lda       ccr@@,sp
                     tap                           ;if entry Carry was set
                     bcc       Done@@
@@ -112,8 +100,8 @@ Found@@             lda       ccr@@,sp
 
 Done@@              pula                          ;shorter PULCC (since RegA
                     tap                           ;will be restored by PULL)
-                    pull
                     clc                           ;indicate "success"
+Return@@            pull
                     rtc
 
 ;*******************************************************************************

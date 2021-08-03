@@ -819,7 +819,7 @@ FLASH_END           set       BOOTROM-1
 
 SERIAL_NUMBER       equ       $FFA0               ;start of optional S/N (FFA0-FFAD)
 
-#ifndef MHZ¦KHZ
+#ifndef MHZ||KHZ
 HZ                  def       16777216            ;Cyclone 32768*512
 #endif
 
@@ -832,7 +832,7 @@ HZ                  def       16777216            ;Cyclone 32768*512
                     #DATA
 
 
-          #ifndef BOOT¦NO_CODE
+          #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
 

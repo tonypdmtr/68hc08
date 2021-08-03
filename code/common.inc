@@ -127,7 +127,7 @@ BDIV_               @Log2     BDIV,6              ;move BDIV bits to Bit7..Bit6
 #endif
 #ifparm ~1.1.4~ = BUS_
           #ifhcs
-            #ifdef _PA_¦_PT_¦_PL_
+            #ifdef _PA_||_PT_||_PL_
 ~1.5~               set       ~1~*BDIV
             #else
 ~1.5~               set       ~1~*2*BDIV
@@ -151,7 +151,7 @@ MHZ                 def       16                  ;default crystal speed
 KHZ                 def       MHZ*1000
 HZ                  def       KHZ*1000
           #ifhcs
-            #ifdef _PA_¦_PT_¦_PL_
+            #ifdef _PA_||_PT_||_PL_
 BUS_HZ              def       HZ/BDIV
             #else
 BUS_HZ              def       HZ/2/BDIV
@@ -172,7 +172,7 @@ BUS_MHZ             def       BUS_KHZ/1000
           #else ifdef _FL_
                     #temp1    2
                     mset      0,512,608
-          #else ifdef _PA_¦_PT_¦_PL_
+          #else ifdef _PA_||_PT_||_PL_
                     #temp1    1
                     mset      0,1024
           #else
@@ -585,7 +585,19 @@ Var                 macro     Size[,MaxSizeForRAM]
 
 ;*******************************************************************************
 
-asciz               macro     Size
+asciz               macro     [Message,]MaxSizeWithoutTrailingZero
+                    mset      #','
+          #ifstr ~1~
+            #if :1-2 > ~2~
+                    merror    Message is longer ({:1-2}) than allowed ({~2~})
+            #endif
+            #if * < EEPROM
+                    merror    Can't place constant in RAM
+            #endif
+                    fcc       ~1~
+                    fcb:{~2~-:1+3} 0
+                    mexit
+          #endif
           #if * < EEPROM
                     rmb       ~1~+1
           #else
@@ -1221,15 +1233,15 @@ lea                 macro
             #endif
                     mexit
           #endif
-            #ifhcs
+          #ifhcs
                     ldhx      ~1~                 ;;any other index treat as pointer (regardless of name convention)
-            #else
+          #else
                     psha
                     lda       ~[1.-1]~
                     ldx       ~[1.-2]~
                     tah
                     pula
-            #endif
+          #endif
                     mexit
     #endif
                     ldhx      #~1~                ;;everything else is fixed RAM
@@ -2395,7 +2407,7 @@ f~1~                exp       :temp-1
 NUMBER_OF_OS_CALLS  set       :temp               ;Number of opcodes defined (so far)
                     org       :ppc
           #if :temp > 256
-                    #Warning  Double byte opcodes, OS => OSW
+                    #Warning  Word size opcodes, OS => OSW
           #endif
           #if :temp > MAX_OS_CALLS
                     merror    {MAX_OS_CALLS} MAX_OS_CALLS, need {:temp} (+{:temp-MAX_OS_CALLS})
@@ -2462,7 +2474,7 @@ ByteX10             macro     Variable
                     mexit
             #endif
             #if :mindex > 2
-                    #Warning  Consider size optimization #using lib/convert/regax10.sub
+                    #Hint     Consider size optimization #using lib/convert/regax10.sub
             #endif
                     pshx
                     ldx       #10
@@ -2646,7 +2658,7 @@ FLASH_PAGE_MASK     def       FLASH_PAGE_SIZE-1^$FFFF
                     #Uses     mmu.inc
             #endif
           #endif
-  #ifdef _PA_¦_PT_¦_PL_
+  #ifdef _PA_||_PT_||_PL_
 MIN_FLASH_KHZ       def       800
 MAX_FLASH_KHZ       def       1000
   #endif

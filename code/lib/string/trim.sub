@@ -4,7 +4,6 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
                     #Uses     deletechar.sub
-
 ;*******************************************************************************
 ; Purpose: Trim string from leading, trailing, and duplicate in-between spaces
 ; Input  : HX -> ASCIZ string
@@ -35,7 +34,7 @@ StringTrim          proc
                     pshhx
                     #ais
                     bra       Loop@@
-
+          ;--------------------------------------
 Delete@@            lda       pos@@,sp
                     cbeqa     #1,DeleteNow@@      ;if at 1st position, delete
 
@@ -48,7 +47,7 @@ Delete@@            lda       pos@@,sp
 
 DeleteNow@@         @StringDeleteChar             ;HX -> 1st string position
                     dbnz      pos@@,sp,Previous@@
-
+          ;--------------------------------------
 Loop@@              lda       ,x
                     beq       Done@@              ;end of string, exit
 

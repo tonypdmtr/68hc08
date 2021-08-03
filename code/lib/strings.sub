@@ -45,6 +45,7 @@
 ;*           : 17.07.04       Refactored and optimized ?StringCompare [-8 bytes]
 ;*           : 20.12.15       Optimized [-5 bytes] and made HC08 compatible
 ;*           : 20.12.28       Silenced five warnings with new ASM8 -G+ option
+;*           : 21.04.25       Silenced one more warning with new ASM8 -G+ option
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -408,7 +409,7 @@ StringCompareBuff   proc
 
 ;*******************************************************************************
 
-?StringCompareBuff  proc
+?StringCompareBuff ;proc
 .str2@@             equ       1
                     push      .str1@@,2
                     pshcc     ccr@@
@@ -1273,7 +1274,7 @@ Done@@              ais       #:ais               ;de-allocate temporaries
 
                     #MapOn
 
-String              @var      80
+string              @var      78
 
 ?                   macro     'String'
                     mset      #
@@ -1312,11 +1313,11 @@ FPLoop@@            psha      index@@
                     @StringLength       #String1
                     cmpa      #::String1
                     jne       ?Failure
-                    @StringCopy         #String1,#String
-                    @StringInsertChar   #'>',#String
-                    @StringUpcase       #String
-                    @StringDeleteChar   #String
-                    @StringTrim         #String
+                    @StringCopy         #String1,#string
+                    @StringInsertChar   #'>',#string
+                    @StringUpcase       #string
+                    @StringDeleteChar   #string
+                    @StringTrim         #string
                     @cop
                     @StringCompareBuff  #String1 #String2 #::String1
                     jeq       ?Failure
@@ -1330,21 +1331,21 @@ FPLoop@@            psha      index@@
                     @StringCompareCase  #String1 #String2
                     jeq       ?Failure
                     @cop
-                    @StringDeleteWord   #String,#' '
-                    @StringReverseString #String
-                    @StringReverseString #String
-                    @StringPos          #' ',#String        ;to be found
-                    @StringPos          #'#',#String        ;not to be found
-                    @StringReplaceChars #' ',#'_',#String
-                    @StringFindSubStr   #SubString,,#String
-                    @StringFindSubStr   #SubString,,#String,xxx
-                    @StringInsertChar   #' ',#String
-                    @StringInsertString #SubString,#String
-                    @StringReplaceChars #'_',#' ',#String
-                    @StringDeleteChars  #String,#10
+                    @StringDeleteWord   #string,#' '
+                    @StringReverseString #string
+                    @StringReverseString #string
+                    @StringPos          #' ',#string        ;to be found
+                    @StringPos          #'#',#string        ;not to be found
+                    @StringReplaceChars #' ',#'_',#string
+                    @StringFindSubStr   #SubString,,#string
+                    @StringFindSubStr   #SubString,,#string,xxx
+                    @StringInsertChar   #' ',#string
+                    @StringInsertString #SubString,#string
+                    @StringReplaceChars #'_',#' ',#string
+                    @StringDeleteChars  #string,#10
 
-                    @clr.b    String+1            ;make it a one-char string
-                    @StringReverseString #String  ;nothing should happen (2011.07.14 bugfix)
+                    @clr.b    string+1            ;make it a one-char string
+                    @StringReverseString #string  ;nothing should happen (2011.07.14 bugfix)
 
                     bra       *
 ?Failure            bra       *

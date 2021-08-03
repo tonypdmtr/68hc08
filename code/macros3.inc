@@ -336,44 +336,44 @@ div.m               macro     Variable[,Size]
 
                     #RAM
 
-Op1                 rmb       2
-Op2                 rmb       2
-Ans                 rmb       2
+op1                 rmb       2
+op2                 rmb       2
+ans                 rmb       2
 
                     #ROM
 
 Start               proc
-                    @add.m    Op1,Op2,Ans
-                    @asr.m    Op1
-                    @clr.m    Op1
-                    @cmp.m    Op1,Op2
-                    @com.m    Op1
-                    @div.m    Op1
-                    @inc.m    Op1
-                    @zero?.m  Op1
-                    @lsl.m    Op1
-                    @lsr.m    Op1
-                    @mov.m    Op1,Op2
-                    @neg.m    Op1
-                    @ora.m    Op1,Op2,Ans
-                    @ror.m    Op1
-                    @sub.m    Op1,Op2,Ans
+                    @add.m    op1,op2,ans
+                    @asr.m    op1
+                    @clr.m    op1
+                    @cmp.m    op1,op2
+                    @com.m    op1
+                    @div.m    op1
+                    @inc.m    op1
+                    @zero?.m  op1
+                    @lsl.m    op1
+                    @lsr.m    op1
+                    @mov.m    op1,op2
+                    @neg.m    op1
+                    @ora.m    op1,op2,ans
+                    @ror.m    op1
+                    @sub.m    op1,op2,ans
           ;--------------------------------------
                     #ParmS    space
-                    @add.m    Op1,sp Op2,x Ans,spx
-                    @asr.m    Op1,sp
-                    @clr.m    Op1,sp
-                    @cmp.m    Op1,sp Op2,x
-                    @com.m    Op1,sp
-                    @div.m    Op1,sp
-                    @zero?.m  Op1,sp
-                    @inc.m    Op1,sp
-                    @lsl.m    Op1,sp
-                    @lsr.m    Op1,sp
-                    @neg.m    Op1,sp
-                    @ora.m    Op1,sp Op2,x Ans,spx
-                    @ror.m    Op1,sp
-                    @sub.m    Op1,sp Op2,x Ans,spx
+                    @add.m    op1,sp op2,x ans,spx
+                    @asr.m    op1,sp
+                    @clr.m    op1,sp
+                    @cmp.m    op1,sp op2,x
+                    @com.m    op1,sp
+                    @div.m    op1,sp
+                    @zero?.m  op1,sp
+                    @inc.m    op1,sp
+                    @lsl.m    op1,sp
+                    @lsr.m    op1,sp
+                    @neg.m    op1,sp
+                    @ora.m    op1,sp op2,x ans,spx
+                    @ror.m    op1,sp
+                    @sub.m    op1,sp op2,x ans,spx
           ;--------------------------------------
                     #ParmS
-                    @sub.m    Op1,Op2
+                    @sub.m    op1,op2

@@ -343,6 +343,7 @@
 ;*           : 20.12.27       Silenced a couple of warnings with new ASM8 -G+ option
 ;*           : 20.12.31       Directly assigned proc names with corresponding version
 ;*           : 21.04.14       Added divisor as 2nd argument to DIV.S macro call
+;*           : 21.04.25       Silenced a JMP to BRANCH hint
 ;*******************************************************************************
 
 ;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
@@ -1424,7 +1425,7 @@ ans@@               equ       ?b,::?b             ;result overwrites divisor
           ; if Dividend = 0, we're done
 
                     @_tst_.s  dividend@@,spx
-                    jeq       Done@@
+                    !jeq      Done@@
 
           ; if (divisor = dividend) then quotient := 1; return
           ; if (divisor > dividend) then remainder := dividend; return

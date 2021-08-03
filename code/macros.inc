@@ -156,6 +156,7 @@
 ;*           : 20.07.15 v2.29 Added CopyPin macro to copy pin state to another pin
 ;*           : 21.02.11 v2.30 No longer calls @MyDefaultDirectives at inclusion
 ;*           : 21.04.09 v2.31 Show hint when sema is already defined
+;*           : 21.06.29 v2.32 Improved CopyPin macro to use CCR[C] if FromPin is missing
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -1877,19 +1878,9 @@ Pin                 macro     [[PinName,]PORT[,BitNumber]]
 ; macro' to define the error directive once, even though we use it three times.)
 
 CheckPin            macro     PinName[,PinName]*
-                    mset      0,#Error Pin \@~{:loop}.~\@ not defined with @pin
-          #ifndef ~{:loop}.~
-                    ~text~
-                    mtop      :n
+          #ifndef ~{:loop}.~&&~{:loop}.~.&&~{:loop}.~_
+                    #Error    Pin \@~{:loop}.~\@ not defined with @pin
                     mexit
-          #endif
-          #ifndef ~{:loop}.~.
-                    ~text~
-                    mtop      :n
-                    mexit
-          #endif
-          #ifndef ~{:loop}.~_
-                    ~text~
           #endif
                     mtop      :n
                     endm
@@ -1916,10 +1907,14 @@ ReadPin             macro     PinName
                     endm
 
 ;*******************************************************************************
-; Copy pin state to another pin
+; Copy pin state to another pin.  If FromPin is missing, use the CCR[C] value
 
-CopyPin             macro     FromPin,ToPin
+CopyPin             macro     [FromPin],ToPin
+          #ifb ~1~
+                    bcc       _0$$$               ;;if source low, go copy a low
+          #else
                     @@brclr   ~1~,_0$$$           ;;if source low, go copy a low
+          #endif
                     @@bset    ~2~                 ;;else, make target high
                     bra       Done$$$             ;;we're done
 _0$$$               @@bclr    ~2~                 ;;make target low
@@ -2457,11 +2452,11 @@ EndStats            macro     [Module Start Label]
 
                     #RAM
 
-VarZeroPage         rmb       4                   ;for testing zero page ops
+var_zero_page       rmb       4                   ;for testing zero page ops
 
                     #XRAM
 
-VarAnyPage          rmb       4                   ;for testing non-zero page ops
+var_any_page        rmb       4                   ;for testing non-zero page ops
 
                     #ROM
 
@@ -2485,7 +2480,7 @@ Start               @align2   9                   ;as power of two
                     @bits     Flag,5,8            ;define Flag5..Flag8 bits & masks
                     @bits     A,1,5,3             ;define A1..A5 starting from 3
 
-                    @pin      XXX,VarAnyPage,3    ;define a non-zero page "pin"
+                    @pin      XXX,var_any_page,3  ;define a non-zero page "pin"
                     @bset     XXX                 ;turn "pin" on
                     @bclr     XXX                 ;turn "pin" off
                     @brset    XXX,*
@@ -2511,240 +2506,240 @@ MyCopyright         @Copyright
 LogOf4096           @Log2     2*2048              ;Set symbol to log2 of following expression
                     #Message  Log2 of {2*2048} returned: LogOf4096={LogOf4096}, :MEXIT={:mexit}
 
-                    @clr.b    VarZeroPage
-                    @clr.w    VarZeroPage
-                    @clr.l    VarZeroPage
+                    @clr.b    var_zero_page
+                    @clr.w    var_zero_page
+                    @clr.l    var_zero_page
 
-                    @inc.b    VarZeroPage
-                    @inc.w    VarZeroPage
-                    @inc.l    VarZeroPage
+                    @inc.b    var_zero_page
+                    @inc.w    var_zero_page
+                    @inc.l    var_zero_page
 
-                    @com.b    VarZeroPage
-                    @com.w    VarZeroPage
-                    @com.l    VarZeroPage
+                    @com.b    var_zero_page
+                    @com.w    var_zero_page
+                    @com.l    var_zero_page
 
-                    @lsl.b    VarZeroPage
-                    @lsl.w    VarZeroPage
-                    @lsl.l    VarZeroPage
+                    @lsl.b    var_zero_page
+                    @lsl.w    var_zero_page
+                    @lsl.l    var_zero_page
 
-                    @lsr.b    VarZeroPage
-                    @lsr.w    VarZeroPage
-                    @lsr.l    VarZeroPage
+                    @lsr.b    var_zero_page
+                    @lsr.w    var_zero_page
+                    @lsr.l    var_zero_page
 
-                    @asr.b    VarZeroPage
-                    @asr.w    VarZeroPage
-                    @asr.l    VarZeroPage
+                    @asr.b    var_zero_page
+                    @asr.w    var_zero_page
+                    @asr.l    var_zero_page
 
-                    @ror.b    VarZeroPage
-                    @ror.w    VarZeroPage
-                    @ror.l    VarZeroPage
+                    @ror.b    var_zero_page
+                    @ror.w    var_zero_page
+                    @ror.l    var_zero_page
 
-                    @neg.b    VarZeroPage
-                    @neg.w    VarZeroPage
-                    @neg.l    VarZeroPage
+                    @neg.b    var_zero_page
+                    @neg.w    var_zero_page
+                    @neg.l    var_zero_page
 
-                    @div.b    VarZeroPage
-                    @div.w    VarZeroPage
-                    @div.l    VarZeroPage
+                    @div.b    var_zero_page
+                    @div.w    var_zero_page
+                    @div.l    var_zero_page
 
-                    @tst.b    VarZeroPage
-                    @tst.w    VarZeroPage
-                    @tst.l    VarZeroPage
+                    @tst.b    var_zero_page
+                    @tst.w    var_zero_page
+                    @tst.l    var_zero_page
 
-                    @mov.b    VarZeroPage,VarZeroPage
-                    @mov.w    VarZeroPage,VarZeroPage
-                    @mov.l    VarZeroPage,VarZeroPage
-                    @mov.b    #123,VarZeroPage
-                    @mov.w    #12345,VarZeroPage
-                    @mov.l    #123456789,VarZeroPage
+                    @mov.b    var_zero_page,var_zero_page
+                    @mov.w    var_zero_page,var_zero_page
+                    @mov.l    var_zero_page,var_zero_page
+                    @mov.b    #123,var_zero_page
+                    @mov.w    #12345,var_zero_page
+                    @mov.l    #123456789,var_zero_page
 
-                    @cmp.b    VarZeroPage,#123
-                    @cmp.w    VarZeroPage,#12345
-                    @cmp.l    VarZeroPage,#123456789
-                    @cmp.b    VarZeroPage,VarZeroPage
-                    @cmp.w    VarZeroPage,VarZeroPage
-                    @cmp.l    VarZeroPage,VarZeroPage
+                    @cmp.b    var_zero_page,#123
+                    @cmp.w    var_zero_page,#12345
+                    @cmp.l    var_zero_page,#123456789
+                    @cmp.b    var_zero_page,var_zero_page
+                    @cmp.w    var_zero_page,var_zero_page
+                    @cmp.l    var_zero_page,var_zero_page
 
-                    @abs.b    VarZeroPage
-                    @abs.w    VarZeroPage
-                    @abs.l    VarZeroPage
+                    @abs.b    var_zero_page
+                    @abs.w    var_zero_page
+                    @abs.l    var_zero_page
 
-                    @add.b    VarZeroPage,VarZeroPage,VarZeroPage
-                    @add.w    VarZeroPage,VarZeroPage,VarZeroPage
-                    @add.l    VarZeroPage,VarZeroPage,VarZeroPage
-                    @add.b    #123,VarZeroPage,VarZeroPage
-                    @add.w    #12345,VarZeroPage,VarZeroPage
-                    @add.l    #123456789,VarZeroPage,VarZeroPage
+                    @add.b    var_zero_page,var_zero_page,var_zero_page
+                    @add.w    var_zero_page,var_zero_page,var_zero_page
+                    @add.l    var_zero_page,var_zero_page,var_zero_page
+                    @add.b    #123,var_zero_page,var_zero_page
+                    @add.w    #12345,var_zero_page,var_zero_page
+                    @add.l    #123456789,var_zero_page,var_zero_page
                     @add.b,   1,sp 2,sp 3,sp
                     @add.w,   1,sp 2,sp 3,sp
                     @add.l,   1,sp 2,sp 3,sp
 
-                    @sub.b    VarZeroPage,VarZeroPage,VarZeroPage
-                    @sub.w    VarZeroPage,VarZeroPage,VarZeroPage
-                    @sub.l    VarZeroPage,VarZeroPage,VarZeroPage
-                    @sub.b    #123,VarZeroPage,VarZeroPage
-                    @sub.b    VarZeroPage,#123,VarZeroPage
-                    @sub.w    #12345,VarZeroPage,VarZeroPage
-                    @sub.w    VarZeroPage,#12345,VarZeroPage
-                    @sub.l    #123456789,VarZeroPage,VarZeroPage
-                    @sub.l    VarZeroPage,#123456789,VarZeroPage
+                    @sub.b    var_zero_page,var_zero_page,var_zero_page
+                    @sub.w    var_zero_page,var_zero_page,var_zero_page
+                    @sub.l    var_zero_page,var_zero_page,var_zero_page
+                    @sub.b    #123,var_zero_page,var_zero_page
+                    @sub.b    var_zero_page,#123,var_zero_page
+                    @sub.w    #12345,var_zero_page,var_zero_page
+                    @sub.w    var_zero_page,#12345,var_zero_page
+                    @sub.l    #123456789,var_zero_page,var_zero_page
+                    @sub.l    var_zero_page,#123456789,var_zero_page
                     @sub.b,   1,sp 2,sp 3,sp
                     @sub.w,   1,sp 2,sp 3,sp
                     @sub.l,   1,sp 2,sp 3,sp
 
-                    @and.b    VarZeroPage,VarZeroPage,VarZeroPage
-                    @and.w    VarZeroPage,VarZeroPage,VarZeroPage
-                    @and.l    VarZeroPage,VarZeroPage,VarZeroPage
-                    @and.b    #123,VarZeroPage,VarZeroPage
-                    @and.w    #12345,VarZeroPage,VarZeroPage
-                    @and.l    #123456789,VarZeroPage,VarZeroPage
+                    @and.b    var_zero_page,var_zero_page,var_zero_page
+                    @and.w    var_zero_page,var_zero_page,var_zero_page
+                    @and.l    var_zero_page,var_zero_page,var_zero_page
+                    @and.b    #123,var_zero_page,var_zero_page
+                    @and.w    #12345,var_zero_page,var_zero_page
+                    @and.l    #123456789,var_zero_page,var_zero_page
                     @and.b,   1,sp 2,sp 3,sp
                     @and.w,   1,sp 2,sp 3,sp
                     @and.l,   1,sp 2,sp 3,sp
 
-                    @ora.b    VarZeroPage,VarZeroPage,VarZeroPage
-                    @ora.w    VarZeroPage,VarZeroPage,VarZeroPage
-                    @ora.l    VarZeroPage,VarZeroPage,VarZeroPage
-                    @ora.b    #123,VarZeroPage,VarZeroPage
-                    @ora.w    #12345,VarZeroPage,VarZeroPage
-                    @ora.l    #123456789,VarZeroPage,VarZeroPage
+                    @ora.b    var_zero_page,var_zero_page,var_zero_page
+                    @ora.w    var_zero_page,var_zero_page,var_zero_page
+                    @ora.l    var_zero_page,var_zero_page,var_zero_page
+                    @ora.b    #123,var_zero_page,var_zero_page
+                    @ora.w    #12345,var_zero_page,var_zero_page
+                    @ora.l    #123456789,var_zero_page,var_zero_page
                     @ora.b,   1,sp 2,sp 3,sp
                     @ora.w,   1,sp 2,sp 3,sp
                     @ora.l,   1,sp 2,sp 3,sp
 
-                    @eor.b    VarZeroPage,VarZeroPage,VarZeroPage
-                    @eor.w    VarZeroPage,VarZeroPage,VarZeroPage
-                    @eor.l    VarZeroPage,VarZeroPage,VarZeroPage
-                    @eor.b    #123,VarZeroPage,VarZeroPage
-                    @eor.w    #12345,VarZeroPage,VarZeroPage
-                    @eor.l    #123456789,VarZeroPage,VarZeroPage
+                    @eor.b    var_zero_page,var_zero_page,var_zero_page
+                    @eor.w    var_zero_page,var_zero_page,var_zero_page
+                    @eor.l    var_zero_page,var_zero_page,var_zero_page
+                    @eor.b    #123,var_zero_page,var_zero_page
+                    @eor.w    #12345,var_zero_page,var_zero_page
+                    @eor.l    #123456789,var_zero_page,var_zero_page
                     @eor.b,   1,sp 2,sp 3,sp
                     @eor.w,   1,sp 2,sp 3,sp
                     @eor.l,   1,sp 2,sp 3,sp
-          ;---
-                    @clr.b    VarAnyPage
-                    @clr.w    VarAnyPage
-                    @clr.l    VarAnyPage
+          ;--------------------------------------
+                    @clr.b    var_any_page
+                    @clr.w    var_any_page
+                    @clr.l    var_any_page
 
-                    @inc.b    VarAnyPage
-                    @inc.w    VarAnyPage
-                    @inc.l    VarAnyPage
+                    @inc.b    var_any_page
+                    @inc.w    var_any_page
+                    @inc.l    var_any_page
 
-                    @com.b    VarAnyPage
-                    @com.w    VarAnyPage
-                    @com.l    VarAnyPage
+                    @com.b    var_any_page
+                    @com.w    var_any_page
+                    @com.l    var_any_page
 
-                    @lsl.b    VarAnyPage
-                    @lsl.w    VarAnyPage
-                    @lsl.l    VarAnyPage
+                    @lsl.b    var_any_page
+                    @lsl.w    var_any_page
+                    @lsl.l    var_any_page
 
-                    @lsr.b    VarAnyPage
-                    @lsr.w    VarAnyPage
-                    @lsr.l    VarAnyPage
+                    @lsr.b    var_any_page
+                    @lsr.w    var_any_page
+                    @lsr.l    var_any_page
 
-                    @asr.b    VarAnyPage
-                    @asr.w    VarAnyPage
-                    @asr.l    VarAnyPage
+                    @asr.b    var_any_page
+                    @asr.w    var_any_page
+                    @asr.l    var_any_page
 
-                    @ror.b    VarAnyPage
-                    @ror.w    VarAnyPage
-                    @ror.l    VarAnyPage
+                    @ror.b    var_any_page
+                    @ror.w    var_any_page
+                    @ror.l    var_any_page
 
-                    @neg.b    VarAnyPage
-                    @neg.w    VarAnyPage
-                    @neg.l    VarAnyPage
+                    @neg.b    var_any_page
+                    @neg.w    var_any_page
+                    @neg.l    var_any_page
 
-                    @div.b    VarAnyPage
-                    @div.w    VarAnyPage
-                    @div.l    VarAnyPage
+                    @div.b    var_any_page
+                    @div.w    var_any_page
+                    @div.l    var_any_page
 
-                    @tst.b    VarAnyPage
-                    @tst.w    VarAnyPage
-                    @tst.l    VarAnyPage
+                    @tst.b    var_any_page
+                    @tst.w    var_any_page
+                    @tst.l    var_any_page
 
-                    @mov.b    VarAnyPage,VarAnyPage
-                    @mov.w    VarAnyPage,VarAnyPage
-                    @mov.l    VarAnyPage,VarAnyPage
-                    @mov.b    #123,VarAnyPage
-                    @mov.w    #12345,VarAnyPage
-                    @mov.l    #123456789,VarAnyPage
+                    @mov.b    var_any_page,var_any_page
+                    @mov.w    var_any_page,var_any_page
+                    @mov.l    var_any_page,var_any_page
+                    @mov.b    #123,var_any_page
+                    @mov.w    #12345,var_any_page
+                    @mov.l    #123456789,var_any_page
 
-                    @cmp.b    #123,VarAnyPage
-                    @cmp.b    VarAnyPage,#123
-                    @cmp.w    #12345,VarAnyPage
-                    @cmp.w    VarAnyPage,#12345
-                    @cmp.l    #123456789,VarAnyPage
-                    @cmp.l    VarAnyPage,#123456789
-                    @cmp.b    VarAnyPage,VarAnyPage
-                    @cmp.w    VarAnyPage,VarAnyPage
-                    @cmp.l    VarAnyPage,VarAnyPage
+                    @cmp.b    #123,var_any_page
+                    @cmp.b    var_any_page,#123
+                    @cmp.w    #12345,var_any_page
+                    @cmp.w    var_any_page,#12345
+                    @cmp.l    #123456789,var_any_page
+                    @cmp.l    var_any_page,#123456789
+                    @cmp.b    var_any_page,var_any_page
+                    @cmp.w    var_any_page,var_any_page
+                    @cmp.l    var_any_page,var_any_page
 
-                    @abs.b    VarAnyPage
-                    @abs.w    VarAnyPage
-                    @abs.l    VarAnyPage
+                    @abs.b    var_any_page
+                    @abs.w    var_any_page
+                    @abs.l    var_any_page
 
                     @abs.b    1,x
                     @abs.w    2,sp
                     @abs.l    3,spx
 
-                    @add.b    VarAnyPage,VarAnyPage,VarAnyPage
-                    @add.w    VarAnyPage,VarAnyPage,VarAnyPage
-                    @add.l    VarAnyPage,VarAnyPage,VarAnyPage
-                    @add.b    #123,VarAnyPage,VarAnyPage
-                    @add.w    #12345,VarAnyPage,VarAnyPage
-                    @add.l    #123456789,VarAnyPage,VarAnyPage
+                    @add.b    var_any_page,var_any_page,var_any_page
+                    @add.w    var_any_page,var_any_page,var_any_page
+                    @add.l    var_any_page,var_any_page,var_any_page
+                    @add.b    #123,var_any_page,var_any_page
+                    @add.w    #12345,var_any_page,var_any_page
+                    @add.l    #123456789,var_any_page,var_any_page
 
-                    @sub.b    VarAnyPage,VarAnyPage,VarAnyPage
-                    @sub.w    VarAnyPage,VarAnyPage,VarAnyPage
-                    @sub.l    VarAnyPage,VarAnyPage,VarAnyPage
-                    @sub.b    #123,VarAnyPage,VarAnyPage
-                    @sub.w    #12345,VarAnyPage,VarAnyPage
-                    @sub.l    #123456789,VarAnyPage,VarAnyPage
+                    @sub.b    var_any_page,var_any_page,var_any_page
+                    @sub.w    var_any_page,var_any_page,var_any_page
+                    @sub.l    var_any_page,var_any_page,var_any_page
+                    @sub.b    #123,var_any_page,var_any_page
+                    @sub.w    #12345,var_any_page,var_any_page
+                    @sub.l    #123456789,var_any_page,var_any_page
 
-                    @and.b    VarAnyPage,VarAnyPage,VarAnyPage
-                    @and.w    VarAnyPage,VarAnyPage,VarAnyPage
-                    @and.l    VarAnyPage,VarAnyPage,VarAnyPage
-                    @and.b    #123,VarAnyPage,VarAnyPage
-                    @and.w    #12345,VarAnyPage,VarAnyPage
-                    @and.l    #123456789,VarAnyPage,VarAnyPage
+                    @and.b    var_any_page,var_any_page,var_any_page
+                    @and.w    var_any_page,var_any_page,var_any_page
+                    @and.l    var_any_page,var_any_page,var_any_page
+                    @and.b    #123,var_any_page,var_any_page
+                    @and.w    #12345,var_any_page,var_any_page
+                    @and.l    #123456789,var_any_page,var_any_page
 
-                    @ora.b    VarAnyPage,VarAnyPage,VarAnyPage
-                    @ora.w    VarAnyPage,VarAnyPage,VarAnyPage
-                    @ora.l    VarAnyPage,VarAnyPage,VarAnyPage
-                    @ora.b    #123,VarAnyPage,VarAnyPage
-                    @ora.w    #12345,VarAnyPage,VarAnyPage
-                    @ora.l    #123456789,VarAnyPage,VarAnyPage
+                    @ora.b    var_any_page,var_any_page,var_any_page
+                    @ora.w    var_any_page,var_any_page,var_any_page
+                    @ora.l    var_any_page,var_any_page,var_any_page
+                    @ora.b    #123,var_any_page,var_any_page
+                    @ora.w    #12345,var_any_page,var_any_page
+                    @ora.l    #123456789,var_any_page,var_any_page
 
-                    @eor.b    VarAnyPage,VarAnyPage,VarAnyPage
-                    @eor.w    VarAnyPage,VarAnyPage,VarAnyPage
-                    @eor.l    VarAnyPage,VarAnyPage,VarAnyPage
-                    @eor.b    #123,VarAnyPage,VarAnyPage
-                    @eor.w    #12345,VarAnyPage,VarAnyPage
-                    @eor.l    #123456789,VarAnyPage,VarAnyPage
+                    @eor.b    var_any_page,var_any_page,var_any_page
+                    @eor.w    var_any_page,var_any_page,var_any_page
+                    @eor.l    var_any_page,var_any_page,var_any_page
+                    @eor.b    #123,var_any_page,var_any_page
+                    @eor.w    #12345,var_any_page,var_any_page
+                    @eor.l    #123456789,var_any_page,var_any_page
 
                     @ldxa     #1
-                    @ldxa     VarZeroPage
-                    @ldxa     VarAnyPage
+                    @ldxa     var_zero_page
+                    @ldxa     var_any_page
                     @ldxa     1,sp
                     @ldxa     1,x
 
-                    @stxa     VarZeroPage
-                    @stxa     VarAnyPage
+                    @stxa     var_zero_page
+                    @stxa     var_any_page
                     @stxa     1,sp
 
                     @ldh      #123
-                    @ldh      VarZeroPage
-                    @ldh      VarAnyPage
+                    @ldh      var_zero_page
+                    @ldh      var_any_page
                     @ldh      1,x
                     @ldh      1,sp
 
-                    @sth      VarZeroPage
-                    @sth      VarAnyPage
+                    @sth      var_zero_page
+                    @sth      var_any_page
                     @sth      1,sp
 
-                    @swap.b   VarZeroPage VarAnyPage
-                    @swap.w   VarAnyPage VarZeroPage
-                    @swap.l   VarZeroPage VarAnyPage
+                    @swap.b   var_zero_page var_any_page
+                    @swap.w   var_any_page var_zero_page
+                    @swap.l   var_zero_page var_any_page
                     @swap.b   1,sp 2,sp
                     @swap.w   1,sp 3,sp
                     @swap.l   1,sp 5,sp
@@ -2760,12 +2755,12 @@ LogOf4096           @Log2     2*2048              ;Set symbol to log2 of followi
                     @ais      #5
                     @ais      #-5
 
-                    @pushv    VarZeroPage
-                    @pushv    VarZeroPage 2
-                    @pullv    VarZeroPage
-                    @pullv    VarZeroPage 2
+                    @pushv    var_zero_page
+                    @pushv    var_zero_page 2
+                    @pullv    var_zero_page
+                    @pullv    var_zero_page 2
 
-                    @CopyRange  #VarZeroPage,#VarAnyPage,#5
+                    @CopyRange  #var_zero_page,#var_any_page,#5
 
                     #spauto
                     push      temp

@@ -29,6 +29,8 @@
 ;*           : 20.09.13       BugFix: CopyTo single-byte destination case [+7 bytes]
 ;*           :                BugFix: CopyTo did not initialize local len@@ in normal case [+1 byte]
 ;*           : 20.12.09 v2.00 Made HC08 compatible and forbade X-indexed @Copy parameters
+;*           : 21.07.09       Minor optimization in CopyTo [-1 byte]
+;*           : 21.07.14 v2.10 CopyTo[Z] now fills zeros at the end, not before
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -203,60 +205,53 @@ CopyToZ             macro     ASCIZ_variable
 ;        : CCR[C] = 0: ASCIZ target (guarantees last byte is always zero)
 ;        : CCR[C] = 1: Normal target
 ; Output : None
-; Note(s):
+; Note(s): The initial PUSH is done in unconventional order to facilitate
+;        : zero offset SPX optimization as len@@ is used much more than .src@@
+;        : Do NOT change to PUSH.  Keep final PULL also in corresponding order.
+
                     #spauto   :ab
 
 CopyTo              proc
                     @parms    .dst,dstlen         ;-> "to" and length of "to"
-                    push
-                    #ais
                     pshhx     .src@@              ;save source pointer
                     psha      len@@               ;will receive actual copy length
+                    #ais
                     tsx                           ;HX -> stack frame
-          ;--------------------------------------
+          ;-------------------------------------- ;(does not affect CCR[C])
                     psha
                     lda       dstlen@@,spx
                     sta       len@@,spx
                     pula
-          ;--------------------------------------
-;                   tst       dstlen@@,spx        ;(does not affect CCR[C])
                     beq       Done@@              ;nothing to save (also, won't save to constants)
+          ;-------------------------------------- ;adjust length for ASCIZ case
                     bcs       Go@@                ;normal target, no special treatment
-
-                    dec       len@@,spx           ;adjust for ASCIZ terminator
-                    bne       Go@@                ;if at least one char to copy, go
-          #ifhcs
-                    ldhx      .dst@@,sp           ;otherwise 1-byte case, so just
-          #else
-                    tsx
-                    lda       .dst@@,spx          ;otherwise 1-byte case, so just
-                    ldx       .dst@@+1,spx
-                    tah
-          #endif
-                    clr       ,x                  ;put the ASCIZ terminator
-                    bra       Done@@              ;and get out
+                    dec       len@@,spx           ;adjust for ASCIZ terminator, and if at least one char to copy, go
           ;--------------------------------------
 Go@@                @MinA     len@@,spx           ;not more than destination size
                     sta       len@@,spx           ;update length to use
-          ;-------------------------------------- ;clear destination memory regardless of source size
-          #ifhcs
-                    lda       dstlen@@,spx        ;(RegA counter rather than decrement dstlen@@,sp directly)
-                    ldhx      .dst@@,sp
-          #else
-                    tsx
-                    lda       .dst@@,spx
-                    ldx       .dst@@+1,spx
+          ;-------------------------------------- ;copy data part
+                    @Copy     .src@@,sp .dst@@,sp len@@,spx
+          ;-------------------------------------- ;clear remaining destination (if any)
+                    lda       dstlen@@,spx
+                    sub       len@@,spx
+                    beq       Done@@
+                    bcs       Done@@
+          ;-------------------------------------- ;AAX
+                    psha
+                    lda       .dst@@+1,spx
+                    add       len@@,spx
+                    tax
+                    clra
+                    adc       .dst@@,sp
                     tah
-                    lda       dstlen@@,sp         ;(RegA counter rather than decrement dstlen@@,sp directly)
-          #endif
+                    pula
+          ;-------------------------------------- ;clear trailing bytes
 ClrLoop@@           clr       ,x
                     aix       #1
                     dbnza     ClrLoop@@
           ;--------------------------------------
-                    @Copy     .src@@,sp .dst@@,sp len@@,sp
-          ;--------------------------------------
-Done@@              ais       #:ais
-                    pull
+Done@@              pula
+                    pulhx
                     rtc
 
                     #sp
@@ -266,28 +261,79 @@ Done@@              ais       #:ais
                     @EndStats
                     #Message  Execution: {:cycles}+ cycles
 
-                    #MapOn
-
 Source              fcs       'Testing... Hello World!'
 
 DATASIZE            def       15
 
-destination         @var      DATASIZE
+;*******************************************************************************
+                    #RAM
+;*******************************************************************************
+
+long_dest           rmb       DATASIZE
+                    align     8
+short_dest          rmb       8
+
+;*******************************************************************************
+                    #ROM
+;*******************************************************************************
+
+                    #spauto
+
+ClearDest           proc
+                    push
+                    ldhx      #long_dest
+                    lda       #::long_dest
+Loop@@              clr       ,x
+                    com       ,x
+                    aix       #1
+                    dbnza     Loop@@
+          ;--------------------------------------
+                    ldhx      #short_dest
+                    lda       #::short_dest
+Loop2@@             clr       ,x
+                    com       ,x
+                    aix       #1
+                    dbnza     Loop2@@
+          ;--------------------------------------
+                    pull
+                    rtc
+
+;*******************************************************************************
+                    #MapOn
+;*******************************************************************************
 
                     #spauto
 
 Start               proc
                     @rsp
                     clra                          ;(keeps simulator happy)
+          ;-------------------------------------- ;shorter destination test
+                    call      ClearDest
+                    ldhx      #Source
+                    lda       #8
+                    @CopyTo   short_dest
 
+                    call      ClearDest
+                    @CopyToZ  short_dest
+          ;-------------------------------------- ;shorter destination test
+                    call      ClearDest
+                    ldhx      #Source
+                    lda       #5
+                    @CopyTo   short_dest
+
+                    call      ClearDest
+                    @CopyToZ  short_dest
+          ;-------------------------------------- ;longer destination test
+                    call      ClearDest
                     ldhx      #Source
                     lda       #::Source
-                    @CopyTo   destination
-                    @CopyToZ  destination
+                    @CopyTo   long_dest
 
-                    @Copy     Source destination #::Source
-;                   @Copy     1,x 2,ax 3,spx      ;test X-based indexed modes
-
+                    call      ClearDest
+                    @CopyToZ  long_dest
+          ;--------------------------------------
                     bra       *
 
+;*******************************************************************************
                     @vector   Vreset,Start
+;*******************************************************************************

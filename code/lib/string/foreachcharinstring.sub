@@ -37,7 +37,6 @@ pc@@                equ       ::+{:ab-2},2
           #else
                     stx       pc@@+1,sp           ;equivalent to `sthx pc@@,sp`
                     tha
-                    ;tsx
                     tsx
                     sta       pc@@,spx
 
@@ -65,9 +64,8 @@ Loop@@              lda       ,x                  ;A = current string char
                     psha
 
                     lda       pointer@@,spx
-                    psha
                     ldx       pointer@@+1,spx
-                    pulh
+                    tah
                     lda       ,x
           #endif
                     RTS                           ;call the callout routine

@@ -468,7 +468,7 @@ RAM                 set       BOOTRAM_END         ;start of 4096 byte RAM
 FLASH_START         equ       EEPROM_END+1
 FLASH_END           equ       ROM_END
 
-#ifndef MHZ¦HZ
+#ifndef MHZ||HZ
 KHZ                 def       16000               ;16 MHz internal oscillator
 #endif
 ;-------------------------------------------------------------------------------

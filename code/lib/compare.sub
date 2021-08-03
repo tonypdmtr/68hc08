@@ -9,6 +9,7 @@
 ;* History   : 10.03.23 v1.00 Original (Started on 2012.03.23)
 ;*           : 10.03.26       Optimized exit
 ;*           : 11.11.03       Minor optimization(s)
+;*           : 21.05.13       Exit status optimization [-2 bytes]
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -63,22 +64,23 @@ Loop@@              @GetNextA .tab1@@,sp          ;get byte from first array
                     sthx      .tab2@@,sp
 
                     tap                           ;restore comparison flags
-                    bne       Fail@@
+                    sec                           ;indicate 'failure'
+                    bne       Done@@
 
                     ldhx      count@@,sp
                     aix       #-1                 ;one less byte to compare
                     sthx      count@@,sp
                     bne       Loop@@
                     clc                           ;indicate 'success'
-;-------------------------------------------------------------------------------
+          ;--------------------------------------
           #else
-;-------------------------------------------------------------------------------
+          ;--------------------------------------
                     ldx       .tab2@@,sp
                     txh
                     ldx       .tab2@@+1,sp
 
                     cmpa      ,x                  ;compare with byte from second array
-                    tpa                           ;keep comparison result later
+                    tpa                           ;keep comparison result for later
                     aix       #1
 
                     stx       .tab2@@+1,sp
@@ -86,7 +88,8 @@ Loop@@              @GetNextA .tab1@@,sp          ;get byte from first array
                     stx       .tab2@@,sp
 
                     tap                           ;restore comparison flags
-                    bne       Fail@@
+                    sec                           ;indicate 'failure'
+                    bne       Done@@
 
                     tsx
                     lda       count@@,spx
@@ -102,9 +105,6 @@ Loop@@              @GetNextA .tab1@@,sp          ;get byte from first array
                     cphx      #0
                     bne       Loop@@              ;fall-thru implies CLC
           #endif
-                    bra       Done@@
-
-Fail@@              sec                           ;indicate 'failure'
 Done@@              pull
                     rtc
 

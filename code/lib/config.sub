@@ -56,17 +56,13 @@ EE_DEFBLOCK         def       $8000
                     os        fFlash_~1~
           #endif
                     endm
-
 ;-------------------------------------------------------------------------------
-
 ?Lock               macro
           #ifdef semaFLASH
                     @fLock    semaFLASH
           #endif
                     endm
-
 ;-------------------------------------------------------------------------------
-
 ?Unlock             macro
           #ifdef semaFLASH
                     @fUnlock  semaFLASH
@@ -82,7 +78,6 @@ EE_DEFBLOCK         def       $8000
 
 SaveConfig          proc
                     push
-
                     @?Lock
 
                     ldhx      #EEPROM
@@ -118,12 +113,10 @@ CRCCom@@            coma
                     @?Flash   Write               ;save CRC after the data block
 
                     @?Unlock
-
                     clc
                     bra       ?Exit
 
 Fail@@              @?Unlock
-
                     sec
                     bra       ?Exit
 
@@ -136,7 +129,6 @@ Fail@@              @?Unlock
 
 LoadConfig          proc
                     push
-
                     @?Lock
 
                     clra
@@ -154,13 +146,11 @@ Loop@@              lda       ,x                  ;copy from EEPROM
 
 CRCCom@@            coma
                     cbeqa     #[ERASED_STATE,CRCCom@@  ;do not allow CRC=$FF (erased state)
-
                     cbeq      x+,Done@@           ;if same as saved CRC, no problem [already, HX -> EEPROM+EE_BLOCKSIZE]
 
                     call      LoadDefaults        ;else load defaults
 
 Done@@              @?Unlock
-
                     clc
                     bra       ?Exit
 

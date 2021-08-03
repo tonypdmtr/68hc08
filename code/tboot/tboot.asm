@@ -47,14 +47,14 @@
   #Fatal Run ASM8 -Dx (where x is any of the above)
 #endif
 
-BOOTROM_VERSION     def       118                 ;version as x.xx
+BOOTROM_VERSION     def       120                 ;version as x.xx
 ;-------------------------------------------------------------------------------
 
 SCI                 def       1                   ;SCI to use (1 or 2, -1=Software)
 ;-------------------------------------------------------------------------------
           #ifdef QE128
 BOOTROM             def       $F800               ;QE128 version is a bit larger
-          #else ifdef DZ32¦DZ60¦AC96
+          #else ifdef DZ32||DZ60||AC96
 BOOTROM             def       $FA00               ;DZ has different Flash protection
           #endif
 BOOTROM             def       $FC00
@@ -70,7 +70,7 @@ FLASH_DATA_SIZE     def       ~2~
                     endm
 
                     @?        QE128,1024
-                    @?        DZ32¦DZ60,0         ; config storage in EEPROM, not Flash
+                    @?        DZ32||DZ60,0        ; config storage in EEPROM, not Flash
                     @?        GB60,1920
 
 FLASH_DATA_SIZE     def       512
@@ -79,7 +79,7 @@ FLASH_DATA_SIZE     def       512
 NVOPT_VALUE         def       %10000000           ; NVOPT transfers to FOPT on reset
           #endif             ; ||||||||
 NVOPT_VALUE         def       %00000010           ; NVOPT transfers to FOPT on reset
-          #ifdef DZ32¦DZ60   ; ||||||||
+          #ifdef DZ32||DZ60  ; ||||||||
 NVOPT_VALUE  set  NVOPT_VALUE|%00100000           ; EPGMOD = 1 (8-byte mode)
           #endif             ; ||||||||
                              ; ||||||++---------- SEC00 \ 00:secure  10:unsecure
@@ -99,13 +99,12 @@ ROM                 equ       BOOTROM
           #ifdef QE128
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
-                    #MMU
                     #ListOff
                     #Uses     qe128.inc
                     #ListOn
           #endif
 ;-------------------------------------------------------------------------------
-          #ifdef QE8¦QE32
+          #ifdef QE8||QE32
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
                     #ListOff
@@ -133,7 +132,7 @@ BDIV                equ       1                   ;(actually, no BDIV in GB60)
                     #ListOn
           #endif
 ;-------------------------------------------------------------------------------
-          #ifdef AC32¦AC96
+          #ifdef AC32||AC96
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
                     #ListOff
@@ -145,7 +144,7 @@ BDIV                def       1
                     #ListOn
           #endif
 ;-------------------------------------------------------------------------------
-          #ifdef QD2¦QD4
+          #ifdef QD2||QD4
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
 SCI                 set       -1
@@ -158,7 +157,7 @@ SCI                 set       -1
                     #ListOn
           #endif
 ;-------------------------------------------------------------------------------
-          #ifdef DZ32¦DZ60
+          #ifdef DZ32||DZ60
 HZ                  def       32000000            ;MCU & Cyclone's default
 BDIV                def       1
                     #ListOff
@@ -228,7 +227,11 @@ BPS_RATE            equ       BPS
 #ifnomdef ?print
 ?print              macro
                     mset      #
-                    !jsr      ?Print
+          #if :pc-?Print < 128
+                    bsr       ?Print
+          #else
+                    jsr       ?Print
+          #endif
                     fcs       ~1~
                     endm
 #endif
@@ -247,7 +250,7 @@ Page                macro
           #endif
 LF2CRLF             def       *
 
-#ifndef ?GetChar¦?PutChar
+#ifndef ?GetChar||?PutChar
 ;*******************************************************************************
 @Page SCI module starts here
 ;*******************************************************************************
@@ -258,7 +261,7 @@ LF2CRLF             def       *
   #ifndef CTS_LINE
           #ifdef QE128
 CTS_LINE            @pin      PORTE,6             ;/CTS is output from MCU
-          #else ifdef QE8¦QE32
+          #else ifdef QE8||QE32
 CTS_LINE            @pin      PORTC,7             ;/CTS is output from MCU
           #endif
   #endif
@@ -410,7 +413,7 @@ Print@@             @cop
                     bpl       Print@@
                     sta       ?SCID
                     rts                           ;Carry Clear when exiting
-#endif ;#ifndef ?GetChar¦?PutChar
+#endif ;#ifndef ?GetChar||?PutChar
 
 ;*******************************************************************************
 ;@Page Common print I/O routines
@@ -549,7 +552,7 @@ SkipBlanks@@        jsr       ?GetCharLocal       ;Get first/next character
 
 SkipLine@@          jsr       ?SkipToEOL          ;ignore rest of line
                     beq       MainLoop@@
-??Error             !jmp      ?Error              ;abort on ESC
+??Error             jmp       ?Error              ;abort on ESC
 
 S@@                 jsr       ?GetCharLocal       ;Get next character
                     bcs       ??Error             ;if ESC, get out with error
@@ -657,7 +660,7 @@ NextByte@@          ldhx      ?address
                     sthx      ?address
                     dbnz      ?length,Loop@@      ;One less byte to read
 ;-------------------------------------------------------------------------------
-DoCRC@@             !jsr      ?ReadHex            ;Get CRC byte
+DoCRC@@             bsr       ?ReadHex            ;Get CRC byte
                     bcs       ?Error              ;if something wrong, get out with error
 
                     com       ?line_crc           ;Get one's complement of final CRC value
@@ -973,10 +976,10 @@ Done@@              lda       #FPVIOL_|FACCERR_
 
                     #MapOn
 
-?CopyrightMsgCls    fcc       ASCII_FF            ;a Form Feed (for CLS)
+?CopyrightMsgCls    fcc       ASCII_FF,CR         ;a Form Feed and CR (for CLS)
 ?CopyrightMsg       fcc       'TBoot v{BOOTROM_VERSION(2)} (c) {:year} ASPiSYS'
           #ifexists checkout.inc
-                    fcc       ' ['
+                    fcc       ' [Build '
                     #Include  checkout.inc
                     fcc       ']'
           #endif
@@ -1107,7 +1110,7 @@ Loop@@              lda       ?RAM_Code,x
                               ; |+--------------- IRQPDD (1=Pulls Disabled)
                               ; +---------------- Always zero
 
-                    !jsr      ?cmdRun
+                    jsr       ?cmdRun
 ;                   bra       ?Monitor
 
 ;*******************************************************************************
@@ -1149,7 +1152,7 @@ Loop@@
           #endif
                     bra       Fail@@              ;print ERROR on wrong cmd
           #ifdef ENABLE_RUN
-Run@@               !jsr      ?RunNow             ;we need JSR in case no code is found
+Run@@               jsr       ?RunNow             ;we need JSR in case no code is found
                     bra       Fail@@
           #endif
 Erase@@
@@ -1162,7 +1165,7 @@ Erase@@
                     bne       Fail@@
                     @?print   CR,'Erasing'
           #endif
-                    !jsr      ?EraseFlash
+                    jsr       ?EraseFlash
                     bcc       Loop@@
                     bra       Fail@@
 
@@ -1312,9 +1315,13 @@ Fail@@              equ       ?No
                     #push
                     #ROM
 ?~1.2~              proc
+                    #Cycles
                     @@ReVector ~1~-{~2~}
                     #pull
-                    @vector   ~1~,?~1.2~
+                    @@vector  ~1~,?~1.2~
+          #if :mindex = 1
+                    #Message  Vector redirection overhead: {:cycles} cycles
+          #endif
                     endm
 
           #ifdef QE128
@@ -1348,18 +1355,45 @@ Fail@@              equ       ?No
                     @?        Vtpm1ch0            ;TPM1 channel 0 vector
                     @?        Vlvd                ;low voltage detect vector
                     @?        Virq                ;IRQ pin vector
-                    #Cycles
                     @?        Vswi                ;SWI vector
-                    #Message  Vector redirection overhead: {:cycles} cycles
+          #else ifdef AC96
+                    @?        Vspi2
+                    @?        Vtpm3ovf            ;TPM3 overflow vector
+                    @?        Vtpm3ch1            ;TPM3 channel 1 vector
+                    @?        Vtpm3ch0            ;TPM3 channel 0 vector
+                    @?        Vrti                ;Real Time Interrupt vector
+                    @?        Viic                ;IIC vector
+                    @?        Vadc                ;Analog-to-Digital conversion
+                    @?        Vkeyboard           ;Keyboard vector
+                    @?        Vsci2tx             ;SCI2 TX vector
+                    @?        Vsci2rx             ;SCI2 RX vector
+                    @?        Vsci2err            ;SCI2 Error vector
+                    @?        Vspi                ;SPI vector
+                    @?        Vtpm2ovf            ;TPM2 overflow vector
+                    @?        Vtpm2ch5            ;TPM2 channel 5 vector
+                    @?        Vtpm2ch4            ;TPM2 channel 4 vector
+                    @?        Vtpm2ch3            ;TPM2 channel 3 vector
+                    @?        Vtpm2ch2            ;TPM2 channel 2 vector
+                    @?        Vtpm2ch1            ;TPM2 channel 1 vector
+                    @?        Vtpm2ch0            ;TPM2 channel 0 vector
+                    @?        Vtpm1ovf            ;TPM1 overflow vector
+                    @?        Vtpm1ch5            ;TPM1 channel 5 vector
+                    @?        Vtpm1ch4            ;TPM1 channel 4 vector
+                    @?        Vtpm1ch3            ;TPM1 channel 3 vector
+                    @?        Vtpm1ch2            ;TPM1 channel 2 vector
+                    @?        Vtpm1ch1            ;TPM1 channel 1 vector
+                    @?        Vtpm1ch0            ;TPM1 channel 0 vector
+                    @?        Vicg                ;ICG vector
+                    @?        Vlvd                ;low voltage detect vector
+                    @?        Virq                ;IRQ pin vector
+                    @?        Vswi                ;SWI vector
           #endif
-                    @vector   Vreset,?Start       ; /RESET vector
+                    @vector   Vreset,?Start       ;/RESET vector
 
                     end       :s19crc
 ;*******************************************************************************
-BOOTRAM_END         def       :RAM
-;*******************************************************************************
                     #Export   APP_CODE_START,APP_CODE_END
-                    #Export   BOOTROM,BOOTRAM_END,BOOTROM_VERSION
+                    #Export   BOOTROM,BOOTROM_VERSION
                     #Export   RVECTORS
 ;*******************************************************************************
                     @EndStats
