@@ -12,12 +12,22 @@
                     #HcsOn
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_ac96.exp
-  #endif
+          #endif
 
+                    #!Undef   OS8PRELOADED
+#else ifdef OS8PRELOADED
+                    #Message  BootROM with OS8 pre-loaded
+          #ifndef BOOTROM
+            #ifexists bootrom.exp
+                    #Uses     bootrom.exp
+            #else
+                    #Uses     bootrom/bootrom.exp
+            #endif
+          #endif
 #endif
 
 _AC_                def       96
@@ -281,17 +291,16 @@ LB                  equ       $7E,1
 LAPAB               equ       $7F,1
 LAP210              equ       LAP2,3              ;alias for LAP2 .. LAP0
           ;--------------------------------------
-SRS                 equ       $1800,1             ;System Reset Status Register
+SRS                 equ       $1800,1             ;SIM reset status register
 COP                 equ       SRS,1               ;for "STA COP"
 
-SBDFR               equ       $1801,1             ;System Background Debug Force Reset Register
-SOPT                equ       $1802,1             ;System Options Register
-SOPT1               equ       $1802,1             ;System Options Register
+SBDFR               equ       $1801,1             ;system BDM reset register
+SOPT1               equ       $1802,1             ;SIM options register 1
+SOPT                equ       SOPT1,1
 SMCLK               equ       $1803,1             ;System MCLK Control Register
-
-SDID                equ       $1806,2             ;System Device Identification Register
-SDIDH               equ       $1806,1             ;System Device Identification Register High
-SDIDL               equ       $1807,1             ;System Device Identification Register Low
+SDID                equ       $1806,2             ;system device identification 1 register (read-only)
+SDIDH               equ       $1806,1             ;system device identification 1 register (read-only)
+SDIDL               equ       $1807,1             ;rev3,2,1,0 + 12-bit ID. AC96 ID = $01B
 
 SRTISC              equ       $1808,1             ;System Real-Time Interrupt Status and Control Register
 SPMSC1              equ       $1809,1             ;System Power Management Status and Control 1 Register
@@ -394,8 +403,8 @@ NVOPT               equ       $FFBF,1             ;Non-volatile Flash Options Re
 
 ; Flash Options Register (FOPT and NVOPT)
 
-                    @bitnum   KEYEN,7             ;Backdoor Key Security Enable
-                    @bitnum   FNORED,6            ;Vector Redirection Disable
+                    @bitnum   KEYEN1,7            ;Backdoor Key Security Enable
+                    @bitnum   KEYEN0,6
                     @bitnum   SEC1,1              ;Flash Security Bits
                     @bitnum   SEC0,0
                     @bitnum   SEC00,0             ; -//- (alias)
@@ -802,19 +811,18 @@ VECTORS             def       :temp
           #ifdef BOOTROM
 RVECTORS            set       BOOTROM+:temp&$FFFF ;start of redirected vectors
                     #temp     $10000-BOOTROM/?SS
-?NVPROT_MASK        equ       95-:temp<1|1        ;using current BOOTROM
+?NVPROT_MASK        equ       127-:temp<1|1       ;using current BOOTROM
           #endif
 
                     #temp     FLASH_DATA_SIZE/?SS ;minimum flash storage
-          #if :temp = 96
+          #if :temp = 128
 ?NVPROT_MASK        def       0
           #endif
-?NVPROT_MASK        def       95-:temp<1|1
-
+?NVPROT_MASK        def       127-:temp<1|1
           #ifmmu
 TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $2080-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
           #else
-TRUE_ROM            equ       $1870               ;start(!) of ~58K non-paged flash
+TRUE_ROM            equ       $4000               ;start(!) of ~48K non-paged flash
           #endif
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
@@ -866,11 +874,11 @@ XRAM                set       BOOTXRAM_END
 FLASH_START         equ       EEPROM_END+1
 FLASH_END           equ       ROM_END
 
-          #ifdef BOOT&BOOTROM
+          #ifdef BOOTROM
 FLASH_END           set       BOOTROM-1
           #endif
 
-#ifndef MHZ¦KHZ
+#ifndef MHZ||KHZ
 HZ                  def       16777216            ;Cyclone 32768*512
 #endif
 ;-------------------------------------------------------------------------------
@@ -929,7 +937,6 @@ RVECTORS            def       EEPROM_END+VECTORS&$FFFF ;start of redirected vect
                     endm
 
                     @?
-
           #ifdef PEMICRO
 PPAGE0              equ       $00<16+:PAGE_START  ;(compatible with P&E Micro programmers)
           #else
@@ -961,30 +968,30 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
                     #DATA
 
 
-          #ifndef BOOT¦NO_CODE
+#ifndef OS8PRELOADED||BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
+                    #Message  NVPROT: {?NVPROT_MASK>1(h)} means {128+{?NVPROT_MASK>1-127(h)}} KB available to user
 
           #ifndef NVOPT_VALUE
                     #Message  Using default NVOPT_VALUE (no vector redirection)
           #endif
           #ifdef DEBUG
-NVOPT_VALUE         def       %11000010           ;NVFEOPT transfers to FOPT on reset
-          #endif
-NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on reset
-                             ; |||||||+----------- SEC00 \ 00:secure  10:unsecure
-                             ; ||||||+------------ SEC01 / 01:secure  11:secure
+NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on reset
+          #endif             ; ||||||||
+NVOPT_VALUE         def       %10000000           ;NVFEOPT transfers to FOPT on reset
+                             ; ||||||++----------- SEC00 \ 00:secure  10:unsecure
+                             ; ||||||++----------- SEC01 / 01:secure  11:secure
                              ; ||++++------------- Not Used (Always 0)
-                             ; |+----------------- FNORED - Vector Redirection Disable (No Redirection)
-                             ; +------------------ KEYEN - Backdoor key mechanism enable
+                             ; ++----------------- KEYEN - Backdoor key mechanism enable (10 - enable)
 
                     org       NVOPT               ;NV flash options byte
                     fcb       NVOPT_VALUE         ;NVFEOPT transfers to FOPT on reset
-          #endif
+#endif
 ;                   org       NVICSTRIM           ;NV ICS Trim Setting
 ;                   fcb       ??                  ;ICG trim value measured during factory test. User software optionally
 ;                                                 ;copies to ICGTRM during initialization.
-                    #VECTORS VECTORS
+                    #VECTORS  VECTORS
                     #XRAM     XRAM
                     #RAM      RAM
           #ifdef XROM
@@ -1003,4 +1010,5 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
           #ifnz FLASH_DATA_SIZE
                     #MEMORY   EEPROM EEPROM_END
           #endif
+                    #!MEMORY  RVECTORS  RVECTORS|$FF
                     #!MEMORY  CRC_LOCATION CRC_LOCATION+1

@@ -901,7 +901,7 @@ RVECTORS            set       BOOTROM+:temp&$FFFF ;start of redirected vectors
           #ifmmu
 TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $2080-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
           #else
-TRUE_ROM            equ       $2080               ;start(!) of ~56K non-paged flash
+TRUE_ROM            equ       $4000               ;start(!) of ~48K non-paged flash
           #endif
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
@@ -960,15 +960,12 @@ FLASH_END           equ       ROM_END
 FLASH_END           set       BOOTROM-1
           #endif
 
-#ifndef MHZ¦KHZ
+#ifndef MHZ||KHZ
 HZ                  def       16777216            ;Cyclone 32768*512
 #endif
 ;-------------------------------------------------------------------------------
-; Vectors
+                    #temp     VECTORS             ; Vectors
 ;-------------------------------------------------------------------------------
-
-                    #temp     VECTORS
-
 Vtpm3ovf            next      :temp,2             ;TPM3 overflow
 Vtpm3ch5            next      :temp,2             ;TPM3 Channel 5
 Vtpm3ch4            next      :temp,2             ;TPM3 Channel 4
@@ -1083,7 +1080,7 @@ DMX_                equ       ~3~<DMX32.
                     #DATA
 
 
-#ifndef OS8PRELOADED¦BOOT¦NO_CODE
+#ifndef OS8PRELOADED||BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
                     #Message  NVPROT: {?NVPROT_MASK>1(h)} means {128+{?NVPROT_MASK>1-127(h)}} KB available to user
@@ -1091,12 +1088,14 @@ DMX_                equ       ~3~<DMX32.
           #ifndef NVOPT_VALUE
                     #Message  Using default NVOPT_VALUE (no vector redirection)
           #endif
-
+          #ifdef DEBUG
 NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on reset
+          #endif             ; ||||||||
+NVOPT_VALUE         def       %10000000           ;NVFEOPT transfers to FOPT on reset
                              ; ||||||++----------- SEC00 \ 00:secure  10:unsecure
                              ; ||||||++----------- SEC01 / 01:secure  11:secure
                              ; ||++++------------- Not Used (Always 0)
-                             ; ++----------------- KEYEN - Backdoor key mechanism enable
+                             ; ++----------------- KEYEN - Backdoor key mechanism enable (10 - enable)
 
                     org       NVOPT               ;NV flash options byte
                     fcb       NVOPT_VALUE         ;NVFEOPT transfers to FOPT on reset
@@ -1124,3 +1123,4 @@ NVOPT_VALUE         def       %10000010           ;NVFEOPT transfers to FOPT on 
                     #MEMORY   EEPROM EEPROM_END
           #endif
                     #!MEMORY  RVECTORS  RVECTORS|$FF
+                    #!MEMORY  CRC_LOCATION CRC_LOCATION+1
