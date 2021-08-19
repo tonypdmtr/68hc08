@@ -3,7 +3,7 @@ ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 
 *ASM8 - Copyright (c) 2001-2021 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: August 11, 2021 for ASM8 v11.70*
+*Latest Manual Update: August 20, 2021 for ASM8 v11.70*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -2907,7 +2907,7 @@ Synopsis:
 * File-local labels begin with `?` (a question mark).  This is an assembler requirement.
 * Proc-local labels end with `@@` (although the assembler allows `@@` to be anywhere past the first character of the label).
 * Macro-local labels end with `$$$` (although the assembler allows `$$$` to be anywhere past the first character of the label).
-* Subroutines always begin with a `proc` pseudo-op to mark the beginning of the subroutine.  This allows proc-local symbols to be used inside the subroutine without worrying about name collisions with other subroutine symbols.
+* Subroutines always begin with a `proc` pseudo-op to mark the beginning of the subroutine.  This allows proc-local symbols to be used inside the subroutine without worrying about name collisions with other subroutines' symbols.
 * Subroutines normally use `#spauto` mode with optional `:ab` offset when the proc may reference caller-level stack variables.
 * Local (stack) variables are defined near the beginning of the subroutine either directly (with `AIS #-nn`) or with the use of the `local` macro which follow an `#AIS` directive.  These variables are de-allocated using the `AIS #:AIS` instruction.
 * Each subroutine is separated from the previous one with an 80-column semi-colon beginning comment line full of asterisks (i.e., `;***...`).
@@ -2917,9 +2917,9 @@ Synopsis:
 * Very small (few lines) and obvious purpose subroutines usually have no spaces between instructions.
 * Regular subroutines separate each block of related assembly language instructions with a single blank line, or a dotted comment line (see earlier).
 * Segments are used to separate object code into distinct areas.  Segment `#RAM` is used for zero-page RAM variables that may need `B[R]SET` or `B[R]CLR` instruction access. Segment `#XRAM` is used for all other variables. Segment `#ROM` is used for normal code.  Segment `#VECTORS` is used for vector definitions.
-* File inclusion is done primarily with the `#Uses` directive.  `#Include` is only used only when the same file must be included more than once (where `#Uses` would fail by design), or when we need to be sure the inclusion point is at the `#Include` directive (since a `#Uses` may have already included the file at some earlier point).
+* File inclusion is done primarily with the `#Uses` directive.  `#Include` is only used when the same file must be included more than once (where `#Uses` would fail by design), or when we need to be sure the inclusion point is at the `#Include` directive (since a `#Uses` may have already included the file at some earlier point).
 * All file inclusion paths are relative and depend on the assembler's default include path search.  Specifically, they are first relative to the current file being assembled, then to the main file of the current assembly, and finally to the root file (filename `_asm_`) if one exists.
-* Ad-hoc `?` macros are used sparingly to simplify repeated sequential coding of complicated expressions or coding patterns.
+* Ad-hoc `?` macros are used extensively to simplify repeated sequential coding of complicated expressions or coding patterns.
 * Hungarian notation is never used.
 
 Some of the above points in a bit more detail...
@@ -2950,14 +2950,16 @@ Labels are defined starting in column 1 (assembler requirement) and use the
 default maximum label length of 19 (including expansion of `@@` or `$$$`)
 so they remain compatible with _P&E Micro_ map files.
 
-Mnemonics and pseudo mnemonics (e.g., `ORG`) start in column 21 and always written
-in lowercase.  Exception to the lowercase convention is when an instruction
-is meant to do something other than the obvious, e.g., `RTS` when used to
-`JMP` to a previously stacked address will be written in uppercase.
+Mnemonics and pseudo mnemonics (e.g., `ORG`) start in column 21 and are always
+written in lowercase.  Exception to the lowercase convention is when an
+instruction is meant to do something other than the obvious, e.g., `RTS` when
+used to `JMP` to a previously stacked address will be written in uppercase to
+signify the special use.
 
 Macro calls normally start in column 21 just like regular mnemonics but they
-may also start in column 1 if, and only if, the are invoked as `@macro` (leading `@`).
-This is useful when there are long operands to make it easier to view.
+may also start in column 1 if, and only if, they are invoked as `@macro` (leading `@`).
+This is useful when there are long operands to make it easier to view without
+any/much horizontal scrolling of the editor window.
 
 Operands start in column 31 unless a long repeater expression or macro name
 pushes them further to the right.  For macro calls that start earlier than
@@ -2998,8 +3000,9 @@ normally uses the offset `:ab` which adjusts automatically based on whether an
 MMU is used or not.
 
 Each proc begins with the proc name and the assembler directive `proc`. An
-`endp` directive is normally not used, unless we specifically want to embed
-a `proc` inside another, usually much larger `proc`, for proximity reasons,
+`endp` directive at the end of the `proc` is normally not used, unless we
+specifically want to embed a `proc` inside another, usually much larger
+`proc`, for proximity reasons (e.g., frequent `BSR` use optimization),
 in which case we need to protect the parent proc's label locality.
 
 Each proc protects all caller registers except for CCR (with few
@@ -3037,7 +3040,7 @@ label `Cont@@`.
 
 A `proc`'s exit section begins at label `Done@@` where any exit requirements
 are enforced.  This usually includes releasing temporary stack variables with
-the `AIS #:AIS` instruction that automatically releases as many bytes were
+the `AIS #:AIS` instruction that automatically releases as many bytes as were
 allocated by either `AIS` or `PSHx` instructions at the entry section.
 
 Each `proc` may return (in addition to any registers), a success or failure
@@ -3053,14 +3056,14 @@ Note: My own code and/or examples may not yet adhere to all of the above, as mos
 of it was written long before these conventions were put into action.
 
 But, each time some code gets updated, I try to also update the coding style to
-conform with the my current conventions.  And, the conventions are subject to
-improve with experience.
+conform to my most current conventions.  And, the conventions are subject to
+improve (in my subjective view) with experience.
 
 Each instruction (with the exception of trivial operations) is documented in the
 comments area with appropriate comments that do not repeat the instruction but
 explain what happens and/or for what purpose.
 
-Following the above conventions has made me produce consistently bug-free code
+Following the above conventions has helped me produce consistently bug-free code
 (within reasonable expectations), and easy to read logic.
 
 Linux/Win32 version addendum
@@ -3125,5 +3128,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v11.70, August 11, 2021, Copyright (c) 2001-2021 by Tony G. Papadimitriou
+ASM8 v11.70, August 20, 2021, Copyright (c) 2001-2021 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
