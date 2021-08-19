@@ -13,7 +13,9 @@
   #Hint ****************************************************
   #Hint * Available conditionals (for use with -Dx option) *
   #Hint ****************************************************
-  #Hint *______ S_U_P_P_O_R_T_E_D___T_A_R_G_E_T_S___________
+  #Hint *---------------------------------------------------
+  #Hint *       S U P P O R T E D   T A R G E T S
+  #Hint *---------------------------------------------------
   #Hint * QG8..............: Target is 9S08QG8
   #Hint * QE8..............: Target is 9S08QE8
   #Hint * QE32.............: Target is 9S08QE32
@@ -26,6 +28,8 @@
   #Hint * QD4..............: Target is 9S08QD4
   #Hint * AC32.............: Target is 9S08AC32
   #Hint * AC96.............: Target is 9S08AC96
+  #Hint *---------------------------------------------------
+  #Hint *                   O P T I O N S
   #Hint *---------------------------------------------------
   #Hint * HZ...............: MCU effective clock as Hz
   #Hint * KHZ..............: MCU effective clock as KHz

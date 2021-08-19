@@ -270,6 +270,8 @@ Bit{:temp}_         equ       1<{:temp}
                     @bitnum   CCR_Z,1             ;Zero flag in CCR
                     @bitnum   CCR_C,0             ;Carry flag in CCR
 
+CMP_AFFECTED_       equ       CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;CMP affected bits
+CMP_NOT_AFFECTED_   equ       CMP_AFFECTED_^NOT           ;CMP not affected bits
 ;-------------------------------------------------------------------------------
 ; SP (one-based) offsets account for the return address of OS8 dispatcher's CALL
 ;-------------------------------------------------------------------------------

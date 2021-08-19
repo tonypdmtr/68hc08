@@ -6,7 +6,7 @@
                     #Uses     upcase.sub
 
 ;*******************************************************************************
-; Purpose: Compare ASCIZ strings pointed by HX and TOS (case [in]sensitive)
+; Purpose: Compare ASCIZ strings pointed by HX and TOS (case insensitive)
 ; Input  : HX -> first ASCIZ string
 ;        : TOS -> second ASCIZ string
 ; Output : N Z V C set or cleared in accordance with the CMP instruction
@@ -31,8 +31,23 @@ StringCompare       macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     pulhx
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
+                    #spauto   :ab
+
+StringCompareCase   proc
+                    clc                           ;case-sensitive
+                    bra       ?StringCompare
+
+;*******************************************************************************
+; Purpose: Compare ASCIZ strings pointed by HX and TOS (case sensitive)
+; Input  : HX -> first ASCIZ string
+;        : TOS -> second ASCIZ string
+; Output : N Z V C set or cleared in accordance with the CMP instruction
+;        : Allows BEQ, BNE, BLO, BHS, etc. to be used on result just as if
+;        : a regular CMPA instruction had been used.
+; Note(s): All registers except N Z V C flags are preserved
+;        : Violates Carry-Set on error rule.  Carry set is used for result (BLO, etc.)
+;        : Stacked pointer not destroyed
 
 StringCompareCase   macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     mset      #' '
@@ -49,17 +64,7 @@ StringCompareCase   macro     [#]ASCIZ_String1 [#]ASCIZ_String2
                     pulhx
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
-
-                    #spauto   :ab
-
-StringCompareCase   proc
-                    clc                           ;case-sensitive
-                    bra       ?StringCompare
-
-;*******************************************************************************
-
                     #spauto   :ab
 
 StringCompare       proc
@@ -72,50 +77,37 @@ StringCompare       proc
 
 ?StringCompare      proc
 .str2@@             equ       1
-                    push      .str1@@,2
+                    push
+                    #ais
+
                     tpa                           ;shorter PSHCC (A need not be preserved)
                     psha      ccr@@
-                    #ais
+                    and       #CMP_NOT_AFFECTED_  ;mask off our CCR result bits
+                    psha      ans@@               ;will combine with result CCR
+                    pshhx     .str1@@             ;create work copy of str1 pointer
           #ifhcs
                     ldhx      .str2@@,sp
-                    pshhx     .str2@@
-                    ldhx      .str1@@,sp
+                    pshhx     .str2@@             ;create work copy of str2 pointer
           #else
                     tsx
                     lda       .str2@@+1,spx
                     psha
                     lda       .str2@@,spx
-                    psha      .str2@@,2
-
-                    lda       .str1@@,spx
-                    ldx       .str1@@+1,spx
-                    tah
+                    psha      .str2@@,2           ;create work copy of str2 pointer
           #endif
-Loop@@              lda       ,x                  ;get char from 1st string
-                    aix       #1                  ;bump up 1st ASCIZ pointer
-
-                    pshhx
-          #ifhcs
-                    ldhx      .str2@@,sp
-          #else
-                    ldx       .str2@@,sp
-                    txh
-                    ldx       .str2@@+1,sp
-          #endif
+          ;--------------------------------------
                     #psp
-
-                    @inc.s    .str2@@,sp          ;bump up 2nd ASCIZ pointer
-          ;-------------------------------------- ;compare
+          ;--------------------------------------
+Loop@@              @GetNextA .str1@@,sp          ;get char from 1st string
                     psha      a@@                 ;save char from 1st string
 
-                    lda       ,x                  ;get char from 2nd string
-                    psha      b@@
-
+                    @GetNextA .str2@@,sp          ;get char from 2nd string
+                    psha      b@@                 ;save char from 2nd string
+          ;-------------------------------------- ;decide if case comparison
                     tsx
-
                     lda       ccr@@,spx
                     tap
-                    bcc       DoneCase@@
+                    bcc       Compare@@
           ;-------------------------------------- ;case-insensitive case (convert both to uppercase for comparison)
                     lda       a@@,spx
                     call      Upcase              ;convert to uppercase
@@ -124,35 +116,24 @@ Loop@@              lda       ,x                  ;get char from 1st string
                     lda       b@@,spx
                     call      Upcase              ;convert to uppercase
                     sta       b@@,spx
-          ;--------------------------------------
-DoneCase@@          lda       a@@,spx             ;compare chars from both strings
+          ;-------------------------------------- ;comparison for either case
+Compare@@           lda       a@@,spx             ;compare chars from both strings
                     cmpa      b@@,spx             ;(in this order: a cmp b)
 
                     ais       #:psp               ;balance stack
-
-                    pulhx
                     bne       Done@@              ;if different, get out
 
                     cbeqa     #0,Done@@           ;on terminator, we're done
                     bra       Loop@@
           ;---------------------------------------------------------------------
-          ; Z flag always in correct state when coming here
+          ; CMP affected flags always in correct state when coming here
           ;---------------------------------------------------------------------
-Done@@              ais       #:ais
-
-                    tpa                           ;A = actual CMP result [CCR]
-                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;mask off unused CCR flags
-
-                    psha
-                    tsx
-                    lda       ccr@@,spx           ;A = caller's CCR
-                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_^NOT ;mask off our CCR result bits
-                    ora       {::},spx            ;combine with our CCR result bits
-                    sta       ccr@@,spx           ;save it for the caller
-                    pula                          ;(WAS: ais #:psp)
-
-                    pula                          ;shorter PULCC (since RegA
-                    tap                           ;will be restored by PULL)
+Done@@              tpa                           ;A = actual CMP result [CCR]
+                    and       #CMP_AFFECTED_      ;mask off unused CCR flags
+                    ora       ans@@,spx           ;combine with our CCR result bits
+                    tap                           ;set return CCR
+          ;--------------------------------------
+                    ais       #:ais
                     pull
                     rtc
 
