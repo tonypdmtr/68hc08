@@ -1,9 +1,9 @@
 ASM8<br><br>A two-pass absolute macro cross-assembler for the 68HC08/HCS08/9S08
 ================================================================================
 
-*ASM8 - Copyright (c) 2001-2020 by Tony Papadimitriou (email: <tonyp@acm.org>)*
+*ASM8 - Copyright (c) 2001-2021 by Tony Papadimitriou (email: <tonyp@acm.org>)*
 
-*Latest Manual Update: December 2, 2020 for ASM8 v9.97*
+*Latest Manual Update: August 11, 2021 for ASM8 v11.70*
 
 ASM8 is an absolute macro cross-assembler for the 68HC08 or HCS08 or 9S08 MCU
 by NXP (originally by Motorola, and later by Freescale).
@@ -69,7 +69,8 @@ Three versions are currently available:
 - 32-bit Windows _(also runs under 64-bit Windows)_
 - i386 Linux
 - DOS _with the GO32V2 memory manager extension built-in_.
-  It has also been tested under DOSBox v0.73-2 and performs without problems.
+  It has also been tested under __DOSBox v0.73-2__ and __DOSBox-X 0.83.9__ and
+  performs without problems.
 
 See [Linux/Win32 version addendum][] for behavioral differences related to the OS.
 
@@ -78,6 +79,37 @@ Version History
 
 ```
   +------+-------------------------------------------------------------+
+  |11.70 |Changed "Shorter form wasn't used" from warning to hint      |
+  |      |Changed "Direct mode wasn't used" from warning to hint       |
+  |11.60 |Added -FN non-saveable option to hide line numbers in listing|
+  |11.55 |Allowed && in #IF[N]DEF expressions                          |
+  |11.51 |BugFix: #IF[N]DEF ignores a plain ! (NOT) in expressions     |
+  |11.50 |#IF[N]DEF treats leading optional ! in expressions as NOT    |
+  |11.42 |BugFix: Macro parameters no longer expand @@ in labels       |
+  |11.41 |BugFix: ELSE checks for !IF as prefix instead of !IF exact   |
+  |11.40 |-Dxxx will update same symbol from a previous -Dxxx option   |
+  |11.31 |BugFix: 'Attempting global' would incorrectly flag some cases|
+  |11.30 |#IFTOS expression may be followed by ,index, e.g.: var@@,sp  |
+  |11.20 |#!MEMORY/#!VARIABLE hides warning on undefined expression    |
+  |11.12 |Improved ALIGN bugfix about honoring -F= command line option |
+  |11.11 |BugFix: ALIGN did not honor -F= command line option          |
+  |11.10 |A colon beginning command-line path will be relative to root |
+  |11.01 |BugFix: Segment ORG now shows errors in pass one like ORG.   |
+  |11.00 |Added :VERSION internal symbol as integer with two decimals. |
+  |      |Directives #S19WRITE, #HINT, #MESSAGE, #WARNING, #ERROR, and |
+  |      |#FATAL no longer trim the string to write.                   |
+  |      |Each segment now has its own ORG offset (possible minor      |
+  |      |backward compatibility issues).                              |
+  |      |BugFix: ORG with optional S19 expression did not always work |
+  |10.00 |Improved S19 overlaps in MMU mode                            |
+  |      |Added {...} format modifier (L) for hex8 without $ prefix    |
+  |      |Added {...} format modifier (W) for hex4 without $ prefix    |
+  |      |Added {...} format modifier (B) for hex2 without $ prefix    |
+  | 9.99 |All segments can now be followed by an ORG expression        |
+  |      |Added silenced error expression evaluation in ... comments   |
+  |      |Changed purely informative harmless warnings to hints        |
+  | 9.98 |Added warning under MMU on file-local CALL or global JSR/BSR |
+  |      |Added -G, #GCALL, and #LCALL to enable/disable this warning  |
   | 9.97 |Added option -B[asename] to give a different output basename |
   | 9.95 |Improvement: Label may be followed by comment without spaces |
   | 9.94 |Added :MAXTEMP, :MAXTEMP1, :MAXTEMP2 internal variables      |
@@ -574,7 +606,7 @@ Reference Guide
 Command-Line Syntax and Options
 --------------------------------------------------------------------------------
 
-`ASM8 [-option [...]] [[@]filespec [...]] [>errfile]`<br>
+`ASM8 [-option [...]] [[@][:]filespec [...]] [>errfile]`<br>
 
 -   option(s) may appear before, in between or after filespec(s).
 
@@ -588,6 +620,9 @@ Command-Line Syntax and Options
 -   filespec(s) may include wildcard characters (`?`,`*`). Wildcards are not
     allowed in filespec(s) that are prefixed with a `@` but are allowed in
     filespecs inside @files.
+
+-   If the filespec is a relative path and begins with a colon (`:`) then it will
+    be relative to the `_asm_` or Fossil root (in that order).
 
 -   If the file extension for a source filespec is omitted, the extension `.ASM`
     is assumed (see description of the `-R.ext` option below).
@@ -612,16 +647,17 @@ Command-Line Syntax and Options
     + 1 - System error (hardware I/O failure, out of disk space, etc.), or -W option failure
     + 2 - Error(s) generated (or Escape pressed) during assembly of last file
     + 3 - Warning(s) generated during assembly of last file
-    + 4 - Assembler was not started (help screen displayed, -W option used with success)<br><br>
+    + 4 - Assembler was not started (help screen displayed, -W option used with success)
+    + 5 - The assembler did not find any files to assemble<br><br>
 
 | Option   | Default   | Description|
 |:---------|:---------:|:-------------------------------------------------------|
 | `-Bname` | `        `|Use 'name' as the base name for generated files, just once.  If an optional extension is given which must not be one of the standard ASM8 extensions (.LST, .MAP, .SYM, .EXP, .ERR) then that extension will be used instead of S19 for the object file.
 | `-C[±]  `| `-C-     `|Label case sensitivity: + = case sensitive<br>_See also_ `#CASEON` and `#CASEOFF`
-| `-Dlabel`| `[:expr] `|Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbols are always uppercase (regardless of -C option). If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase.<br>Cannot be saved with -W.
+| `-Dlabel`| `[:expr] `|Use up to one hundred times to define symbols for use with conditional assembly (IFDEF and IFNDEF directives). Symbol case depends on initial or subsequent -C option state. If they are not followed by a value (or expression) they assume the value zero. Expression is limited to 19 characters. Character constants should not contain spaces, and they are converted to uppercase. If specifying the same symbol multiple times, only the most recent definition is considered.  Also, in that case the repeated symbol overrides the previous one so there is no additional spot taken in the table.  Prior to v11.40 repeated symbols would be processed as new independent definitions possibly causing related errors/warnings.<br>Cannot be saved with -W.
 | `-E[±]  `| `-E-     `|Generate *.ERR file (one for each file assembled).* .ERR files are not generated for file(s) that do not contain errors.
 | `-EH[±] `| `-EH+    `|If -E+ is in effect, hide (do not display) error messages on screen.
-| `-EXP[±]`| `-EXP-   `|When on, an .EXP file is created containing all symbols defined with an EXP rather than an EQU pseudo-opcode. The resulting file can be used as an `#INCLUDE` file for other programs. This allows for automatic creation of include files with global exported symbols.
+| `-EXP[±]`| `-EXP-   `|When on, an .EXP file is created containing all symbols defined with an EXP rather than an EQU pseudo-mnemonic. The resulting file can be used as an `#INCLUDE` file for other programs. This allows for automatic creation of include files with global exported symbols.
 | `-F:symb`|           |During assembly, if it finds the given symbol (or part of it when the special character `*` is present anywhere in the search string), it prints a 'Hint' message showing the file and line number where that symbol defines or redefines its value. This is very useful for debugging hard to locate errors of where exactly in the source code a symbol acquired its value. You may use either : or = with this option after the -F. You may use this option up to 100 times. This option cannot be saved with the -W switch
 | `-F:num `|           |During assembly, if it finds the given address (in decimal or hex format the way the assembler understands numbers), it prints a 'Hint' message with the file and line number where that memory address was occupied by either data or code. This is very useful to help you resolve overlap type errors. You may use either : or = with this option after the -F. You may use this option up to 100 times. This option cannot be saved with the -W switch
 | `-F2[±] `| `-F2-    `|Forces a _P&E Micro_ 16-bit map when in MMU mode. Useful to overcome bugs in certain _P&E Micro_ products that do not handle MMU addresses correctly. This option cannot be saved with the -W switch
@@ -631,10 +667,12 @@ Command-Line Syntax and Options
 | `-FI[±] `| `-FI-    `|Forces display of included filenames as hints. This is useful to let you see not only the actually included files but also the order of inclusion together with the respective file count. This option cannot be saved with the -W switch
 | `-FL[±] `| `-FL-    `|Ignores all `#LISTOFF` or `#NOLIST` directives. This option cannot be saved with the -W switch
 | `-FM[±] `| `-FM-    `|Ignores all `#MAPOFF` directives. This option cannot be saved with the -W switch
+| `-FN[±] `| `-FN-    `|Hides line numbers in listings. Useful to compare two listings for content using most DIFF tools even when there are minor differences in line numbering. This option cannot be saved with the -W switch
 | `-FQ[±] `| `-FQ-    `|Does not show the assembly progress. Slightly better speed. For use with IDEs and makefiles. This option cannot be saved with the -W switch
 | `-FW[±] `| `-FW-    `|Converts warnings to harmless messages. No error code is returned and warnings are not counted. This option cannot be saved with the -W switch
 | `-FX[±] `| `-FX-    `|Enable macro line number display in FATAL, ERROR, WARNING, MESSAGE, and HINT directives. The default is off for less cluttered display. This option cannot be saved with the -W switch
-| `-HCS[±]`| `-HCS-   `|When on, the assembler understands the extended HCS08 instruction set. The cycle counts in the listing also reflect the HCS08 core. To check the current status of this switch look at the help screen's second line from top. The software will say it's either a MC68HC08 or a MC68HCS08 assembler based on this setting. _See also the directives_ `#HCSON`, `#HCSOFF`, `#IFHCS`, and `#IFNHCS`
+| `-G[±]  `| `-G-     `|Enable warnings under MMU mode when using CALL with local or JUMP/BRANCH with global. This option can be saved with the -W switch. _See also_ `#GCALL` and `#LCALL`
+| `-HCS[±]`| `-HCS+   `|When on, the assembler understands the extended HCS08 instruction set. The cycle counts in the listing also reflect the HCS08 core. To check the current status of this switch look at the help screen's second line from top. The software will say it's either a MC68HC08 or a MC68HCS08 assembler based on this setting. _See also the directives_ `#HCSON`, `#HCSOFF`, `#IFHCS`, and `#IFNHCS`
 | `-Ix    `| `?2;?1;?a`|Define default INCLUDE directory root(s). Relative path files will be tried relative to this directory (or each directory in the given directory list, searched from left to right). Multiple directory roots may be specified in the form of a list. A directory root list is separated by semi-colons when on Windows, or colons when on Linux. The `*` character can be used as a placeholder for the current text of this option (e.g., when you want to add extra directories either before or after the current ones without having to specify the whole thing again.) _Since v9.56_ two special placeholders may be used in the directory list specification: `?1` which refers to the path of the main file, and `?2` which refers to the path of the current file. Since the main file is now searched last, and the current file's path is no longer searched by default, to get the same behavior as was the default in previous versions, you should run this to convert the current path to the new format but with compatible behavior: `-i.;?1;?2;* -w` (for Linux, use `-i.:?1:?2:* -w`). _Since v9.58_, FOSSIL source control management users can use the ?F (case-insensitive) placeholder to specify the root directory of the repository. This allows for truly portable installations of your code base. _Since v9.61_, users can use the ?A (case-insensitive) placeholder to specify the assumed root directory, which must contain a filename named `_asm_` (lowercase in Linux) of zero length, even. This allows for truly portable installations of your code base. If `_asm_` is present, the produced MAP files will use relative file paths (unless the `-U` option is used). This switch does not affect absolute path file definitions. Both the INCLUDE and the IF(N)EXISTS directives are affected by this switch.
 | `-J[±]  `| `-J+     `|Effective only while the MMU is disabled: When on, `CALL`/`RTC` instructions are treated as if they were `JSR`/`RTS` instructions, respectively. When off, `CALL`/`RTC` instructions produce errors. Makes it possible to write common library functions using CALL/RTC instead of JSR/RTS and have them used in all MCUs, regardless if they have an MMU or not. _See also the directives_ `#JUMP`, and `#CALL`
 | `-L[±]  `| `-L+     `|Create a \*.LST file (one for each file assembled).
@@ -666,7 +704,7 @@ Command-Line Syntax and Options
 | `-W     `| _(none)_  |Write options specified on command line to the `asm8.cfg` file. The user-specified options become the default values used by ASM8 in subsequent invocations. Filespec(s) on the command line are ignored. Assembly of source files does not take place if this option is specified.
 | `-WW    `| _(none)_  |Same as -W but removes licensing information from the configuration file (e.g., for public distribution).
 
-Source File Pseudo-Opcodes (Pseudo-Instructions)
+Source File Pseudo-Instructions
 --------------------------------------------------------------------------------
 
 | Pseudo-Op                  | Description|
@@ -708,8 +746,8 @@ Source File Pseudo-Opcodes (Pseudo-Instructions)
 |`label NEXP symbol[,expr]`  |Assigns the current value of symbol to label as if with `EXP`.  Then, it increments the value of symbol by one (as if with `SET`) or, if the optional expression is present, by the value of that expression.  Useful for defining a series of symbols based on a common starting value.<br>*Note*: symbol is a single label and not an expression.  _See also_ `NEXT`,`SETN`
 |`[label] NEXT symbol[,expr]`|Assigns the current value of symbol to label as if with `EQU`.  Then, it increments the value of symbol by one (as if with `SET`) or, if the optional expression is present, by the value of that expression.  Useful for defining a series of symbols based on a common starting value.  *Note*: symbol is a single label and not an expression.<br><br>Since v9.41, a special case of `NEXT` is when the label to the left is missing.  In that case,`NEXT`is used as an anonymous placeholder that simply increments the symbol to the right, as usual.<br><br>_See also_ `NEXP`,`SETN`
 |`ORG [[s19_expr],]expr`     |Sets the assembler's location counter for the active segment.  Code generated after this directive will be assembled starting at the location specified by expr.<br><br>If s19_expr is present, then the S19 file runs with an offset from the actual location counter.  This allows for different segments of code to be assembled at the same physical address but, obviously, be placed in different addresses in the loadable S19 file.<br><br>The current offset is available in the `:OFFSET` internal symbol.<br><br>To cancel any offsets without changing the current position, simply give ORG followed by a single comma without any expressions.
-|`label PROC`                |`PROC`first advances the `@@` local label counter, and then it assigns the value of the program counter (`*`) to label.  This allows using symbols locally for a specific section of code (e.g., a subroutine).  The symbol to the left of `PROC` is always in the new scope.  The name of the symbol is stored in the `procname` macro placeholder.  Each time `PROC` (or `#PROC`) is encountered, the assembler increments an internal 32-bit local symbol counter.  Symbols containing `@@` anywhere inside their name (except at the very beginning) at least once (for example, `Loop@@`) will have the `@@` part replaced with a special control character (different from what is used with macro local `$$$`) and the current value of the internal local symbol counter (similar to `$$$` with macro local labels).<br><br>Up until a `PROC` or `#PROC` is encountered in the program, the `@@` is not treated specially (i.e., the `@@` is not converted to a special number).  This makes this feature compatible with code written prior to its introduction.  The current value of the corresponding internal counter can be found in the internal symbol `:PROC` while the maximum proc number can be found in the internal symbol `:MAXPROC`
-|`[label] ENDP`              |`ENDP`is optional and marks the end of the corresponding PROC.  Its use allows one to nest procs (e.g., for code coherency as when keeping a subroutine close to the actual point of use).  The optional label is defined prior to the `ENDP` processing, which means it is in the same scope as the rest of the proc.<br><br>_See also_ `#PROC` and `#ENDP`
+|`label PROC`                |`PROC` first advances the `@@` local label counter, and then it assigns the value of the program counter (`*`) to label.  This allows using symbols locally for a specific section of code (e.g., a subroutine).  The symbol to the left of `PROC` is always in the new scope.  The name of the symbol is stored in the `procname` macro placeholder.  Each time `PROC` (or `#PROC`) is encountered, the assembler increments an internal 32-bit local symbol counter.  Symbols containing `@@` anywhere inside their name (except at the very beginning) at least once (for example, `Loop@@`) will have the `@@` part replaced with a special control character (different from what is used with macro local `$$$`) and the current value of the internal local symbol counter (similar to `$$$` with macro local labels).<br><br>Up until a `PROC` or `#PROC` is encountered in the program, the `@@` is not treated specially (i.e., the `@@` is not converted to a special number).  This makes this feature compatible with code written prior to its introduction.  The current value of the corresponding internal counter can be found in the internal symbol `:PROC` while the maximum proc number can be found in the internal symbol `:MAXPROC`
+|`[label] ENDP`              |`ENDP` is optional and marks the end of the corresponding PROC.  Its use allows one to nest procs (e.g., for code coherency as when keeping a subroutine close to the actual point of use).  The optional label is defined prior to the `ENDP` processing, which means it is in the same scope as the rest of the proc.<br><br>_See also_ `#PROC` and `#ENDP`
 |`RMB blocksize`             |Reserve Memory Byte(s).  Same as `DS`.
 |`label SET expr[,size]`     |Assigns the value of expr to label even if label is already defined with a different value.<br><br>This is similar to `EQU` but allows making multiple re-definitions.  The value set will be used until another `SET` pseudo-instruction or to the end of the assembly process.<br><br>Warning: Careless, or simply wrong use of this directive can lead to multiple side errors or warnings (please note this is a two-pass assembler).  Using a forward `SET` defined symbol may lead to problems, as the value used will be the one from the last `SET` definition, which is not necessarily the one we want.<br><br>Correct behavior is guaranteed if any symbols re-defined with `SET` are used only after each new re-definition, otherwise, the first reference in Pass 2 will use the value from the last re-definition in Pass 1.<br><br>_Example of wrong use:_<br><br>1.` lda #Value ;we expect 123, actual is 234`<br><br>2.`Value equ 123`<br><br>` ...`<br><br>3.` lda #Value ;we expect 234, actual is 123`<br><br>4.`Value set 234`<br><br>Value in line 1 will be 234 (the last known value from Pass 1) while Value in line 3 will be 123 (most recent value in current Pass 2).<br><br>_Example of correct use:_<br><br>1. `Value equ 123`<br><br>2. `lda #Value ;we expect 123, actual is 123`<br><br>`...`<br><br>3. `Value set 234`<br><br>4. `lda #Value ;we expect 234, actual is 234`<br><br>_See also_ `EXP` and `EQU`
 |`label SETN symbol[,expr]`  |Assigns the current value of symbol to label as if with `SET`.  Then, it increments the value of symbol by one (as if with `SET`) or, if the optional expression is present, by the value of that expression.  Useful for (re-)defining a series of symbols based on a common starting value.  Note: symbol is a single label and not an expression.  _See also_ `NEXP`,`NEXT`
@@ -752,9 +790,9 @@ Subroutine          ais       #-4                 ;local data
 |`#CASEON`          |When `#CASEON` is in effect, symbol references are NOT internally converted to uppercase before they are searched for or placed in the symbol table.<br><br>Equivalent to the `-C+` command line option.
 |`#CRC expr`        |The two CRCs (user and S19) maintained by the assembler are 16-bit each, and they are updated only during PASS2 by each produced user code/data byte that is put into the S19 file. The starting CRC value for both CRCs is zero.<br><br>With this directive you can alter the user CRC value at any time (either before the very first byte of code/data to produce a different CRC for the same firmware, or several times in between to skip certain volatile sections, for example).<br><br>The computed CRCs are available by accessing the internal symbols `:CRC` and `:S19CRC`<br><br>The formula used for the 16-bit CRC calculation is very simple to be easily implemented even in tiny bootloaders:<br><br>`16BitCRC := 16BitCRC + 16BitAddress*8BitData` <br><br>`:S19CRC` is mostly useful with the `END` directive (`END :S19CRC`) as it is not affected by the `#CRC` directive. An S19 loader can check the overall integrity of the S19 file.<br><br>`:CRC`, on the other hand, is mostly useful for checking code after it has been loaded into the MCU, at each reset, for example.<br><br>Please note that for both CRCs all `$00` bytes do not affect the calculation while, for the user CRC only (`:CRC`), all `$FF` bytes are intentionally skipped. This allows for the CRC in an S19 file (which does not necessarily fill a contiguous block of memory) to match the CRC computed by the MCU over a complete block of memory without the MCU bootloader knowing in advance the actual addresses used within that block, provided any unused bytes are in the erased state.<br><br>As a side effect, however, any `$00`->`$FF` or `$FF`-\>`$00` alterations in the file cannot be detected with the user CRC.
 |`#CYCLES [expr]`   |First, the optional expression is calculated using the current values of any internal symbols.<br><br>Then, the current value of `:CYCLES` is copied to `:OCYCLES`.<br><br>Finally, the internal `:CYCLES` counter is set to zero (if the optional expression is missing), or to any arbitrary value (the result of the expression).<br><br>This directive can also be used inside macros to restore the cycle counter of surrounding code, if the macro cycles should be counted in a special way, or not at all.
-|`#DATA`            |Activation of the DATA segment. Default starting value is `$F000`.
+|`#DATA [expr]`     |Activation of the DATA segment. Default starting value is `$F000`.
 |`#DROP macro[,macro]*`|Undefines one or more macros. If a macro is not currently defined, a warning will be issued (to protect from possible typing errors).<br><br>To drop all macros (global and local) with a single command, use `*` (asterisk) in place of the macro name. There is no warning if no macros found.<br><br>To drop all local macros (for the current file only) with a single command, use `?*` (question mark followed by asterisk) in place of the macro name. There is no warning if no local macros found.<br><br>If used from inside a macro, and that macro is dropped, the macro will terminate at that point. The rest of the macro will not be processed.<br><br>The special macro named `?` (just a single question-mark) is to be used ad-hoc, and it is automatically dropped (without warning) at each new redefinition. You may also drop it with `#DROP` but only need to do so if you want to force errors in later use of the macro, so you can easily locate them.<br><br>You cannot drop macros that are currently active above the current macro level (e.g. nested macros leading to current one.)<br><br>The `#!DROP` variant will suppress warnings for undefined macros.
-|`#EEPROM`          |Activation of the EEPROM segment. Default starting value is `$0000`.
+|`#EEPROM [expr]`   |Activation of the EEPROM segment. Default starting value is `$0000`.
 |`#EJECT`           |_See_ `#PAGE`
 |`#ELSE [IFxxx]`    |When used in conjunction with conditional assembly directives (`#IF`, `#IF[N]DEF`, `#IF[N]Z`, `#IFMAIN`, `#IFINCLUDED`, etc.), code following the `#ELSE` directive is assembled if the conditional it is paired with evaluates to a not-true result.<br><br>Optionally, you can follow with another IF directive (of any kind) to create a 'chained' condition check, like:<br><br>`#IF ... #ELSE IF ... #ELSE IF ... #ELSE ... #ENDIF`<br><br>The optional `IF` should not start with a `#` or `$` directive symbol but it should be separated with at least one space.
 |`#ENDIF`           |Marks the end of a conditional-assembly block.<br><br>Conditional assembly statements may be nested if they are properly blocked with `#ENDIF` directives.
@@ -764,11 +802,12 @@ Subroutine          ais       #-4                 ;local data
 |`#EXTRAON`         |Enables recognition of ASM8's extended instruction set for source lines that follow this directive.<br><br>Equivalent to the `-X+` command line option.
 |`#EXPORT symbol[,symbol]`|Export one or more symbols (as if with `*EXP*`). File-local symbols cannot be exported.  If a symbol is not currently defined, a warning will be issued.<br><br>The `#!EXPORT` variant will suppress warnings for undefined symbols.
 |`#FATAL [text]`    |Similar to the `#ERROR` directive, but generates an assembler fatal error message and terminates the current file assembly (processing will continue with possible further files in the command line supplied file list).
+|`#GCALL`           |Effective only while the MMU is enabled: When active, `CALL` instructions to local labels or JUMP/BRANCH instructions to global labels produce respective warnings, unless prefixed with `!`. _See also the directives_ `#LCALL`, `#MMU`, `#NOMMU`<br><br>Equivalent to the `-G+` command line option.
 |`#HCSOFF`          |Disables the HCS08 instruction set mode.<br>_See also_ `#IFHCS` `#IFNHCS` `#HCSON`<br><br>Equivalent to the `-HCS-` command line option.
 |`#HCSON`           |Enables the HCS08 instruction set mode.<br>_See also_ `#IFHCS #IFNHCS #HCSOFF`<br><br>Equivalent to the `-HCS+` command line option.
 |`#HOMEDIR [path]`  |Makes the specified path the current home directory. Although this cannot affect where any output files will go, it does make a difference on where any following relative `#INCLUDE` files will be searched. Relative file path specifications will now be relative to the directory specified by the #HOMEDIR directive, including any relative `#INCLUDE` references in nested include files.<br><br>If [path] is missing, the original main file path is restored.
 |`#IF expr1 cond expr2`|Evaluates expr1 and expr2 (which may be any valid ASM8 expression) and compares them using the specified cond conditional operator. If the condition is true, the code following the #IF operator is assembled, up to its matching `#ELSE` or `#ENDIF` directive.<br><br>Cond may be any one of: \< \<= = \>= \> \<\><br><br>The condition is always evaluated using unsigned arithmetic.<br><br>If a symbol referenced in expr1 or expr2 is not defined, the statement will always evaluate as false.<br>The `#!IF` variant will suppress warnings for undefined symbols.
-|`#IFDEF expr`      |Attempts to evaluate expr, and if successful, assembles the code that follows, up to the matching `#ELSE` or `#ENDIF` directive. This directive is used to test if a specified symbol has been defined. Symbol(s) referenced in expr must be defined before the directive for the result to evaluate true (e.g., forward references will evaluate as false). `#IFDEF` without an expr following will always evaluate to False.<br><br>alt-0166 (`¦`) or double pipe (`||`) ORs separated conditions.
+|`#IFDEF [!]expr`   |Attempts to evaluate expr, and if successful, assembles the code that follows, up to the matching `#ELSE` or `#ENDIF` directive. This directive is used to test if a specified symbol has been defined or, if prefixed with !, undefined. Symbol(s) referenced in expr must be defined before the directive for the result to evaluate true (e.g., forward references will evaluate as false). `#IFDEF` without an expr following will always evaluate to False.<br><br>alt-0166 (`¦`) or double pipe (`||`) ORs separated conditions while double ampersand (`&&`) ANDs separated conditions. AND has higher precedence than OR.
 |`#IFEXISTS fpath`  |Checks for the existence of the file specified by fpath (using the same rules as those used for `#INCLUDE` directives) and assembles the code that follows if the specified fpath exists.
 |`#IFHCS`           |Assembles the following code if the assembler is in the extended HCS08 instruction set mode. _See also_ `#IFNHCS #HCSON #HCSOFF`
 |`#IFINCLUDED`      |Assembles the code which follows if the file containing this directive is a file used in an INCLUDE directive of a higher-level file (regardless of nesting level). _See also_ `#IFMAIN`
@@ -784,13 +823,14 @@ Subroutine          ais       #-4                 ;local data
 |`#IFNONUM text`    |`#IFNONUM` performs the opposite test.
 |`#INCLUDE fpath`   |Includes the specified fpath file in the assembly stream, as if the contents of the file were physically present in the source at the point where the `#INCLUDE` directive is encountered. `#INCLUDE`'s may be nested, up to 255 levels (the main source file counts as one level). By default, fpath specifications are referenced relative to the location of the current source file, and if not found there, relative to the assembly's main source file, and finally, relative to the optional user added 'root' project file (having the filename `_asm_` regardless of content).  One only has to use forward looking paths (i.e., no `../` components) irrespective of the 'depth' of the current source directory.  Included files will be found either under the current directory or in a forward relative location from the assumed root point.  This approach has proven over the years to work exceptionally well for practically all projects, and rarely, if ever, the user has to provide a modified `-I` option path list.
 |`#USES fpath`      |`#USES` is an alternative, slightly different method to include a file. It will `#INCLUDE` the file specified (using the same file-finding rules as `#INCLUDE`) but only if the same file path has not been included (via  `#INCLUDE` or `#USES`) at least once, already. `#USES` is useful for creating `#INCLUDE` file dependencies (normally, from a higher level to a lower level; e.g., an analog temperature sensor driver module `#USES` the A/D driver module, but not the other way around). This allows directly `#USING` (_an alias for `#USES`_) only the module of interest in your application, and it should take care to use whatever other modules it requires (in a recursive sort of way). If another included module in the same application `#USES` the same lower-level module, it will not be included a second time. This is similar to the common technique used to prevent multiple inclusions of the same file, but only have it included the first time it is referenced. Normally, the<br>`#IFNDEF ... #ENDIF`<br>block is found inside the file, meaning the assembler must enter the file before it 'knows' it doesn't need it. The advantages with `#USES`, however, are: (1) you do not need a specific symbol definition for each file, and (2) you never enter an already included file (which would use up a sometimes precious file count towards the maximum number of `#INCLUDE` files.)<br>`#IFNDEF MODULE`<br>`MODULE`<br>_... your module code goes here_<br>`#ENDIF`<br><br>Bi-directional, or circular co-dependencies (e.g., file A depends on file B, while file B depends on A) are possible in some cases, and then they require some extra attention in the respective files' internal organization, or it could not work as you might have expected, and leave you confused by 'spurious' errors. In general though, you should try to avoid them.<br><br>Also, you cannot use `#USES` in place of `#INCLUDE` for modules that must be intentionally included multiple times (e.g., including the same SCI driver module, once for each hardware SCI available), although you could use `#USES` to include a file that itself does `#INCLUDE` the same file multiple times.<br><br>_Note_: The assembler will only generate a standard error (not an assembly-terminating fatal error) if a file specified in a `#INCLUDE` (or `#USES`) directive is not found. The `#IFEXISTS` and `#IFNEXISTS` directives may be used in conjunction with `#FATAL` if termination of assembly is desired under such conditions.
-|`#IFNDEF expr`     |Evaluates expr and assembles the code that follows if the expression could NOT be evaluated, usually as the result of a reference to an undefined symbol. This directive is the functional opposite of the `#IFDEF` directive.<br><br>alt-0166 (`¦`) or double pipe (`||`) ORs separated conditions.
+|`#IFNDEF [!]expr`  |Evaluates expr and assembles the code that follows if the expression could NOT be evaluated, usually as the result of a reference to an undefined symbol or, if prefixed with !, defined symbol. This directive is the functional opposite of the `#IFDEF` directive.<br><br>alt-0166 (`¦`) or double pipe (`||`) ORs separated conditions while double ampersand (`&&`) ANDs separated conditions. AND has higher precedence than OR.
 |`#IFNEXISTS fpath` |The opposite of `#IFEXISTS`; code following this directive is assembled if the specified fpath does NOT exist. The `-Ix` directory will be used also to determine if a file exists or not.
 |`#IFNHCS`          |Assembles the following code if the assembler is in the regular HC08 instruction set mode.<br><br>_See also_ `#IFHCS #HCSON #HCSOFF`
 |`#IFNZ expr`       |Evaluates expr and assembles the code that follows if the expression evaluates to a non-zero value. `#IFNZ` always evaluates to false if expr references undefined or forward-defined symbols.
 |`#IFTOS expr`      |If top-of-stack evaluates `expr+:SP` (`+:SP` is implied) and assembles the code that follows if the expression is equal to one (when in `#SP[AUTO]` modes), or zero (when in `#SP1` mode), i.e., expression points to top-of-stack in all modes. `#IFTOS` always evaluates to false if expr references undefined or forward-defined symbols.<br><br>Useful mostly in `#SP[AUTO]` modes.
 |`#IFZ expr`        |Evaluates expr and assembles the code that follows if the expression is equal to zero. `#IFZ` always evaluates to false if expr references undefined or forward-defined symbols.
 |`#JUMP`            |Effective only while the MMU is disabled: When active, `CALL`/`RTC` instructions are treated as if they were `JSR`/`RTS` instructions, respectively. Makes it possible to write common library functions using `CALL`/`RTC` instead of `JSR`/`RTS` to be used in any MCU, regardless if an MMU is available/used or not.<br><br>_See also the directives_ `#CALL`, `#MMU`, `#NOMMU`<br><br>Equivalent to the `-J+` command line option.
+|`#LCALL`           |Effective only while the MMU is enabled: When active, `CALL` instructions to local labels or JUMP/BRANCH instructions to global labels do not produce any warnings. _See also the directives_ `#GCALL`, `#MMU`, `#NOMMU`<br><br>Equivalent to the `-G-` command line option.
 |`#LISTOFF`<br>`#NOLIST`|Turns off generation of source and object data in the* .LST file for all lines which follow this directive. Useful for excluding the contents of `#INCLUDE` files in the *.LST file.
 |`#LISTON`<br>`#LIST`|Enables generation of source and object data in the .LST file for the source code following this directive. Has no effect if list file generation is disabled (`-L-` command line option in effect).
 |`#MACRO [@@]`      |`#MACRO` tells the assembler to treat unknown assembly language operations as possible macros. Normal instructions (including the built-in macro instructions) have priority over macros, so macros named the same as active built-in operations can only be called with the `@` prefix.<br><br>In effect, when in this mode, the assembler automatically adds the `@` symbol if an unknown operation is found to be a macro name. In this mode, one can invoke macros either way, with or without the `@` prefix, but instructions have priority over same name macros.<br><br>_Note_: To avoid problems, all macros should internally use the `@macro` syntax so they can be properly expanded regardless of mode.
@@ -859,7 +899,7 @@ a                   remacro
 |`#SIZE symbol[,expr]`|Assigns the value of the expression to the size attribute of the specified previously-defined label. If no expression is present, then the difference between the current location and the label is used (as if the expression was: `*-LABEL`) which is the most common use of this directive. You can access the size attribute at a later time by using the internal symbol `::symbol` (where symbol is the symbol whose size you want to get.)
 |`#SP [expr]`       |`#SP` *without any expression cancels `#SP1` and `#SPAUTO` modes (reverts to default/normal operation).<br><br>`#SP` *followed by any expression (including a zero value) sets the `:SP` offset to the value of that expression but does not affect the current `#SPAUTO` mode.<br><br>The assembler always starts in plain `#SP` mode (no offsets).
 |`#SP1 [expr]`      |`#SP1` *automatically adds one to all SP-indexed offsets. It does this without affecting the current value of the `:SP` internal symbol.<br><br>When `#SP1` is enabled, all SP-indexed instructions use the same (zero-based) offsets as their corresponding X-indexed instructions right after a `TSX` instruction. This allows using the same [named or numeric] offsets for both addressing modes to access the same memory location(s)!
-|`#SPAUTO [expr][,expr]`|`#SPAUTO` (or its shorter alias, `#SPA`) will automatically adjust the offset based on the instructions used. All push and pull instructions (including the extra ones) as well as all `AIS` instructions will automatically adjust the offset by as many bytes as required by each instruction. Use the `#SP` directive (without any parameter offset, not even zero) to turn off the `#SPAUTO` mode and zero the SP offset (or, use `#SPAUTO` with the special `#OFF#` parameter to turn off the `#SPAUTO` mode without changing the current SP offset.)<br><br>Since v8.90 `#SPAUTO` takes an optional second argument (any valid constant expression). If this value is specified, then the assembler (while in `SPAUTO` modes) will produce warnings when the stack depth increases beyond the value of the given expression. This value will remain active until it is explicitly turned off by using `-1` in a subsequent `#SPAUTO` directive (e.g., `#SPAUTO ,-1`). The current value of this expression you can find in the internal variable `:SPLIMIT`<br><br>The maximum actual stack depth used will be in the* `:SPMAX` variable which is reset only when `:SPLIMIT` is rewritten with a new value. This allows to check the maximum stack depth for a single routine, a collection of routines (e.g., in a module), or the whole application.
+|`#SPAUTO [expr][,expr]`|`#SPAUTO` (or its shorter alias, `#SPA`) will automatically adjust the offset based on the instructions used. All push and pull instructions (including the extra ones) as well as all `AIS` instructions will automatically adjust the offset by as many bytes as required by each instruction. Use the `#SP` directive (without any parameter offset, not even zero) to turn off the `#SPAUTO` mode and zero the SP offset (or, use `#SPAUTO` with the special `#OFF#` parameter to turn off the `#SPAUTO` mode without changing the current SP offset.)<br><br>Since v8.90 `#SPAUTO` takes an optional second argument (any valid constant expression). If this value is specified, then the assembler (while in `SPAUTO` modes) will produce warnings when the stack depth increases beyond the value of the given expression. This value will remain active until it is explicitly turned off by using `-1` in a subsequent `#SPAUTO` directive (e.g., `#SPAUTO ,-1`). The current value of this expression you can find in the internal variable `:SPLIMIT`<br><br>The maximum actual stack depth used will be in the `:SPMAX` variable which is reset only when `:SPLIMIT` is rewritten with a new value. This allows to check the maximum stack depth for a single routine, a collection of routines (e.g., in a module), or the whole application.
 |`#SPADD [expr]`    |`#SPADD` adds a [signed] number to the current value of the `:SP` offset (regardless of mode). It does not reset the `:SPCHECK` variable, as with `#SPAUTO`.<br><br>If the optional signed expression is present, its value will be added, also. This makes it easier to adjust for any stack depth changes, such as for subroutines or in-line stack changes.<br><br>Manual alterations of the stack size, however (such as when you push an extra byte per loop iteration) cannot be automatically detected as the assembler will not follow your code's logic. In those cases, you'll have to adjust the offset 'manually' using `#SPADD` and an appropriate offset, like so: `#SPADD LOOPCOUNT-1`<br><br>`#PUSH` and `#PULL` will save/restore the current setting of all modes of this option.<br><br>_See also internal symbols_ `:SP` and `:SP1` _and the simulated indexed modes_ `,ASP` and `,LSP`
 |`#SPCHECK`         |`#SPCHECK` checks the current value of the `:SP` internal symbol against the last used `#SPAUTO` value (found in `:SPCHECK` internal symbol), and issues a warning if the two numbers do NOT match, indicating a possible unbalanced stack situation (assuming correct placement of the relevant directives).<br><br>The current difference between `:SP` and `:SPCHECK` is found in `:SPFREE` (e.g., use with `AIS #:SPFREE`)<br><br>The warning also shows the number of bytes by which the stack is off. This can be used as a first-line of defense against unbalanced stack coding errors, especially in situations where there is heavy manipulation of the stack, and a visual inspection may prove confusing. Positive numbers indicate the stack contains so many extra bytes. Negative numbers indicate the stack is missing so many bytes.<br><br>Hint: If you do not wish to use the `#SPAUTO` function for a particular section of code (or anywhere in your program) you can still temporarily place the `#SPAUTO` directive at the beginning of a code section to check, and the `#SPCHECK` at the end of the same code section, until you verify there are no related compilation warnings. Then you can remove the two directives (possibly even with the use of conditional directives), and continue with other coding work.<br><br>_See also_ `#SPAUTO`
 |`#X [expr]`        |When `#X` is enabled (i.e., followed by a non-zero signed offset), all X-indexed instructions will have that offset value automatically added to them (on top of whatever offset is actually specified with the instruction). This has a lot of potential uses, such as pointer adjustments (after `TSX`), or anytime the same constant needs to be added to a series of X-indexed instructions within a block of code.<br><br>`#PUSH` and `#PULL` will save/restore the current setting of this option.<br><br>The assembler always starts in plain `#X` mode (no offsets).<br><br>_See also internal symbol_ `:X` _and the simulated indexed mode_ `,AX`
@@ -867,9 +907,9 @@ a                   remacro
 |`#PAGE`            |Outputs a Form Feed (ASCII 12) character followed by a Carriage Return (ASCII 13) in the .LST file just before displaying the line that contains this directive.
 |`#PUSH`            |Pushes on an internal stack the current segment and the current settings of the following directives: `MAPx`, `LISTx`, `CASEx`, `EXTRAx`, `SPACESx`, `OPTRELx`, `OPTRTSx`, `[NO]WARN`, `HCSx`, `MMU`, `JUMP`, `CALL`, `S1`, `S2`, `SP1`, `SP`, `SPAUTO`, `X`, `TRACEx`, `MACRO`, `@MACRO`, `MCF`, `MACROSHOW`, `MACROHIDE`, various SP-based offsets (eg., `:AIS`), `:PSP`, `:PPC`, `TRACE[ON/OFF]`, `MLISTx`, and `TABSIZE`. Useful in included files that want to change any of these options without affecting parent files.<br><br>_See also_ `#PULL`
 |`#PULL`            |Pulls from an internal stack the most recently pushed options.<br><br>_See also_ `#PUSH`
-|`#RAM`             |Activation of the RAM segment. Default starting value is `$0080`.
-|`#ROM`             |Activation of the ROM segment. Default starting value is `$C000`. This is the default segment if none is specified.
-|`#SEGn`            |Activation of the SEGn segment (n is a number from 0 through 9). Default starting value for all ten segments is `$0000`.
+|`#RAM [expr]`      |Activation of the RAM segment. Default starting value is `$0080`.
+|`#ROM [expr]`      |Activation of the ROM segment. Default starting value is `$C000`. This is the default segment if none is specified.
+|`#SEGn [expr]`     |Activation of the SEGn segment (n is a number from 0 through 9). Default starting value for all ten segments is `$0000`.
 |`#TABSIZE n`       |Specifies the field width of tab stops used in the source file. Proper use of this directive ensures that the *.LST files generated by ASM8 are formatted in the same way as your source files appear in your text editor. This directive overrides the setting of the `-Tn` command line option for the source file(s) in which it is encountered.
 |`#TEMP [expr]`     |`#TEMP` simply assigns any value (possibly the result of an non-forward expression) to the internal general-purpose `:TEMP` variable. If no expression follows `#TEMP`, `:TEMP` is zeroed.<br><br>`:TEMP` can be used any time in lieu of defining any 'helper' symbol for intermediate calculations (either inside or outside macros). The only restriction is that `:TEMP` always refers to the most recent `#TEMP` directive, so it cannot be used to look forward.<br><br>Although `:TEMP` is a single variable, its use is transparent in relation to macros. In other words, changing `:TEMP` from within any macro does not affect the value of `:TEMP` outside that macro, regardless of nesting level.<br><br>Although macros inherit their initial value of `:TEMP` from their higher level (either a caller macro, or normal code), they do not affect their parent's `:TEMP` value, so you can use it without worrying about side effects from any intermediate macro calls.<br><br>`:TEMP` is also assigned indirectly when used as label with any of the following directives/pseudo-ops: `NEXT`, `NEXP`, `SETN`, and `#AIS`
 |`#TEMP1 [expr]`    |`#TEMP1` works exactly like `#TEMP` providing additional storage.
@@ -878,14 +918,14 @@ a                   remacro
 |`#TRACEOFF`        |`#TRACEOFF` turns this option off making macros appear as a single line in the debugger. `#TRACEOFF` is the default state when assembly is started.
 |`#VARIABLE addr1 [addr2]`|Maps a location (or range, if addr2 is also supplied) of variable allocation area (normally in RAM) as valid. Use multiple directives to specify additional ranges. Any `RMB` or `DS` definitions that fall (fully or partially) outside the given range(s) will produce a warning (if the -O option is enabled) for each such definition. Addr1 and addr2 may be specified in any order. The range defined will always be between the smaller and the higher values.
 |`#VARIABLE #OFF#`  |The special keyword `#OFF#` removes all current definitions. <br><br>_See also_ `#MEMORY`
-|`#VECTORS`         |Activation of the VECTORS segment. Default starting value is `$FFC0`.
+|`#VECTORS [expr]`  |Activation of the VECTORS segment. Default starting value is `$FFC0`.
 |`#WARN`            |Turns warnings on. Equivalent to the `-WRN+` command line option.<br><br>_See also_ `#NOWARN`
 |`#WARNING [text]`  |Similar to the `#ERROR` directive, but generates an assembler warning message instead of an error message.
-|`#XRAM`            |Activation of the XRAM segment. Default starting value is `$0100`.
-|`#XROM`            |Activation of the XROM segment. Default starting value is `$8000`.
+|`#XRAM [expr]`     |Activation of the XRAM segment. Default starting value is `$0100`.
+|`#XROM [expr]`     |Activation of the XROM segment. Default starting value is `$8000`.
 
 Macros
---------------------------------------------------------------------------------
+================================================================================
 
 -   Macros must be defined anytime before they are invoked, and they can be
     invoked until the end of the current assembly (for global macros), end of
@@ -1235,7 +1275,7 @@ Macros
   for details) . Macro-chaining will be altogether disabled, however.
 * To break out of an accidental endless macro loop, press [ESC] on the command-line.
 * Macro labels may be case-sensitive (depending on `#CaseOn`/`Off` directives)
-  when defined, but are always case-insensitive when invoked (like normal opcode
+  when defined, but are always case-insensitive when invoked (like normal mnemonic
   names). Tip: A case-sensitive macro definition is important when using the
   `~0~`, `~00~`, and `~macro~` placeholders to have it correctly match a normal
   label named the same as the macro, under #CaseOn mode.
@@ -1272,7 +1312,7 @@ CountLines          macro     [Limit][,Description]
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 String Expressions and Formatting
---------------------------------------------------------------------------------
+================================================================================
 
 Note: [text] in directives and all strings may contain nested expressions
 enclosed in curly brackets, e.g. `{expr}`. The expression may not contain spaces
@@ -1280,7 +1320,10 @@ enclosed in curly brackets, e.g. `{expr}`. The expression may not contain spaces
 format modifier (case-insensitive) within parentheses after the expression can
 force the display in the specified format.
 -  `(D)` for default/decimal,
--  `(H)` for hex,
+-  `(H)` for hex word or long with leading $,
+-  `(B)` for hex byte without leading $,
+-  `(W)` for hex word without leading $,
+-  `(L)` for hex long without leading $,
 -  `(S)` for signed decimal,
 -  `(1)` thru `(4)` (or, thru `(9)` for the 32-bit versions) for the
    corresponding number of decimal places after division by 10^n^ where n is a
@@ -1366,7 +1409,7 @@ instead of `fcc '{Hello}'` which tries to evaluate the symbol `Hello` use:<br>
 `fcc '{','Hello}'`.
 
 Internal symbols
---------------------------------------------------------------------------------
+================================================================================
 
 Some special internal symbols are always defined by the assembler. All such
 symbols begin with a single colon (`:`) character. Currently, the following
@@ -1467,7 +1510,7 @@ internal symbols are defined:
 
 -   `:X` returns the current offset of the `#X` directive.
 
--   `:YEAR` returns the year at assembly time (e.g., 2020) Hint: Use `:YEAR\100`
+-   `:YEAR` returns the year at assembly time (e.g., 2021) Hint: Use `:YEAR\100`
      for two-digit year.
 
 -   `:MONTH` returns the month at assembly time (e.g., 2)
@@ -1482,7 +1525,9 @@ internal symbols are defined:
 
 -   `:CPU` returns a number representing the CPU type (`6808` for older 68HC08, or `908` for newer 9S08)
 
--   `:CRC` returns the current value of the running user CRC
+-   `:VERSION` returns the assembler version as integer with two implied decimal digits.
+
+-   `:CRC` returns the current value of the running user CRC.
 
 -   `:S19CRC` returns the current value of the running S19 CRC.
 
@@ -2112,10 +2157,8 @@ Loop@@              aix       #-1
 DELAY@@             equ       10*BUS_KHZ-:cycles-:ocycles/:temp
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-(`SET` instead of `EQU` allows re-using symbols, so you can use it to
-accumulate related cycles.)
-
-Example assembly code for calculating user CRC:
+Example assembly code for calculating user CRC
+================================================================================
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;*******************************************************************************
@@ -2185,6 +2228,7 @@ Done@@              pull
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Example coding for skipping CRC calculation for volatile sections:
+--------------------------------------------------------------------------------
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ?crc                set       :crc                ;use SET, not EQU
@@ -2194,9 +2238,18 @@ Example coding for skipping CRC calculation for volatile sections:
                     #CRC      ?crc
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+or, in more recent ASM8 versions, you could use the `#temp` directive (preferred):
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    #temp     :crc
+
+          ;CODE/DATA TO SKIP FROM CRC CALCULATION HERE
+
+                    #CRC      :temp
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 Expression Operators and Other Special Characters<br>
 ================================================================================
-
 
 -   Expressions are evaluated in the order they are written: left to right.
     **All operators have equal precedence.**  Many other assemblers behave the
@@ -2244,6 +2297,8 @@ Expression Operators and Other Special Characters<br>
 |```'`"```|Any one of these characters _(single, back, or double-quote)_ may be used to enclose a string or character entity.  The character used at the start of the string must be used to end it.
 |`#`     |Specifies immediate addressing mode
 |`@`     |Specifies direct addressing mode (same as `<`)
+|`&&`    |`#if[n]def` logical AND between terms (has precedence over logical OR).
+|`¦¦`    |`#if[n]def` logical OR between terms.
 
 ASM8 Extended Instruction Set
 =============================
@@ -2320,7 +2375,7 @@ used just like normal instructions, but NOT like user-defined macros.
 |`XGAH`             |Same as: `PSHA` / `THA` / `PULH`
 |`XGHX`             |Same as: `PSHH` / `TXH` / `PULX`
 
-Error and Warning Messages
+Error, Warning, and Hint Messages
 =========================================
 
 This section provides the lists of error and warning messages.
@@ -2330,13 +2385,17 @@ usable code. If there is even a single error during assembly, no files will be
 created (except for the ERR file, if one was requested).
 
 [Warnings][] inform the user about problems that do not prevent the assembler from
-producing usable code but the code produced may not be what was intended, or it
-may be inefficient. A program that has warnings may be totally correct and run
-as expected.
+producing code but the code produced may not run exactly as intended, or it may
+be inefficient. A program that has warnings may be totally correct and run as
+expected.
+
+[Hints][] inform the user about problems that do not prevent the assembler from
+producing correct code but there may be optimization opportunities.
 
 Errors and warnings that begin with '`USER:`' are generated by `#ERROR` and
 `#WARNING` directives, respectively. The source code author decides their
-meaning and importance.
+meaning and importance.  Hints generated by the `#HINT` directive do not begin
+with '`USER:`', however.
 
 In the lists below, what's enclosed in angle brackets (`<` and `>`) is a
 _variable_ part of the message. That is, it is different depending on the source
@@ -2365,7 +2424,7 @@ Errors
 |`Invalid second argument`                              |The second value or expression supplied is not correct.
 |`Missing value between commas`                         |Found two (or more) commas without a value in between.
 |`Possibly duplicate symbol "<SYMBOL>"`                 |The symbol shown has already been defined. The word 'possibly' suggests that a symbol may have been truncated to 19 (or `#MaxLabel`) characters, and thus not appear duplicate to the user, only to the assembler. It also suggests that the original may have been written for case-sensitive assembly but you turned the option off.
-|`Repeater value is invalid`                            |The repeater value (the :n part of the opcode) is a positive integer number.
+|`Repeater value is invalid`                            |The repeater value (the :n part of the mnemonic) is a positive integer number.
 |`Symbol "<SYMBOL>" contains invalid character(s)`      |The symbol shown contains characters that are used in special ways and, therefore, cannot be part of a symbol because they will cause ambiguities. For example, a quote within a symbol is not allowed.
 |`Undefined symbol "<SYMBOL>" or bad number`            |The string shown is either a symbol that hasn't been defined at all, or it is a number that has some error, for example: `$ABCH` and `$FFFFF` are not valid hex numbers. The first contains an invalid character while the second is greater than 16 significant bits (`$FFFF`) in non-MMU mode.
 |`USER: <USER TEXT>`                                    |This is a user generated error via the `#ERROR` directive.
@@ -2381,7 +2440,7 @@ Errors
 |`Missing branch address`                               |`BRSET` and `BRCLR` require a target address for branching to but one was not supplied. The branch target is the last part of the operand and it can be any valid expression.
 |`Missing INCLUDE filename`                             |An `#INCLUDE` directive was supplied without any [path and] filename.
 |`Missing required first address`                       |A `#MEMORY`/`#VARIABLE` directive was encountered without any value or expression.
-|`Repeater value out of range (1-32767)`                |The repeater value (the `:n` part of the opcode) must be from 1 to 32767.
+|`Repeater value out of range (1-32767)`                |The repeater value (the `:n` part of the mnemonic) must be from 1 to 32767.
 |`Required string delimiter not found`                  |You have supplied only one quote to a string, or the string is inappropriately separated from the previous or next operand. For example: `'ABC'CR` lacks a comma between the quote and the CR symbol. So, the found string `ACB'CR` is invalid.
 |`Symbol "<SYMBOL>" does not start with A..Z, . or _`   |All symbols must start with one of the above characters. (File-local symbols start with a `?`)
 |`Symbol "<SYMBOL>" is reserved for indexing modes`     |You have used a symbol named X or Y. These names are not allowed because they cause ambiguities with the X and Y registers in the various indexed mode instructions.
@@ -2402,7 +2461,6 @@ Warnings
 
 |Warning            |Meaning|
 |:------------------|:---------------------------------------------------------|
-|`Direct mode wasn't used (forward reference?)`             |Automatic Direct Mode detection requires that symbol(s) used be defined in advance. You should either define the referenced symbol(s) earlier in your code, or use the Direct Mode Override (`<`) to force the assembler to use Direct Addressing Mode.
 |`Label on left side of END line ignored`                   |The `END` directive does not take a label. If one is used it will be ignored (it will not be defined).
 |`Label on left side of ORG line ignored`                   |The `ORG` directive does not take a label. If one is used it will be ignored (it will not be defined).
 |`Trailing comma ignored`                                   |A multiple-parameter pseudo-instruction was used (such as `FCB` and `DW`) and a comma was found at the end of the parameter list. This may indicate the list is separated by both commas and spaces. You must either remove the spaces or assemble with `#SPACESON` (or the `-SP+` option).
@@ -2419,16 +2477,12 @@ Warnings
 |`Operand is larger than 16 bits, using low 16-bits`        |The operand is greater than 16 bits but the instruction can only accept a 16-bit operand. The lower word was used.
 |`Operand is larger than 8 bits, using low 8-bits`          |The operand is greater than 8 bits but the instruction can only accept an 8-bit operand. The lower byte was used.
 |`Possible memory wraparound at address $VALUE (DEC_VALUE)` |It seems like you have reached the end of memory (`$FFFF`) and caused the Program Counter to wrap around to zero. In some situations this may be intentional. Using RMB 2 (rather than FDB or DW) in the vector for RESET will also give this warning but it should be ignored. The address shown is the beginning address of the [pseudo-] instruction that caused the wraparound.
-|`A JUMP was used when a BRANCH would also work`            |You could have used a Branch instead of a Jump. This will make your code one byte shorter for each warning. Controlled by the -REL (OPTRELxx) option. A CALL instruction, when used as a JSR (either directives `#NoMMU` and `#JUMP` or command-line options `-MMU-` and `-J+` are in effect) will NOT display this warning (if using the latest version and build). This is so you do not have to use `#OptRelOff`/`#OptRelOn` around all calls when not in MMU mode.
 |`Attempting operation with missing first operand`          |An operation was attempted without an operand before the operator. For example `/3` (divide by 3) is missing the dividend.
-|`JSR/BSR followed by unlabeled RTS => JMP/BRA`             |You could safely replace the sequence `JSR`/`RTS` or `BSR`/`RTS` to a single `JMP` or `BRA`, accordingly. The code will remain equivalent but you will gain a byte of memory, two bytes of stack space, and also make it a little faster. It will, however, make your source-code less user-friendly and a bit harder to follow. It should probably be done only when speed is very important or if you're running out of space and must save every byte you can. WARNING: In certain situations, the code is dependent on the return address pushed on the stack by a `JSR` or `BSR` instruction. In those cases, do NOT replace with `JMP`/`BRA` because the code will not run correctly. It is assumed you know the code you're working on. Controlled by the `-RTS` (`OPTRTSxx`) option.
 |`No ORG (RAM:$0080 ROM:$F600 DATA:$FE00 VECTORS:$FFDE)`    |ASM8 started producing code/data without having been told explicitly where to put it. A segment directive may have been used, however, with its default value. NOTE: You will only get this warning once no matter how many segments you are using. This means that you may be required to add `ORG`s for each segment or else the default values will be used.
 |`Phasing on <SYMBOL> (PASS1: $<VALUE>, PASS2: $<VALUE>)`   |The symbol shown was defined two or more times using different values. The values given may help you determine the type of the problem more quickly, whether it's a duplicate label with the same purpose, or a completely random use of the same symbol name. The assembler will attempt to use the last (most current) value for this symbol.
 |`TABSIZE must be a positive integer number, not changed`   |The `TABSIZE` directive requires a positive integer, and one wasn't supplied. The current tab size was not altered.
 |`Unrecognized directive "<DIRECTIVE>" ignored`             |Something that looks like a directive (i.e., begins with `#` or `$` and appears first in a line after the white-space) was encountered but it wasn't a valid one. Check spelling. If spelling seems correct, you may be assembling someone else's code written for a later version of ASM8 that supports additional directives your version doesn't understand.
 |`USER: <USER TEXT>`                                        |This is a user generated warning via the `#WARNING` directive
-|`Branching to next instruction is needless`                |You are using a branch instruction (other than `BSR`) to send control to the immediately following instruction. This is the default action of the CPU, so this instruction is not required. Controlled by the `-REL` (`OPTRELxx`) option.
-|`Jumping to next instruction is needless`                  |You are using a jump instruction (other than `JSR`) to send control to the immediately following instruction. This is the default action of the CPU, so this instruction is not required. Controlled by the `-REL` (`OPTRELxx`) option.
 |`Instruction BGND is only valid in BDM`                    |This instruction is practically never used in a user program (except perhaps to force an illegal opcode exception). It's only good for debugging purposes in the special `BGND` mode of HCS08 CPUs only. Not applicable to the HC08 CPU. Available only in `-HCS+` (`HCSON`) mode. You can prepend a `!` to silence the warning.
 |`Attempt to JUMP to page. Use CALL instead.`               |You are using a jump instruction to send control to paged code (when in MMU mode, only). This will never work if jumping from one page to another, and it might work if jumping from non-page to page (but only if `PPAGE` is set correctly before the `JMP`).
 |`:INTERNAL_SYMBOL is useless outside of #SP[AUTO] mode(s)` |You are using the shown stack related internal symbol (such as `::`, `:SP`, `:SPFREE`, etc.) outside of `#SP[AUTO]` modes. The produced stack offset may be pointing to an incorrect stack location.
@@ -2436,14 +2490,85 @@ Warnings
 |`Invalid SP offset (<VALUE>)`                              |When the effective SP offset for any SP-indexed instruction is less than 1 (a condition normally not allowed except in extraordinary situations and only with interrupts disabled), this warning shows the effective SP offset you're attempting to use. If the action is intended (very unlikely), you can turn off the warning by enclosing the affected instruction(s) in `#NoWarn` / `#Warn` directives.<br><br>This warning is particularly useful with `::` defined labels in `#SP[AUTO]` modes, protecting you from using a symbol that refers to already released stack, which due to the automatic SP offset adjustment will point to a true offset of less than 1.
 |`<"Symbol"> symbol size truncated`                         |Automatically generated symbols (e.g., PROC-local `@@` and macro-local `$$$` containing symbols) have expanded to a size of more than 19 characters, and this may cause problems with "duplicate symbol" errors. To correct, or avoid this problem, use shorter local symbol names (say, no more than ten characters).
 
+Hints
+-----
+
+|Hint               |Meaning|
+|:------------------|:---------------------------------------------------------|
+|`A JUMP was used when a BRANCH would also work`            |You could have used a Branch instead of a Jump. This will make your code one byte shorter for each warning. Controlled by the -REL (OPTRELxx) option. A CALL instruction, when used as a JSR (either directives `#NoMMU` and `#JUMP` or command-line options `-MMU-` and `-J+` are in effect) will NOT display this warning (if using the latest version and build). This is so you do not have to use `#OptRelOff`/`#OptRelOn` around all calls when not in MMU mode.
+|`JSR/BSR followed by unlabeled RTS => JMP/BRA`             |You could safely replace the sequence `JSR`/`RTS` or `BSR`/`RTS` to a single `JMP` or `BRA`, accordingly. The code will remain equivalent but you will gain a byte of memory, two bytes of stack space, and also make it a little faster. It will, however, make your source-code less user-friendly and a bit harder to follow. It should probably be done only when speed is very important or if you're running out of space and must save every byte you can. WARNING: In certain situations, the code is dependent on the return address pushed on the stack by a `JSR` or `BSR` instruction. In those cases, do NOT replace with `JMP`/`BRA` because the code will not run correctly. It is assumed you know the code you're working on. Controlled by the `-RTS` (`OPTRTSxx`) option.
+|`Branching to next instruction is needless`                |You are using a branch instruction (other than `BSR`) to send control to the immediately following instruction. This is the default action of the CPU, so this instruction is not required. Controlled by the `-REL` (`OPTRELxx`) option.
+|`Jumping to next instruction is needless`                  |You are using a jump instruction (other than `JSR`) to send control to the immediately following instruction. This is the default action of the CPU, so this instruction is not required. Controlled by the `-REL` (`OPTRELxx`) option.
+|`Direct mode wasn't used (forward reference?)`             |Automatic Direct Mode detection requires that symbol(s) used be defined in advance. You should either define the referenced symbol(s) earlier in your code, or use the Direct Mode Override (`<`) to force the assembler to use Direct Addressing Mode.
+|`Shorter form wasn't used (forward reference?)`            |There is a shorter instruction for this memory location but it wasn't used possible due to forward references.
+
+Local Symbols
+================================================================================
+
+File-local Symbols
+--------------------------------------------------------------------------------
+
+All symbols that begin with a question mark [`?`] are considered to be local on
+a per-file basis. Each `INCLUDE` file (as well as the main file) can have its
+own locals that will not interfere with same named symbols of the remaining
+participating files.
+
+Advantages:
+
+1. Symbols can be re-used in another `INCLUDE` file in a completely different
+way.
+
+2. Local symbols are not visible outside the file that contains them.
+
+This last benefit makes it possible to write quite complex `INCLUDE` files while
+making only the global variables and subroutine entry labels visible to the
+outside.
+
+Procedure-local Symbols
+--------------------------------------------------------------------------------
+
+All symbols that contain [`@@`] are considered to be local on a per-proc basis.
+Each `proc` can have its own locals that will not interfere with same named
+symbols of the remaining procs.
+
+See the `#PROC` and `PROC` directives for details.
+
+Advantages:
+
+1. Symbols can be re-used in another `proc` in a completely different way.
+
+2. Proc-local symbols are not visible outside the `proc` that contains them.
+
+This last benefit makes it possible to write quite complex procedures while
+making only the subroutine entry label visible to the outside.
+
+Macro-local Symbols
+--------------------------------------------------------------------------------
+
+All symbols that contain [`$$$`] are considered to be local on a per-macro
+invocation basis.  Each `macro` can have its own locals that will not interfere
+with same named symbols of the remaining macros or the different invocations of
+the same macro, even when calling itself.
+
+See the `macro` directives for details.
+
+Advantages:
+
+1. Symbols can be re-used in another macro invocation in a completely different way.
+
+2. Macro-local symbols are not visible outside the macro invocation that contains them.
+
+This last benefit makes it possible to write quite complex macros while
+hiding all internal labels from outside access.
+
 ASM8's Miscellaneous Features
 ================================================================================
 
 Repeaters
 ---------
 
-Each opcode or pseudo-opcode (but not macro calls) may be suffixed by a colon [:]
-and a positive integer or expression evaluating to a number between 1 and 32767.
+Each mnemonic (but not macro calls) may be suffixed by a colon [:] and a positive
+integer or expression evaluating to a number between 1 and 32767.
 This is referred to as the repeater value.
 
 Some examples:
@@ -2452,6 +2577,8 @@ Some examples:
                     lsra:4                        ;Move high nibble to low
 
                     fcb:256   0                   ;Create a table of 256 zeros
+
+                    fcb:{COUNT+1} 0               ;Create a table of expression COUNT+1 zeros
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Segments
@@ -2478,28 +2605,6 @@ the initial default values) and they are interchangeable. Use of segments is
 optional. If segments aren't used, you are always in the default `#ROM` segment
 (which explains why code assembles beginning at `$F600`).
 
-Local Symbols
---------------------------------------------------------------------------------
-
-All symbols that begin with a question mark [`?`] are considered to be local.
-Local symbols are local on a per-file basis. Each `INCLUDE` file (as well as the
-main file) can have its own locals that will not interfere with same named
-symbols of the remaining participating files.
-
-This has two advantages:
-
-First, symbols can be re-used in another `INCLUDE` file in a completely different
-way.
-
-Second, local symbols are not visible outside the file that contains them.
-
-This last benefit makes it possible to write quite complex `INCLUDE` files while
-making only the global variables and subroutine entry labels visible to the
-outside.
-
-_Note_: You can also have procedure-local symbols. See the `#PROC` and `PROC`
-directives for details.
-
 Using `BSR`, `JSR`, and `CALL` instructions efficiently
 --------------------------------------------------------------------------------
 
@@ -2508,10 +2613,14 @@ when calling subroutines, the following advice will help you keep your sanity
 in larger applications, so make it a habit to always do so in your programs.
 
 Use `BSR` and `JSR` instructions exclusively for calling file local subroutines.
+(And this, assuming each file is only meant to reside in the same block of memory.
+In other words, a single file will be in the same logical memory space, whether that
+is non-paged, or paged memory for MMU equipped MCUs.)
+
 File local subroutine names start with `?`.  And, if the appropriate ASM8 option
-is turned on, you'll be warned to change `JSR` to `BSR` when the distance is
-close enough, saving a byte for each change.  Or use `!JSR` to avoid warning.
-Make sure to terminate those subroutines with the `RTS` instruction.
+is turned on, you'll be hinted to change `JSR` to `BSR` when the distance is
+close enough, saving a byte for each change.  Or use `!JSR` to avoid the hint.
+Make sure to terminate those subroutines with an `RTS` instruction.
 
 Use `CALL` instructions to call global subroutines, i.e., subroutines with names
 not beginning with `?`.  Important: Global subroutines can be defined in the
@@ -2525,47 +2634,64 @@ with `BSR` or `JSR`.  Look at the name instead.  If it starts with `?` use
 to local or vice-versa, make the necessary changes to all calls and don't
 forget to change the return instruction, also.  Alternatively, add a wrapper
 subroutine so that your subroutine can effectively be called either way;
-locally, by using the `?` beginning name, and globally, otherwise.  Two entry
-points.  Like so:
+locally for better efficiency, by using the `?` beginning name, and globally,
+otherwise.  Two entry points, preferably named the same except for the leading
+`?` to mark the file-local version (as per assembler requirement).  Like so:
 
-```
-Sub                 proc
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    #spauto   :ab
+
+Sub                 proc                          ;global entry to be CALL-ed
+                    push                          ;save whatever caller's registers are used in our proc (if any)
+                    #ais
+
+                    ...
                     bsr       ?Sub
+                    ...
+
+Done@@              ais       #:ais               ;de-allocate local stack variables (if any)
+                    pull                          ;restore caller's registers
                     rtc
 
-?Sub                proc
+;******************************************************************************
+
+                    #spauto   2
+
+?Sub                proc                          ;file-local entry to be BSR/JSR-ed
+                    push                          ;save whatever caller's registers are used in our proc (if any)
+                    #ais
+
                     ...
+
+Done@@              ais       #:ais               ;de-allocate local stack variables (if any)
+                    pull                          ;restore caller's registers
                     rts
-```
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+(Care must be taken when `?Sub` uses parent's stack variables.  These must be
+copied from the global `Sub` before the `BSR` to `?Sub` and the results copied
+back to the parent stack after the `BSR` to `?Sub`.)
 
 The `CALL` instruction is normally only available in MMU equipped variants of
-9S08 MCUs.  But, by default, the assembler will automatically convert `CALL`
-and `RTC` to `JSR` and `RTS`, respectively when `#NoMMU` mode option is given.
-It will also not issue warnings when the target gets too close for a `BSR`
-instruction.
+9S08 MCUs.  But, by default configuration, the assembler will automatically
+convert all `CALL` and `RTC` instructions to `JSR` and `RTS` ones, respectively
+but only when in `#NoMMU` (`-mmu-` command-line) mode.
+
+It will also not issue hints when the target gets too close for a `BSR`
+instruction as you wouldn't want to change these to `BSR` so they continue
+working when the code (e.g. a general library) is also used in MMU mode in
+some other application.
 
 This makes your code 100% compatible with both MMU and non-MMU variants.
 All you need is to use the `#MMU` or `#NoMMU` directive, respectively.
-(Usually, this is done inside the MCU specific include file, only once.)
+(Normally, this would be done inside the MCU specific include file, only once
+for each MCU.)
 
 If using ASM8's automatic stack offset adjustments (highly recommended),
-your global subroutines will look like:
+your global subroutines include the `#spauto` directive as shown in
+the previous example:
 
-```
-                    #spauto   :ab
-Sub                 proc
-                    ...
-                    rtc
-```
-
-while the local subroutines will look like:
-
-```
-                    #spauto   2
-?Sub                proc
-                    ...
-                    rts
-```
+The `:ab` will be converted to 3 when in MMU mode, and 2 when out of MMU mode.
 
 Marking big blocks as comments
 --------------------------------------------------------------------------------
@@ -2605,7 +2731,7 @@ An example follows:
           #Hint     ******************************************
           #Hint     * DEBUG: Turns on debugging code
           #Hint     * QE128: Target is MC9S08QE128
-          #Hint     * GP...: Target is MC68HC908GP32
+          #Hint     * GP   : Target is MC68HC908GP32
           #Hint     ******************************************
           #Fatal    Run ASM8 -Dx (where x is any of the above)
 #endif
@@ -2618,7 +2744,8 @@ simply try assembling with the `-D?` option and you will get help. (A question
 mark is the smallest possible local symbol you can define. It is a perfect
 candidate for this job as it is easy to remember because it's like asking for
 help, and also because it is only visible in the main file. You could, of
-course, use any other symbol name you like, but be consistent.)
+course, use any other symbol name you like, but be consistent or you'll lose
+the benefit of this 'trick'.)
 
 Using `-Dx` with specific values
 --------------------------------
@@ -2632,19 +2759,22 @@ locations on the fly. For example, the following program:
 
 ROM                 def       $F800               ;Default ROM location
 
-                    org       ROM
-Start               rsp                           ;the program begins here
+                    #ROM      ROM                 ;(switch to ROM segment and ORG it at ROM)
+
+Start               proc
+                    rsp                           ;the program begins here
                     ...                           ;(left to imagination)
                     bra       *                   ;the program ends here
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 will be assembled at `$F800` with the command `ASM8 SAMPLE` but you could also
-assemble with a command similar to this: `ASM8 SAMPLE -DROM:$8000` to move ROM
+assemble with a command similar to this: `ASM8 SAMPLE -dROM:$8000` to move ROM
 to a different location at assembly time. (You can use either `:` or `=` to
-assign a value.)
+assign a value to the symbol.)
 
-As another example, you could declare an array where you define the dimension
-during assembly. No need to edit the source.
+As another example, you could declare an array where you override the default
+dimension during assembly. No need to edit the source.  The same source could
+produce different versions.
 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ;SAMPLE.ASM
@@ -2657,8 +2787,8 @@ ARRAYSIZE           set       2                   ;Minimum size for array
           #endif
                     #RAM
 
-Status              rmb       ARRAYSIZE
-Pointer             rmb       ARRAYSIZE*2
+status              rmb       ARRAYSIZE           ;status for each object
+.object             rmb       ARRAYSIZE*2         ;pointer to each object
                     ...
 
                     #ROM
@@ -2668,65 +2798,6 @@ Start               proc                          ;the program begins here
                     ...                           ;(left to imagination)
                     bra       *                   ;the program ends here
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-My own source code style and naming convention
---------------------------------------------------------------------------------
-
-*Hungarian notation is never used.*
-
-`MY_CONSTANTS` are always uppercase and separate words by underscores.
-
-`my_variables` are always lowercase and separate words by underscores.
-
-`_MY_OFFSETS_` are constants surrounded by underscores.
-
-`.my_pointers` are variables beginning with a point (i.e., they point to
-something)
-
-`MyRoutines` are CamelCase names. They may also use underscores mostly to
-separate module from function name, as in `InitializeSCI` which could also be
-written as `Initialize_SCI` or `SCI_Initialize`
-
-File local symbols follow the above rules but always start with `?` (question
-mark). Example: `?my_variable`
-
-Proc local symbols follow the above rules but always end with `@@`, example:
-`Loop@@`
-
-Macro local symbols follow the above rules but always end with `$$$`, example
-`Loop$$$`
-
-Comments always start with a semicolon. Macro comments that do not need
-expansion start with a double semicolon.
-
-Labels are defined starting in column 1 and use the default maximum label length
-of 19 so they remain compatible with _P&E Micro_ map files.
-
-Opcodes, pseudo opcodes (e.g., `ORG`) start in column 21.
-
-Operands start in column 31.
-
-Comments start in column 51 unless a long operand pushes them further to the
-right, separated by at least one (preferrably two) space character(s).
-
-Procs are separated with an 80-char comment line full of asterisks that always
-begins with a semicolon.
-
-A non-trivial proc uses a header with `Purpose`, `Input`, `Output`, and
-`Note(s)` that describe the purpose of the proc and the calling interface.
-
-All procs use automatic SP adjustment with the `#spauto` assembler directive.
-
-Procs that refer to caller stack follow `#spauto` with an appropriate offset. If
-the proc is near (i.e., ends with an `RTS` instruction) it normally uses the
-offset `2`. If the proc is far (i.e., ends with an `RTC` instruction) it
-normally uses the offset `:ab` which adjusts automatically based on whether MMU
-is used or not.
-
-Each proc begins with the proc name and the assembler directive `proc`. An
-`endp` directive is normally not used, unless we need to embed a proc inside
-another proc for proximity reasons, in which case we need to protect the parent
-proc's label locality.
 
 Getting rid of the `No ORG...` warning
 --------------------------------------------------------------------------------
@@ -2807,8 +2878,193 @@ If while writing your program you begin getting MEMORY Violation warnings,
 you'll know you have reached (actually, gone beyond) the allowed limit. You
 must cut down the size of your code until the warning disappears.
 
+My own source code style and naming conventions
+================================================================================
+
+Synopsis:
+
+* Tabs are never used.
+* End of line spaces are removed (automatically by the editor or a separate utility as required).
+* End-of-line is Linux style (LF) even under Windows.
+* Labels begin in column 1 (assembler requirement).
+* Non-conditional directives begin in column 21.
+* Conditional directives outside a code block begin in column 1.
+* Conditional directives inside a code block begin in column 11.
+* Each nested conditional directive is indented by 2 spaces from its parent.
+* Instruction mnemonics and most macro calls begin in column 21.
+* Instruction operands begin in column 31.
+* End of line comments begin in column 51 unless a long operand pushes them further to the right, in which case at least one space separates the comment from the operand.
+* All comments begin with semi-colon (the assembler does not enforce this).
+* Stand-alone comments begin in column 1.
+* In-line proc comments begin in column 11 or follow a dotted line (`;---`) that begins in column 11 and runs to column 49, leaving column 50 blank, then a semi-colon in column 51 followed by the comment text.
+* Dot-ending names (`XXX.`) indicate a unique bit by position number (0 thru 7).
+* Underscore-ending names (`XXX_`) indicate a bit mask (possibly including multiple bits).
+* Underscore surrounded names (`_XXX_`) indicate special system symbols such as `CCR` offsets, etc.
+* All constants are uppercase and use underscores to separate words as needed (`MY_CONSTANT`).
+* All variables are lowercase and use underscores to separate words as needed (e.g., `my_var`).
+* All pointer variables begin with a point/dot (`.var`).
+* Code labels use `CamelCase`.
+* File-local labels begin with `?` (a question mark).  This is an assembler requirement.
+* Proc-local labels end with `@@` (although the assembler allows `@@` to be anywhere past the first character of the label).
+* Macro-local labels end with `$$$` (although the assembler allows `$$$` to be anywhere past the first character of the label).
+* Subroutines always begin with a `proc` pseudo-op to mark the beginning of the subroutine.  This allows proc-local symbols to be used inside the subroutine without worrying about name collisions with other subroutine symbols.
+* Subroutines normally use `#spauto` mode with optional `:ab` offset when the proc may reference caller-level stack variables.
+* Local (stack) variables are defined near the beginning of the subroutine either directly (with `AIS #-nn`) or with the use of the `local` macro which follow an `#AIS` directive.  These variables are de-allocated using the `AIS #:AIS` instruction.
+* Each subroutine is separated from the previous one with an 80-column semi-colon beginning comment line full of asterisks (i.e., `;***...`).
+* File-local subroutine names begin with `?` as required by the assembler to keep the name local to that file.
+* File-local subroutines end with an `RTS` instruction.  They are called with either `JSR` or `BSR` instructions.
+* Global subroutines end with an `RTC` instruction.  They are called exclusively with the `CALL` instruction (for MMU compatibility).
+* Very small (few lines) and obvious purpose subroutines usually have no spaces between instructions.
+* Regular subroutines separate each block of related assembly language instructions with a single blank line, or a dotted comment line (see earlier).
+* Segments are used to separate object code into distinct areas.  Segment `#RAM` is used for zero-page RAM variables that may need `B[R]SET` or `B[R]CLR` instruction access. Segment `#XRAM` is used for all other variables. Segment `#ROM` is used for normal code.  Segment `#VECTORS` is used for vector definitions.
+* File inclusion is done primarily with the `#Uses` directive.  `#Include` is only used only when the same file must be included more than once (where `#Uses` would fail by design), or when we need to be sure the inclusion point is at the `#Include` directive (since a `#Uses` may have already included the file at some earlier point).
+* All file inclusion paths are relative and depend on the assembler's default include path search.  Specifically, they are first relative to the current file being assembled, then to the main file of the current assembly, and finally to the root file (filename `_asm_`) if one exists.
+* Ad-hoc `?` macros are used sparingly to simplify repeated sequential coding of complicated expressions or coding patterns.
+* Hungarian notation is never used.
+
+Some of the above points in a bit more detail...
+
+`_MY_OFFSETS_` are constants (see above) surrounded by single extra underscores.
+
+`MyRoutines` are CamelCase names. They may also use underscores mostly to
+separate module from function name, as in `InitializeSCI` which could also be
+written as `Initialize_SCI` or `SCI_Initialize` (preferred).
+
+File local symbols follow the above rules but always start with `?` (question
+mark) by requirement of the assembler. Example: `?my_variable`
+
+Proc local symbols follow the above rules but always end with `@@`, example:
+`Loop@@` by requirement of the assembler.  (Note: The assembler requirement
+is only for the presence of `@@` anywhere after the first character and not
+that they appear at the end of the label as in my own convention.)
+
+Macro local symbols follow the above rules but always end with `$$$`, example
+`Loop$$$` by requirement of the assembler.  (Note: The assembler requirement
+is only for the presence of `$$$` anywhere after the first character and not
+that they appear at the end of the label as in my own convention.)
+
+Comments always start with a semicolon. Macro comments that do not need
+expansion start with a double semicolon, and are not saved with the macro.
+
+Labels are defined starting in column 1 (assembler requirement) and use the
+default maximum label length of 19 (including expansion of `@@` or `$$$`)
+so they remain compatible with _P&E Micro_ map files.
+
+Mnemonics and pseudo mnemonics (e.g., `ORG`) start in column 21 and always written
+in lowercase.  Exception to the lowercase convention is when an instruction
+is meant to do something other than the obvious, e.g., `RTS` when used to
+`JMP` to a previously stacked address will be written in uppercase.
+
+Macro calls normally start in column 21 just like regular mnemonics but they
+may also start in column 1 if, and only if, the are invoked as `@macro` (leading `@`).
+This is useful when there are long operands to make it easier to view.
+
+Operands start in column 31 unless a long repeater expression or macro name
+pushes them further to the right.  For macro calls that start earlier than
+column 21, operands may start anywhere, usually after a single space from
+the macro name.
+
+Comments start in column 51 unless a long operation/operand combination pushes
+them further to the right, separated by at least one (preferably two) space
+character(s).
+
+Procs are separated with an 80-char comment line full of asterisks that always
+begins with a semicolon.  (Most editors allow shortcut macros that quickly
+produce such template code.)
+
+A non-trivial `proc` uses a header with `Purpose`, `Input`, `Output`, and
+`Note(s)` that describes the purpose of the proc and the calling interface.
+Something like:
+
+```
+;*******************************************************************************
+; Purpose:
+; Input  : HX ->
+;        : A =
+; Output : Carry Clear on success, Carry Set on Error
+;        : HX ->
+;        : A =
+; Note(s):
+```
+
+All procs use automatic SP offset adjustment with the `#spauto` assembler
+directive immediately preceding the `proc` directive and separated from it
+with a blank line.
+
+Procs that refer to caller stack follow `#spauto` with an appropriate offset. If
+the proc is near (i.e., ends with an `RTS` instruction) it normally uses the
+offset `2`. If the proc is far (i.e., ends with an `RTC` instruction) it
+normally uses the offset `:ab` which adjusts automatically based on whether an
+MMU is used or not.
+
+Each proc begins with the proc name and the assembler directive `proc`. An
+`endp` directive is normally not used, unless we specifically want to embed
+a `proc` inside another, usually much larger `proc`, for proximity reasons,
+in which case we need to protect the parent proc's label locality.
+
+Each proc protects all caller registers except for CCR (with few
+exceptions that need to also protect CCR), and those registers that
+pass out return values.  Usually the `PUSH` instruction is used
+right after `proc` and the `PULL` right before `RTS` or `RTC`.
+If RegA is used to return a value then either we replace `PUSH`
+and `PULL` with `PSHHX` and `PULHX` or we name the return register
+and save the result to it, like so:
+
+```
+                    #spauto
+
+Sub                 proc
+                    psha      ans@@
+                    pshhx
+                    #ais
+
+                    ...
+                    sta       ans@@,sp            ;save result for caller
+                    ...
+
+Done@@              ais       #:ais
+                    pull
+                    rtc
+```
+
+Procs are written in a modular (structured) way with entry, main body,
+and exit sections.  (There are exceptions when clarity of purpose is
+more evident, otherwise.)
+
+Proc-local labels are used in a consistent manner where possible.  So, a `proc`
+with a single loop will have it start at label `Loop@@` and continue at the
+label `Cont@@`.
+
+A `proc`'s exit section begins at label `Done@@` where any exit requirements
+are enforced.  This usually includes releasing temporary stack variables with
+the `AIS #:AIS` instruction that automatically releases as many bytes were
+allocated by either `AIS` or `PSHx` instructions at the entry section.
+
+Each `proc` may return (in addition to any registers), a success or failure
+status in the CCR[C] register bit.  Success is always CCR[C] = 0 which is
+achieved with a single `CLC` instruction.  Failure, on the other hand,
+requires a `SEC` instruction.  Note this is different from C language
+convention where a zero is considered false.  Here, a zero Carry flag
+is success (or true in true/false determining `proc`).
+
+The body section should release its own stack as it is used.
+
+Note: My own code and/or examples may not yet adhere to all of the above, as most
+of it was written long before these conventions were put into action.
+
+But, each time some code gets updated, I try to also update the coding style to
+conform with the my current conventions.  And, the conventions are subject to
+improve with experience.
+
+Each instruction (with the exception of trivial operations) is documented in the
+comments area with appropriate comments that do not repeat the instruction but
+explain what happens and/or for what purpose.
+
+Following the above conventions has made me produce consistently bug-free code
+(within reasonable expectations), and easy to read logic.
+
 Linux/Win32 version addendum
---------------------------------------------------------------------------------
+================================================================================
 
 The DOS, Win, and Linux versions are practically identical. Where there are
 differences, these are noted.
@@ -2856,7 +3112,7 @@ Assembly language source code syntax is identical for all platform versions,
 except where noted otherwise.
 
 Setting up FreeMASTER (from Freescale/NXP) for use with ASM8
---------------------------------------------------------------------------------
+================================================================================
 
 IMPORTANT: You must use the `-MTA` option for generation of ASM8 map files.
 This will create ASCII map files that can be parsed by a regular expression text
@@ -2869,5 +3125,5 @@ follows:
 
 ![FreeMASTER](/raw/3f2614e6d30797f6516bdeb8682f49c3e1cc1f82)
 
-ASM8 v9.97, December 2, 2020, Copyright (c) 2001-2020 by Tony G. Papadimitriou
+ASM8 v11.70, August 11, 2021, Copyright (c) 2001-2021 by Tony G. Papadimitriou
 (_email: <tonyp@acm.org>_)
