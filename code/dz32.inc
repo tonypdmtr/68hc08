@@ -992,7 +992,6 @@ HZ                  def       32000000            ;Cyclone 31250*1024
 
                     #DATA
 
-
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset

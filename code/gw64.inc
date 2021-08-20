@@ -1965,7 +1965,6 @@ HighRegs_End        equ       $195F,1             ;end of high page registers
 
                     #DATA
 
-
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset

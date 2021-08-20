@@ -1079,7 +1079,6 @@ DMX_                equ       ~3~<DMX32.
 
                     #DATA
 
-
 #ifndef OS8PRELOADED||BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset

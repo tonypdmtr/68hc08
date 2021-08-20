@@ -712,7 +712,6 @@ KHZ                 def       16000               ;16.0 MHz internal oscillator
 
                     #DATA
 
-
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset

@@ -834,7 +834,6 @@ BDIV                def       1                   ;actually GB60 does not have a
 
                     #DATA
 
-
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
                     fcb       ?NVPROT_MASK        ;NVPROT transfers to FPROT on reset
