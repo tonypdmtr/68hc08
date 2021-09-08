@@ -24,9 +24,9 @@ FLASH_PAGE_SIZE     equ       64                  ;minimum that must be erased a
 FLASH_DATA_SIZE     def       0
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
-EEPROM              equ       TRUE_ROM
+EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 RAM                 equ       $80                 ;Start of on-chip RAM
 RAM_END             equ       $FF                 ;End of on-chip RAM

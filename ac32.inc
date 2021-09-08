@@ -13,11 +13,13 @@
                     #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_ac32.exp
+                    #Uses     tboot_ac32.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_ac32.exp
-  #endif
+          #endif
 
 #endif
 
@@ -778,7 +780,7 @@ TRUE_ROM            equ       $8000               ;start of 32K Flash
 
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -830,7 +832,6 @@ HZ                  def       16777216            ;Cyclone 32768*512
                     #EEPROM   EEPROM
 
                     #DATA
-
 
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte

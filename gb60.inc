@@ -13,11 +13,13 @@
                     #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  BootROM pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_gb60.exp
+                    #Uses     tboot_gb60.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_gb60.exp
-  #endif
+          #endif
 
 #endif
 
@@ -785,7 +787,7 @@ TRUE_ROM            equ       $1080               ;start of 60K flash (extra ROM
           #endif
 
 EEPROM              def       TRUE_ROM
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
           #if EEPROM_END <= HighRegs_End
 ROM                 def       HighRegs_End+1
@@ -833,7 +835,6 @@ BDIV                def       1                   ;actually GB60 does not have a
                     #EEPROM   EEPROM
 
                     #DATA
-
 
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte

@@ -12,11 +12,13 @@
                     #HcsOn
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_gw64.exp
+                    #Uses     tboot_gw64.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_gw64.exp
-  #endif
+          #endif
 
 #endif
 
@@ -1846,11 +1848,11 @@ TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged fla
 TRUE_ROM            equ       $1960               ;start(!) of ~58K non-paged flash
           #endif
           #ifmmu
-EEPROM              equ       $10C0
+EEPROM              def       $10C0
           #endif
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -1943,6 +1945,7 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
 
                     @?        0,1,2               ;define memory for PPAGEs
           #endif
+PPAGES              equ       3                   ;total number of PPAGEs
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
@@ -1964,7 +1967,6 @@ HighRegs_End        equ       $195F,1             ;end of high page registers
                     #EEPROM   EEPROM
 
                     #DATA
-
 
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte

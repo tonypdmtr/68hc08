@@ -13,11 +13,13 @@
                     #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_qd4.exp
+                    #Uses     tboot_qd4.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_qd4.exp
-  #endif
+          #endif
 
 #endif
 
@@ -448,7 +450,7 @@ RVECTORS            equ       VECTORS-$FFFF+TRUE_ROM+FLASH_DATA_SIZE-1
 
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 ROM                 def       EEPROM_END+1
 ROM_END             equ       $FFA9               ;end of all flash (before NV registers and fixed vectors)

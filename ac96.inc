@@ -12,7 +12,9 @@
                     #HcsOn
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-          #ifexists tboot.exp
+          #ifexists tboot_ac96.exp
+                    #Uses     tboot_ac96.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
           #else
                     #Uses     tboot/tboot_ac96.exp
@@ -820,13 +822,13 @@ RVECTORS            set       BOOTROM+:temp&$FFFF ;start of redirected vectors
           #endif
 ?NVPROT_MASK        def       127-:temp<1|1
           #ifmmu
-TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $2080-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
+TRUE_ROM            equ       $C000               ;start(!) of 16K non-paged flash (do NOT use $20F0-$3FFF, $4000-$7FFF which are also PPAGE 0 and 1)
           #else
 TRUE_ROM            equ       $4000               ;start(!) of ~48K non-paged flash
           #endif
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -839,7 +841,7 @@ EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
 ROM                 def       EEPROM_END+1
 ROM_END             def       $FF9B               ;end of all flash (before NV registers and fixed vectors)
           #ifmmu
-XROM                def       $1870
+XROM                def       $20F0               ;revised per MC9S08AC128RMAD errata
 XROM_END            def       :PAGE_START-1       ;end of pre-window flash
           #endif
 
@@ -959,6 +961,7 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
 
                     @?        0,1,2,4,5           ;define memory for PPAGEs
           #endif
+PPAGES              equ       6                   ;total number of PPAGEs
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
@@ -966,7 +969,6 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
                     #EEPROM   EEPROM
 
                     #DATA
-
 
 #ifndef OS8PRELOADED||BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
