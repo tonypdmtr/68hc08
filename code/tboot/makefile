@@ -47,7 +47,6 @@ pdf: faq.pdf
 faq.pdf: faq.md
  @pandoc faq.md -t html -o $@
 
-
 ################################################################################
 
 tboot_qg8.s: qg8.inc

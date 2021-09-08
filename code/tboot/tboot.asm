@@ -13,7 +13,9 @@
   #Hint ****************************************************
   #Hint * Available conditionals (for use with -Dx option) *
   #Hint ****************************************************
-  #Hint *______ S_U_P_P_O_R_T_E_D___T_A_R_G_E_T_S___________
+  #Hint *---------------------------------------------------
+  #Hint *       S U P P O R T E D   T A R G E T S
+  #Hint *---------------------------------------------------
   #Hint * QG8..............: Target is 9S08QG8
   #Hint * QE8..............: Target is 9S08QE8
   #Hint * QE32.............: Target is 9S08QE32
@@ -26,6 +28,8 @@
   #Hint * QD4..............: Target is 9S08QD4
   #Hint * AC32.............: Target is 9S08AC32
   #Hint * AC96.............: Target is 9S08AC96
+  #Hint *---------------------------------------------------
+  #Hint *                   O P T I O N S
   #Hint *---------------------------------------------------
   #Hint * HZ...............: MCU effective clock as Hz
   #Hint * KHZ..............: MCU effective clock as KHz
@@ -52,9 +56,21 @@ BOOTROM_VERSION     def       120                 ;version as x.xx
 
 SCI                 def       1                   ;SCI to use (1 or 2, -1=Software)
 ;-------------------------------------------------------------------------------
-          #ifdef QE128
-BOOTROM             def       $F800               ;QE128 version is a bit larger
-          #else ifdef DZ32||DZ60||AC96
+?                   macro
+          #ifdef ~1~
+FLASH_DATA_SIZE     def       ~2~
+          #endif
+                    endm
+
+                    @?        QE128||AC96,1024
+                    @?        DZ32||DZ60,0        ; config storage in EEPROM, not Flash
+                    @?        GB60,1920
+
+FLASH_DATA_SIZE     def       512                 ; all others have 512 default
+;-------------------------------------------------------------------------------
+          #ifdef QE128||AC96
+BOOTROM             def       $F800               ;These MMU versions are a bit larger
+          #else ifdef DZ32||DZ60
 BOOTROM             def       $FA00               ;DZ has different Flash protection
           #endif
 BOOTROM             def       $FC00
@@ -62,18 +78,6 @@ BOOTROM             def       $FC00
           #ifnz BOOTROM\512
                     #Error    BOOTROM is not on a 512-byte page boundary
           #endif
-;-------------------------------------------------------------------------------
-?                   macro
-          #ifdef ~1~
-FLASH_DATA_SIZE     def       ~2~
-          #endif
-                    endm
-
-                    @?        QE128,1024
-                    @?        DZ32||DZ60,0        ; config storage in EEPROM, not Flash
-                    @?        GB60,1920
-
-FLASH_DATA_SIZE     def       512
 ;-------------------------------------------------------------------------------
           #ifdef PRIVATE
 NVOPT_VALUE         def       %10000000           ; NVOPT transfers to FOPT on reset
@@ -516,7 +520,6 @@ Done@@
 ;@Page S19 module starts here
 ;*******************************************************************************
 
-
 ;*******************************************************************************
                     #XRAM
 ;*******************************************************************************
@@ -932,15 +935,14 @@ Done@@              equ       :AnRTS
 ?FlashErase         proc
           #ifdef HighRegs
                     cphx      #HighRegs
-                    blo       Continue@@
+                    blo       Cont@@
 
                     cphx      #HighRegs_End
-                    bhi       Continue@@
+                    bhi       Cont@@
 
                     ldhx      #HighRegs_End+1
-Continue@@
           #endif
-                    bsr       ?PrepareFlash
+Cont@@              bsr       ?PrepareFlash
 
                     mov       #mPageErase,?burn_command ;save command within LDA #?? instruction
                     bra       ?FlashIt
@@ -973,6 +975,14 @@ Done@@              lda       #FPVIOL_|FACCERR_
                     rts
 
 ;*******************************************************************************
+?mcu                macro     MCU[,MCU]*
+          #ifdef _~{:loop}.~_
+                    fcc       \@ ~{:loop}.~\@
+                    mexit
+          #endif
+                    mtop      :n
+                    endm
+;*******************************************************************************
 
                     #MapOn
 
@@ -983,6 +993,7 @@ Done@@              lda       #FPVIOL_|FACCERR_
                     #Include  checkout.inc
                     fcc       ']'
           #endif
+                    @?mcu     QE128,QE8,QE32,GB60,AC32,AC96,QD2,QD4,DZ32,DZ60,SH8,QG8
                     fcc       ' {HZ/1000(3)} MHz'
           #ifmmu
                     fcc       ' MMU'
@@ -990,10 +1001,11 @@ Done@@              lda       #FPVIOL_|FACCERR_
                     fcb       0                   ;ASCII terminator
 
 ;*******************************************************************************
-; Purpose: Initialize the MCU with default settings
+; Purpose: Initialize the MCU with MCU-specific settings for TBoot monitor
 ; Input  : None
 ; Output : None
-; Note(s):
+; Note(s): You can affect one-time writable settings as exit is always via reset
+
                     #spauto
 
 ?Initialize         proc
@@ -1012,6 +1024,30 @@ Done@@              lda       #FPVIOL_|FACCERR_
               #endif
                     sta       ICSSC
             #endif
+          #else ifdef NVICGTRM
+                    lda       NVICGTRM
+                    sta       ICGTRM
+          #endif
+          #ifdef _AC_
+                    brclr     DCOS.,ICGS2,*       ;wait for stabilization
+                    mov       #%00001100,ICGC1
+                              ; ||||||||
+                              ; |||||||+--------- Not Used
+                              ; ||||||+---------- LOCD (1=Loss of clock disabled)
+                              ; |||||+----------- OSCSTEN (1=Enable in off mode)
+                              ; |||++------------ CLKS (01 FLL engaged, internal reference)
+                              ; ||+-------------- REFS
+                              ; |+--------------- RANGE (0=Low, 1=High) reference
+                              ; +---------------- HGO (1=High Gain Oscillator)
+
+                    mov       #%01110000,ICGC2    ;Example: 40MHz -> 243KHz/7*64*MFD/RFD
+                              ; ||||||||
+                              ; |||||+++--------- RFD (1)
+                              ; ||||+------------ LOCRE
+                              ; |+++------------- MFD (18)
+                              ; +---------------- LOLRE
+
+                    brclr     LOCK.,ICGS1,*       ;wait for FLL lock
           #endif
 SOPT_VALUE          def       %00100010
                              ; ||||||||
@@ -1085,7 +1121,9 @@ Loop@@              lda       ?RAM_Code,x
 ;                   ldhx      -2,x
 ; (where -2 is the appropriate object offset)
 ;*******************************************************************************
-
+          #ifdef _FL_&&!ID||!_FL_
+                    dw        0                   ;indicates end of backward list since v1.20
+          #endif
                     dw        ?CopyrightMsg       ;@-2 Copyright ASCIZ string
 
 ;*******************************************************************************
@@ -1273,7 +1311,6 @@ Done@@              rts
 
 Fail@@              equ       ?No
 
-
 ;*******************************************************************************
 
                     #spauto
@@ -1290,7 +1327,14 @@ Loop@@              pshhx
                     cphx      #:PAGE_END          ;end of MMU page window?
                     blo       Loop@@              ;repeat for all Flash pages
                     inc       PPAGE               ;go to next page
+            #if PPAGES = 8
                     tst       PPAGE               ;required, INC result CCR[Z] is invalid
+            #else if PPAGES < 8
+                    lda       PPAGE
+                    cmpa      #PPAGES
+            #else
+                    #Fatal    Unexpected PPAGES ({PPAGES})
+            #endif
                     bne       NewPage@@           ;repeat for all PPAGEs
 ;                   clc                           ;indicate "no error" (valid since BLO fall thru)
                     rts
@@ -1394,6 +1438,9 @@ Fail@@              equ       ?No
 ;*******************************************************************************
                     #Export   APP_CODE_START,APP_CODE_END
                     #Export   BOOTROM,BOOTROM_VERSION
+          #ifnz FLASH_DATA_SIZE
+                    #Export   EEPROM,EEPROM_END
+          #endif
                     #Export   RVECTORS
 ;*******************************************************************************
                     @EndStats
