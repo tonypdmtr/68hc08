@@ -27,6 +27,7 @@
 ;*           : 19.04.14       BugFix: Added a couple of missing delays in I2C_Start and I2C_Stop procs
 ;*           :                Replaced some BSR with !JSR for MMU mode compatibility
 ;*           : 19.04.16       Removed pullups as there are always going to be external ones in place
+;*           : 21.08.26       Added extra optional delay before clock pulse
 ;*******************************************************************************
 
 ;-------------------------------------------------------------------------------
@@ -131,7 +132,8 @@ Loop@@              rola                          ;get data-bit (MSB) into Carry
 OneBit@@            bsr       ?DataHigh           ;a ONE bit
                     brn       *                   ;(optional) for timing symmetry of 0 & 1 cases
 
-Clock@@             bsr       ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
+Clock@@             @!I2C_ClockDelay              ;optional extra delay
+                    bsr       ?ClkHighSync        ;set clock-line to '1' and wait for slave to be ready
                     @!I2C_ClockDelay              ;optional extra delay
                     bsr       ?ClkLow             ;set clock-line to '0'
                     @!I2C_ClockDelay              ;optional extra delay

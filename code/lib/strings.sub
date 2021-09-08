@@ -482,17 +482,17 @@ NextChar@@          aix       #1                  ;No, let's go check next ones
                     @inc.s    .str2@@,sp Loop@@   ;increment target pointer
                     bra       Loop@@
           ;---------------------------------------------------------------------
-          ; Z flag always in correct state when coming to Done@@
+          ; CMP affected flags always in correct state when coming to Done@@
           ;---------------------------------------------------------------------
 Done@@              ais       #:ais
 
                     tpa                           ;A = actual CMP result [CCR]
-                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;mask off unused CCR flags
+                    and       #CMP_AFFECTED_      ;mask off unused CCR flags
 
                     psha
                     tsx
                     lda       ccr@@,spx           ;A = caller's CCR
-                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_^NOT ;mask off our CCR result bits
+                    and       #CMP_NOT_AFFECTED_  ;mask off our CCR result bits
                     ora       {::},spx            ;combine with our CCR result bits
                     sta       ccr@@,spx           ;save it for the caller
                     pula                          ;(WAS: ais #:psp)

@@ -12,7 +12,9 @@
                     #HcsOn
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-          #ifexists tboot.exp
+          #ifexists tboot_qe128.exp
+                    #Uses     tboot_qe128.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
           #else
                     #Uses     tboot/tboot_qe128.exp
@@ -905,7 +907,7 @@ TRUE_ROM            equ       $4000               ;start(!) of ~48K non-paged fl
           #endif
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -1037,6 +1039,7 @@ PPAGE_SIZE          equ       :PAGE_END-:PAGE_START+1
 
                     @?        0,1,2,4,5,6,7       ;define memory for PPAGEs
           #endif
+PPAGES              equ       8                   ;total number of PPAGEs
 ;-------------------------------------------------------------------------------
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
@@ -1078,7 +1081,6 @@ DMX_                equ       ~3~<DMX32.
                     #EEPROM   EEPROM
 
                     #DATA
-
 
 #ifndef OS8PRELOADED||BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte

@@ -270,6 +270,8 @@ Bit{:temp}_         equ       1<{:temp}
                     @bitnum   CCR_Z,1             ;Zero flag in CCR
                     @bitnum   CCR_C,0             ;Carry flag in CCR
 
+CMP_AFFECTED_       equ       CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;CMP affected bits
+CMP_NOT_AFFECTED_   equ       CMP_AFFECTED_^NOT           ;CMP not affected bits
 ;-------------------------------------------------------------------------------
 ; SP (one-based) offsets account for the return address of OS8 dispatcher's CALL
 ;-------------------------------------------------------------------------------
@@ -2601,7 +2603,7 @@ MAX_OS_CALLS        def       64                  ;default room for OS calls (68
 ;-------------------------------------------------------------------------------
 ?                   macro
                     mswap     1,:loop
-          #ifdef ~1~&~1~_END
+          #ifdef ~1~&&~1~_END
             #if ~1~_END > ~1~
                     #Message  ~1~~'..........:'.1.{10-:1}~ {~1~(h)}-{~1~_END(h)} ({~1~_END-~1~+1} bytes)
             #endif
@@ -2691,7 +2693,11 @@ FLASH_CLK_VALUE     equ       :temp
 ;-------------------------------------------------------------------------------
 ;-------------------------------------------------------------------------------
           #ifdef SIMHCS
-                    #Hint     SIMULATOR mode (do NOT distribute)
+                    #Hint     +------------------------------------+
+                    #Hint     | SIMULATOR mode (do NOT distribute) |
+                    #Hint     +------------------------------------+
           #else ifdef DEBUG
-                    #Hint     DEBUG/BDM mode (do NOT distribute)
+                    #Hint     +------------------------------------+
+                    #Hint     | DEBUG/BDM mode (do NOT distribute) |
+                    #Hint     +------------------------------------+
           #endif

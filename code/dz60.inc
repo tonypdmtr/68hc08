@@ -13,11 +13,13 @@
                     #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_dz60.exp
+                    #Uses     tboot_dz60.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_dz60.exp
-  #endif
+          #endif
 
 #endif
 
@@ -934,7 +936,7 @@ FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE*2   ;round up to double block
 TRUE_ROM            equ       $1900               ;start of 60K Flash
 
 EEPROM              def       $1400               ;only half of the EEPROM is
-EEPROM_END          equ       $17FF               ;visible through this window
+EEPROM_END          def       $17FF               ;visible through this window
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -994,7 +996,6 @@ HZ                  def       32000000            ;Cyclone 31250*1024
                     #EEPROM   EEPROM
 
                     #DATA
-
 
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte

@@ -33,8 +33,24 @@ StringCompareBuff   macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     pull
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
+                    #spauto   :ab
+
+StringCompBuff      proc
+                    sec                           ;case-insensitive
+                    bra       ?StringCompareBuff
+
+;*******************************************************************************
+; Purpose: Compare buffers pointed to by HX and TOS (case insensitive)
+; Input  : A = maximum number of bytes to compare
+;        : HX -> start of first memory
+;        : TOS -> start of second memory
+; Output : N Z V C set or cleared in accordance with the CMP instruction
+;        : Allows BEQ, BNE, BLO, BHS, etc. to be used on result just as if
+;        : a regular CMPA instruction had been used.
+; Note(s): All registers except N Z V C flags are preserved
+;        : Violates Carry-Set on error rule.  Carry set is used for result (BLO, etc.)
+;        : Stacked pointer not destroyed
 
 StringCompBuff      macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     mset      #' '
@@ -52,17 +68,7 @@ StringCompBuff      macro     [#]Buffer1 [#]Buffer2 [#]ByteSize
                     pull
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
-
-                    #spauto   :ab
-
-StringCompBuff      proc
-                    sec                           ;case-insensitive
-                    bra       ?StringCompareBuff
-
-;*******************************************************************************
-
                     #spauto   :ab
 
 StringCompareBuff   proc
@@ -71,13 +77,18 @@ StringCompareBuff   proc
 
 ;*******************************************************************************
 
+                    #spauto   :ab
+
 ?StringCompareBuff  proc
 .str2@@             equ       1
                     psha      max_size@@
                     pshhx     .str1@@
+                    #ais
+
                     tpa
                     psha      ccr@@               ;shorter PSHCC sequence
-                    #ais
+                    and       #CMP_NOT_AFFECTED_  ;mask off our CCR result bits
+                    psha      ans@@               ;will combine with result CCR
           #ifhcs
                     ldhx      .str2@@,sp
                     pshhx     .str2@@
@@ -100,9 +111,9 @@ Loop@@              push                          ;save length & pointer to 1st 
 
                     lda       ccr@@,sp
                     tap
+                    lda       ,x                  ;get character at HX (does not affect CCR[C])
                     bcs       NoCase@@
           ;-------------------------------------- ;case-sensitive case (original)
-                    lda       ,x                  ;get character at HX
           #ifhcs
                     ldhx      .str2@@,sp
           #else
@@ -113,11 +124,8 @@ Loop@@              push                          ;save length & pointer to 1st 
                     cmpa      ,x                  ;is the same as the one at .str2@@,sp?
                     bra       Cont@@
           ;-------------------------------------- ;case-insensitive case
-NoCase@@            psha      target@@            ;placeholder for target char later
-
-                    lda       ,x                  ;get character at HX
-                    call      Upcase
-                    psha      source@@
+NoCase@@            call      Upcase
+                    psha      a@@
           #ifhcs
                     ldhx      .str2@@,sp
           #else
@@ -128,11 +136,11 @@ NoCase@@            psha      target@@            ;placeholder for target char l
           #endif
                     lda       ,x
                     call      Upcase
-                    tsx
-                    sta       target@@,spx
+                    psha      b@@
 
-                    lda       source@@,spx
-                    cmpa      target@@,spx        ;is the same as the one at .str2@@,sp?
+                    tsx
+                    lda       a@@,spx             ;is the same as the one at .str2@@,sp?
+                    cmpa      b@@,spx             ;(in this order: a cmp b)
 
                     pula:2
           ;--------------------------------------
@@ -146,23 +154,14 @@ NextChar@@          aix       #1                  ;No, let's go check next ones
                     @inc.s    .str2@@,sp Loop@@   ;increment target pointer
                     bra       Loop@@
           ;---------------------------------------------------------------------
-          ; Z flag always in correct state when coming to Done@@
+          ; CMP affected flags always in correct state when coming to Done@@
           ;---------------------------------------------------------------------
-Done@@              ais       #:ais
-
-                    tpa                           ;A = actual CMP result [CCR]
-                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_ ;mask off unused CCR flags
-
-                    psha
-                    tsx
-                    lda       ccr@@,spx           ;A = caller's CCR
-                    and       #CCR_V_|CCR_N_|CCR_Z_|CCR_C_^NOT ;mask off our CCR result bits
-                    ora       {::},spx            ;combine with our CCR result bits
-                    sta       ccr@@,spx           ;save it for the caller
-                    pula                          ;(WAS: ais #:psp)
-
-                    pula                          ;shorter PULCC (since RegA
-                    tap                           ;will be restored by PULL)
+Done@@              tpa                           ;A = actual CMP result [CCR]
+                    and       #CMP_AFFECTED_      ;mask off unused CCR flags
+                    ora       ans@@,spx           ;combine with our CCR result bits
+                    tap                           ;set return CCR
+          ;--------------------------------------
+                    ais       #:ais
                     pull
                     rtc
 

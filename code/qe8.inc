@@ -13,11 +13,13 @@
                     #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_qe8.exp
+                    #Uses     tboot_qe8.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_qe8.exp
-  #endif
+          #endif
 
 #endif
 
@@ -850,7 +852,7 @@ TRUE_ROM            equ       $E000               ;start of 8K Flash
 
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -929,7 +931,6 @@ DMX_                equ       ~3~<DMX32.
                     #EEPROM   EEPROM
 
                     #DATA
-
 
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte

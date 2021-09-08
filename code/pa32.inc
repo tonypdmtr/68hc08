@@ -13,11 +13,13 @@
                     #NoMMU                        ;MMU not available
 #ifdef BOOT
                     #Message  TBoot pre-loaded
-  #ifexists tboot.exp
+          #ifexists tboot_pa32.exp
+                    #Uses     tboot_pa32.exp
+          #else ifexists tboot.exp
                     #Uses     tboot.exp
-  #else
+          #else
                     #Uses     tboot/tboot_pa32.exp
-  #endif
+          #endif
 
 #endif
 
@@ -1096,8 +1098,8 @@ Vreset              next      :temp,2             ;$FFFE Reset vector
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE     ;round to next higher block
 TRUE_ROM            equ       $8000               ;start of 32K Flash
 
-EEPROM              equ       $3100
-EEPROM_END          equ       $31FF
+EEPROM              def       $3100
+EEPROM_END          def       $31FF
 
 #ifdef BOOTROM
  #if EEPROM_END >= BOOTROM
@@ -1185,7 +1187,6 @@ HighRegs_End        equ       $30FF               ;end of high page registers
                     #EEPROM   EEPROM
 
                     #DATA
-
 
           #ifndef BOOT||NO_CODE
                     org       NVPROT              ;NV flash protection byte
