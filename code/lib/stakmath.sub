@@ -268,7 +268,7 @@
 ;*           :                macros are assumed to be called only while
 ;*           :                interrupts are enabled, so it will not restore to
 ;*           :                previous state but always leave as enabled.
-;*           :                Define _NOCLI_ (before including this module) for
+;*           :                Define NO_CLI (before including this module) for
 ;*           :                canceling the _?SEI_ and _?CLI_ macro effects.
 ;*           : 13.04.18 v7.85 Added 'NeedMath' and 'Eval' general-purpose macros
 ;*           :                for automatic selection of needed bit-size based
@@ -395,7 +395,7 @@
             #Hint | SIGNED....: Enables signed Div Mod Str ResizeTOS
             #Hint | NO_BIT_OPS: Disable bit operations (& | ^ < >)
             #Hint | _MTOS_....: Enables auto SEI/CLI around Loads/Saves
-            #Hint | _NOCLI_...: Disables auto SEI/CLI even under _MTOS_
+            #Hint | NO_CLI....: Disables auto SEI/CLI even under _MTOS_
             #Hint | A.........: Sample operand one (upto 32-bit)
             #Hint | B.........: Sample operand two (upto 32-bit)
             #Hint | SPEED_SIZE: 1=speed optimized, 2=size optimized

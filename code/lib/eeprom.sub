@@ -30,11 +30,9 @@
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
-DZ32
                     #ListOff
-                    #Uses     mcu.inc
+                    #Uses     dz32.inc
                     #ListOn
-                    #ROM
 #endif ;------------------------------------------------------------------------
           #ifnhcs
                     #Fatal    EEPROM.SUB requires 9S08 MCU (#HcsOn directive)
@@ -58,7 +56,6 @@ EE_SelectPage       macro     0|1
                     sta       FCNFG
                     pula
                     endm
-
 ;-------------------------------------------------------------------------------
 ; On small (4-byte) EE page size, goto given address, else fall thru
 
@@ -70,7 +67,6 @@ IfSmallEEPageGoto   macro     BranchAddress
                     pula
                     beq       ~1~                 ;go calculate for 4-byte mode
                     endm
-
 ;-------------------------------------------------------------------------------
 ;*******************************************************************************
 ; EEPROM programming command codes
@@ -140,7 +136,6 @@ EE_Write            macro     [Address],[Value]
           #endif
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
 
                     #spauto
@@ -237,7 +232,6 @@ EE_ErasePage        macro     [PageNumber]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
 
                     #spauto
@@ -267,7 +261,6 @@ EE_Erase            macro     [Address]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
 
                     #spauto
@@ -289,7 +282,6 @@ EE_Normalize        macro     [EEPROM_Address]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
 
                     #spauto
@@ -348,7 +340,6 @@ EE_CopyBlock        macro     SourceBegin,SourceEnd,Destination
                     pulhx
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
 
                     #spauto   :ab                 ;account for RTS/RTC
@@ -394,7 +385,6 @@ EE_PageToPtr        macro     [EEPROM_Page_Number]
           #endif
                     call      ~0~
                     endm
-
 ;-------------------------------------------------------------------------------
 
                     #spauto
@@ -421,9 +411,7 @@ Calc@@              mul                           ;XA = pointer
 
 Start               proc
                     @rsp
-
-          ;test the various calls
-
+          ;-------------------------------------- ;test the various calls
                     @EE_Write #EEPROM,#$AA
                     @EE_Write #EEPROM
                     @EE_Write ,#$AA

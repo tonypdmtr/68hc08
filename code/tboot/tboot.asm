@@ -44,7 +44,7 @@
   #Hint * BPS..............: BPS = 3/12/24/48/96/192/384/576(00)
   #Hint * SCI..............: SCI = (SCI)1 or (SCI)2 or SoftSCI (-1)
   #Hint * ENABLE_RUN.......: Enable [R]un command
-  #Hint * DISABLE_IRQ......: Disable IRQ pin test
+  #Hint * NO_IRQ...........: Disable IRQ pin test
   #Hint * DISABLE_SURE.....: Disable 'Sure?' message
   #Hint * DEBUG............: For debugging only
   #Hint ****************************************************
@@ -197,7 +197,6 @@ BDIV                def       1
 ;-------------------------------------------------------------------------------
                     #ListOn
                     #MapOn
-                    #MCF
 ;-------------------------------------------------------------------------------
 #endif
 ;-------------------------------------------------------------------------------
@@ -264,9 +263,9 @@ LF2CRLF             def       *
 #ifdef HARD_FLOW_CONTROL
   #ifndef CTS_LINE
           #ifdef QE128
-CTS_LINE            @pin      PORTE,6             ;/CTS is output from MCU
+CTS_LINE            pin       PORTE,6             ;/CTS is output from MCU
           #else ifdef QE8||QE32
-CTS_LINE            @pin      PORTC,7             ;/CTS is output from MCU
+CTS_LINE            pin       PORTC,7             ;/CTS is output from MCU
           #endif
   #endif
                     @CheckPin CTS_LINE
@@ -651,7 +650,7 @@ Loop@@              jsr       ?ReadHex            ;get first/next data byte
                     tah
                     pula
           #else
-                    aix       #RVECTORS-VECTORS   ;redirector to user vectors
+                    @aix      #RVECTORS-VECTORS   ;redirector to user vectors
           #endif
 Save@@              jsr       ?FlashWrite         ;Save to Flash
                     beq       NextByte@@
@@ -1248,9 +1247,9 @@ Fail@@              sec
                     #spauto
 
 ?cmdRun             proc
-          #ifdef DISABLE_IRQ
+          #ifdef NO_IRQ
             #ifdef TIBBO_DTR
-                    @Pullup   TIBBO_DTR
+                    @Pullup   TIBBO_DTR,,-1
                     brset     TIBBO_DTR,Done@@    ;force entry to Monitor mode with high Tibbo DTR pin
             #else
                     brn       *                   ;keep image size the same as when BIL is used
@@ -1323,7 +1322,7 @@ Loop@@              pshhx
                     jsr       ?FlashErase         ;erase this page
                     pulhx
 ;;;;;;;;;;;;;;;;;;; bne       Fail@@
-                    aix       #FLASH_PAGE_SIZE    ;HX -> next page
+                    @aix      #FLASH_PAGE_SIZE    ;HX -> next page
                     cphx      #:PAGE_END          ;end of MMU page window?
                     blo       Loop@@              ;repeat for all Flash pages
                     inc       PPAGE               ;go to next page
@@ -1344,7 +1343,7 @@ Loop@@              pshhx
                     jsr       ?FlashErase         ;erase this page
                     pulhx
                     bne       Fail@@
-                    aix       #FLASH_PAGE_SIZE    ;HX -> next page
+                    @aix      #FLASH_PAGE_SIZE    ;HX -> next page
                     cphx      #BOOTROM            ;user firmware's last page
                     blo       Loop@@              ;repeat for all Flash pages
 ;                   clc                           ;indicate "no error" (implied by BLO fall thru)
@@ -1437,6 +1436,7 @@ Fail@@              equ       ?No
                     end       :s19crc
 ;*******************************************************************************
                     #Export   APP_CODE_START,APP_CODE_END
+                    #Export   APP_CODE_START ROM,APP_CODE_END ROM_END
                     #Export   BOOTROM,BOOTROM_VERSION
           #ifnz FLASH_DATA_SIZE
                     #Export   EEPROM,EEPROM_END

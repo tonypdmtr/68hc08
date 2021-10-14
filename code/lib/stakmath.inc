@@ -436,7 +436,7 @@ Str64               macro     [Number],[ResultString]
                     endm
 ;-------------------------------------------------------------------------------
 _?sei_              macro
-          #ifdef _NOCLI_
+          #ifdef NO_CLI
                     mexit
           #endif
           #ifndef _MTOS_
@@ -461,7 +461,7 @@ _?sei_              macro
                     endm
 ;-------------------------------------------------------------------------------
 _?cli_              macro
-          #ifdef _NOCLI_
+          #ifdef NO_CLI
                     mexit
           #endif
           #ifndef _MTOS_

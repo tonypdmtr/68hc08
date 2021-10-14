@@ -699,8 +699,6 @@ NVOPT               equ       $FFBF,1             ;NV flash options byte
 
 ; **** END OF ORIGINAL DEFINITIONS *********************************************
 
-_9S08GB60_          def       *                   ;Tells us this INCLUDE has been used
-
 FLASH_PAGE_SIZE     def       512                 ;minimum that must be erased at once
 
           #if FLASH_PAGE_SIZE <> 512
@@ -830,7 +828,7 @@ BDIV                def       1                   ;actually GB60 does not have a
                     #Uses     common.inc
 ;-------------------------------------------------------------------------------
 
-;                   @pin      SPI_SS,PORTE,2      ;SPI /SS pin
+;SPI_SS             pin       PORTE,2             ;SPI /SS pin
 
                     #EEPROM   EEPROM
 

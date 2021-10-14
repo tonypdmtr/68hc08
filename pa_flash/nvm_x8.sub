@@ -7,9 +7,8 @@
                     #ListOff
                     #Uses     pa16.inc
                     #ListOn
-                    #MCF
-ACCESS_LED          @pin      PORTB,0
-VIOLATION_LED       @pin
+ACCESS_LED          pin       PORTB
+VIOLATION_LED       pin
 #endif ;------------------------------------------------------------------------
 
 ;*******************************************************************************
@@ -31,8 +30,8 @@ nvmadr              rmb       1                   ;NVM offset address tank
 nvmstt              rmb       1                   ;and status
 buffer              rmb       8                   ;your bytes to save in NVM
 
-NVMACC              @pin      nvmstt
-NVMVIO              @pin
+NVMACC              pin       nvmstt
+NVMVIO              pin
 
 ;*******************************************************************************
                     #ROM
@@ -53,8 +52,8 @@ Busy?@@             @cop                          ;reset COP
 ; Note(s): Read parms from EEPROM area
 
 NVM_Read8           proc
-                    ldhx      #8
                     psha
+                    ldhx      #8
 Loop@@              lda       EEPROM-1,x
                     sta       buffer-1,x
                     dbnzx     Loop@@

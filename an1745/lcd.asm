@@ -28,7 +28,6 @@
                     #ListOff
                     #Uses     mcu.inc
                     #ListOn
-                    #MCF
           #ifdef WIDEBUS
                     #Message  LCD in 8-bit mode
           #else
@@ -40,9 +39,9 @@
 
 LCD_CTRL            equ       PORTA
 LCD_DATA            equ       PORTB
-LCD_E               @pin      LCD_CTRL,0
-LCD_RW              @pin      LCD_CTRL,2
-LCD_RS              @pin      LCD_CTRL,1
+LCD_E               pin       LCD_CTRL,0
+LCD_RW              pin       LCD_CTRL,2
+LCD_RS              pin       LCD_CTRL,1
 
 ;*******************************************************************************
                     #ROM

@@ -786,8 +786,6 @@ NV_FSEC             equ       $FF7F,1             ;Flash Security Register
 
 ; **** END OF ORIGINAL DEFINITIONS *********************************************
 
-_9S08PL16_          def       *                   ;Tells us this INCLUDE has been used
-
 TEMPERATURE_CHANNEL equ       22                  ;Channel for internal temperature
 BANDGAP_CHANNEL     equ       23                  ;Channel for internal bandgap
 BANDGAP_VOLTAGE     def       1210                ;typical bandgap voltage in mV
@@ -862,11 +860,7 @@ EEPROM_END          def       $31FF
 #endif
 
 ROM                 def       TRUE_ROM
-ROM_END             equ       $FF6D               ;end of all flash (before NV registers and fixed vectors)
-
-#ifdef BOOT&BOOTROM
-ROM_END             set       BOOTROM-1
-#endif
+ROM_END             def       $FF6D               ;end of all flash (before NV registers and fixed vectors)
 
 XROM                equ       $FF80               ;unused vectors can hold
 XROM_END            equ       $FFAF               ;some more code/data

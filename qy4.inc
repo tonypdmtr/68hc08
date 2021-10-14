@@ -26,7 +26,7 @@ FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 FLBPR_MASK          def       EEPROM+FLASH_DATA_SIZE>6&$FF ;mask to use for FLBPR
 
@@ -135,7 +135,7 @@ Virq                def       $FFFA               ;/IRQ vector
 Vswi                def       $FFFC               ;SWI vector
 Vreset              def       $FFFE               ;/RESET
 
-#ifndef MHZ¦HZ
+#ifndef MHZ||HZ
 KHZ                 def       12800               ;12.8 MHz internal oscillator
 #endif
 ;-------------------------------------------------------------------------------

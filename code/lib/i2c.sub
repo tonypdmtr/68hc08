@@ -48,10 +48,9 @@ _I2C_               equ       102
                     #ListOff
                     #Uses     mcu.inc
                     #ListOn
-                    #MCF
 
-I2C_CLK             @pin      PORTA,3
-I2C_DATA            @pin      PORTA,5
+I2C_CLK             pin       PORTA,3
+I2C_DATA            pin       PORTA,5
 
 I2C_ClockDelay      macro
                     nop:4

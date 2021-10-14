@@ -38,7 +38,7 @@
 ;* History   : 08.11.03 v1.00 Original
 ;*           : 09.11.05       Minor optimizations
 ;*           : 09.12.09 v2.00 Added DispByte, DispWordXA, DispWordHX
-;*           :                You may exclude Disp version w/ conditional NODISP
+;*           :                You may exclude Disp version w/ conditional NO_DISP
 ;*           : 09.12.10 v2.01 Minor optimization
 ;*           : 11.03.31       putc macro must be predefined by user
 ;*           : 11.04.21       Moved test code at EOF (for #EXIT optimization)
@@ -63,7 +63,7 @@ putc                macro
 
                     #MapOff
 #endif ;------------------------------------------------------------------------
-#ifndef NODISP
+#ifndef NO_DISP
 BYTEWIDTH           def       3                   ;default width for byte number
 WORDWIDTH           def       5                   ;default width for word number
 
@@ -136,7 +136,7 @@ Print@@             pula                          ;get next ASCIZ char
                     @putc                         ;else, print digit
                     bra       Print@@
 
-          #ifndef NODISP
+          #ifndef NO_DISP
                     #Message  DISP (fixed length display) routines included
 
 ;*******************************************************************************
@@ -267,8 +267,7 @@ Start               proc
           ;-------------------------------------- ;test PrintWordHX
                     ldhx      #1234
                     call      PrintWordHX
-
-#ifndef NODISP
+#ifndef NO_DISP
           ;-------------------------------------- ;test DispByte
                     lda       #12
                     clc

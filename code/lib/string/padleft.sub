@@ -8,12 +8,13 @@ AAX                 rtc
                     #Uses     insertchar.sub
 
 ;*******************************************************************************
-; Purpose: Pad an ASCIZ string with leading blanks upto specific string size
+; Purpose: Pad an ASCIZ string with leading blanks/zeros upto specific string size
 ; Input  : HX -> ASCIZ string
 ;        : A = Max. string length
 ; Output : None
+; Note(s): Enter from StringPadLeftZeros to fill with zeros
 
-StringPadLeft       macro     [#]MaxLength[,[#]StringToInsert]
+StringPadLeft       macro     [#]MaxLength[,[#]StringToPad]
           #ifb ~1~~2~
                     call      ~0~
                     mexit
@@ -37,18 +38,45 @@ StringPadLeft       macro     [#]MaxLength[,[#]StringToInsert]
 
 ;-------------------------------------------------------------------------------
 
-                    #spauto   :ab
+                    #spauto
+
+StringPadLeftZeros  proc
+                    psha      num@@
+                    lda       #'0'
+                    psha
+                    lda       num@@,sp
+                    bsr       ?StringPadLeft
+                    pula:2
+                    rtc
+
+;-------------------------------------------------------------------------------
+
+                    #spauto
 
 StringPadLeft       proc
+                    psha      num@@
+                    lda       #' '
+                    psha
+                    lda       num@@,sp
+                    bsr       ?StringPadLeft
+                    pula:2
+                    rtc
+
+;*******************************************************************************
+
+                    #spauto   2
+
+?StringPadLeft      proc
+fill_char@@         equ       1,1
                     psha      max@@
                     @StringLength
 Loop@@              cmpa      max@@,sp
                     bhs       Done@@
-                    @StringInsertChar #' '
+                    @StringInsertChar, fill_char@@,sp
                     inca                          ;update string length
                     bra       Loop@@
 Done@@              pula
-                    rtc
+                    rts
 
 ;*******************************************************************************
                     #sp

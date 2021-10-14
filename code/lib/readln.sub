@@ -14,6 +14,8 @@
 ;*           : 16.08.01       Minor optimization in Readln proc [-1 byte]
 ;*           :                Removed redundant BEQ in Readln proc [-2 bytes]
 ;*           :                Minor optimization in Readln proc Done@@ [-4 bytes]
+;*           : 21.09.09       Minor optimization by Readln proc Cont@@ [-2 bytes]
+;*           :                Simplified CCR[C] checks in Readln proc [-3 bytes]
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -107,29 +109,26 @@ Readln              proc
                     psha      len@@
 
                     tpa
+                    and       #CCR_C_             ;we only care for CCR[C] flag
                     psha      ccr@@
 
                     lda       len@@,sp
                     psha      remain@@            ;chars remaining (max characters to read)
-                    beq       WaitEol@@           ;if zero, wait for terminator
-
-                    clr       ,x                  ;assume ASCIZ string
-                    dec       remain@@,sp         ;one less char to receive
+                    beq       Save?@@             ;if zero, wait for terminator
+          ;--------------------------------------
+                    bra       Cont@@
 
 Loop@@              @getc                         ;read a character
                     cbeqa     #LF,Loop@@          ;LFs are ignored
                     cbeqa     #CR,Done@@          ;on CR terminator, exit
-
-                    psha
-                    lda       ccr@@,sp
-                    tap
-                    pula
-                    bcc       WaitEol@@           ;the remaining check apply only in echo mode
+          ;-------------------------------------- ;the remaining checks apply only in echo mode
+                    tst       ccr@@,sp            ;is echo enabled?
+                    beq       Save?@@             ;no, skip next checks
 
                     cbeqa     #BS,Backspace@@     ;on BS, if in echo mode, delete last character
                     cbeqa     #ESC,ClearLine@@    ;on ESC, if in echo mode, clear the whole line
-
-WaitEol@@           tst       remain@@,sp         ;a possible BS puts us back in the game
+          ;--------------------------------------
+Save?@@             tst       remain@@,sp         ;a possible BS puts us back in the game
                     beq       Loop@@              ;if zero, only terminator will work
 
                     cmpa      #' '                ;nothing below space is accepted
@@ -137,18 +136,16 @@ WaitEol@@           tst       remain@@,sp         ;a possible BS puts us back in
 
                     sta       ,x                  ;anything else save in buffer
 
-                    lda       ccr@@,sp
-                    tap
-                    bcc       MakeAsciz@@
+                    tst       ccr@@,sp            ;is echo enabled?
+                    beq       MakeAsciz@@         ;no, skip echo
 
-                    lda       ,x                  ;reload character to echo
                     @putc                         ;echo character
 
 MakeAsciz@@         aix       #1                  ;point to next buffer position
-                    clr       ,x                  ;maintain as ASCIZ string
+Cont@@              clr       ,x                  ;make it ASCIZ string
                     dec       remain@@,sp         ;one less char to receive
                     bra       Loop@@
-
+          ;--------------------------------------
 ClearLine@@         lda       len@@,sp            ;delete all characters
                     bra       BS_Loop@@
 
@@ -156,7 +153,7 @@ Backspace@@         lda       #1                  ;delete just one character
 
 BS_Loop@@           psha
                     lda       remain@@,sp         ;get remaining length
-                    inca                          ;if incremented, check if we
+                    inca                          ;if incremented, check ...
                     cmpa      len@@,sp            ;are we at the beginning?
                     bhs       BS_Cont@@           ;yes, ignore backspace
           ;-------------------------------------- ;erase previous character
@@ -169,17 +166,17 @@ BS_Loop@@           psha
           ;--------------------------------------
                     inc       remain@@,sp         ;un-count deleted character
                     aix       #-1                 ;back up buffer position
-                    clr       ,x                  ;ASCIZ terminate it
+                    clr       ,x                  ;make it ASCIZ string
 BS_Cont@@           pula
-                    dbnza     BS_Loop@@
-                    bra       Loop@@
-
+                    dbnza     BS_Loop@@           ;repeat requested number of times
+                    bra       Loop@@              ;go get another character
+          ;--------------------------------------
 Done@@              tsx
                     lda       len@@,spx           ;original string length
                     sub       remain@@,spx        ;subtract remaining length
                     deca                          ;do NOT count end-of-line
           ;-------------------------------------- ;A = number of characters read
-                    ais       #:ais
+                    ais       #:ais               ;de-allocate temporaries
                     pulhx
                     rtc
 

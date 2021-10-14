@@ -17,7 +17,7 @@ _RF_                def       2                   ;Tells us a RF type device is 
 
 COP                 def       $FFFF,1
 
-#ifndef KHZ¦MHZ
+#ifndef KHZ||MHZ
 HZ                  def       9830400             ;9.8304 MHz internal oscillator
 #endif
 
@@ -32,7 +32,7 @@ FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
 EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 #if FLASH_DATA_SIZE > 512
                     #Message  All Flash is unprotected
@@ -164,17 +164,17 @@ REDPROG             def       $F009               ;ROM routine to range emulate 
 ;                   #RAM
 ;                   #ppc
 ;                   org       RAM+8
-;CTRLBYT            rmb       1                   ;Bit6 & Bit5 hold the block size to erase
-;CPUSPD             rmb       1                   ;CPU bus speed X 4 (e.g. 32 for 8MHz)
-;LADDR              rmb       2                   ;Last address for read or program range
-;BUMPS              rmb       1                   ;Maximum number of programming bumps to use
-;DERASE             rmb       2                   ;Erase delay time in uS/24
-;DATA               equ       *                   ;Variable number of data bytes (define in your program)
+;ctrlbyt            rmb       1                   ;Bit6 & Bit5 hold the block size to erase
+;cpuspd             rmb       1                   ;CPU bus speed X 4 (e.g. 32 for 8MHz)
+;laddr              rmb       2                   ;Last address for read or program range
+;bumps              rmb       1                   ;Maximum number of programming bumps to use
+;derase             rmb       2                   ;Erase delay time in uS/24
+;data               equ       *                   ;Variable number of data bytes (define in your program)
 ;                   org       :ppc
 
 ; CONSTANTS
 
-; CTRLBYT values
+; ctrlbyt values
 
 .FULL_ARRAY_ERASE_  def       0
 .HALF_ARRAY_ERASE_  def       Bit5_

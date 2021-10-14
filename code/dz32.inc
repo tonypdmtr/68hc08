@@ -870,8 +870,6 @@ EraseAbort_         equ       $47
 
 ; **** END OF ORIGINAL DEFINITIONS *********************************************
 
-_9S08DZ32_          def       *                   ;Tells us this INCLUDE has been used
-
 TEMPERATURE_CHANNEL equ       26                  ;Channel for internal temperature
 BANDGAP_CHANNEL     equ       27                  ;Channel for internal bandgap
 BANDGAP_VOLTAGE     def       1200                ;typical bandgap voltage in mV
@@ -945,11 +943,7 @@ EEPROM_END          def       $17FF               ;visible through this window
 #endif
 
 ROM                 def       TRUE_ROM
-ROM_END             equ       $FF9F               ;end of all flash (before NV registers and fixed vectors)
-
-#ifdef BOOT&BOOTROM
-ROM_END             set       BOOTROM-1
-#endif
+ROM_END             def       $FF9F               ;end of all flash (before NV registers and fixed vectors)
 
 ?                   macro
                     #temp     $10000              ;;count down from 64K

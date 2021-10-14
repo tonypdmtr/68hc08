@@ -867,8 +867,6 @@ NVOPT               equ       $FFBF,1             ;NV flash options byte
                                                   ;NVFEOPT transfers to FOPT on reset
 ;*******************************************************************************
 
-_9S08QE128_         def       *                   ;Tells us this INCLUDE has been used
-
 TEMPERATURE_CHANNEL equ       26                  ;Channel for internal temperature
 BANDGAP_CHANNEL     equ       27                  ;Channel for internal bandgap
 BANDGAP_VOLTAGE     def       1170                ;typical bandgap voltage in mV
@@ -1075,8 +1073,8 @@ DMX_                equ       ~3~<DMX32.
 
 ;*******************************************************************************
 
-;                   @pin      SPI_SS,PORTE,3      ;SPI /SS port
-;                   @pin      SPI2_SS,PORTD,3     ;SPI /SS port
+;SPI_SS             pin       PORTE,3             ;SPI /SS port
+;SPI2_SS            pin       PORTD,3             ;SPI /SS port
 
                     #EEPROM   EEPROM
 
@@ -1112,8 +1110,16 @@ NVOPT_VALUE         def       %10000000           ;NVFEOPT transfers to FOPT on 
                     #XROM     XROM
           #endif
                     #ROM      ROM
-
+          ;--------------------------------------
+          #if ROM < :PAGE_START
+                    #MEMORY   ROM :PAGE_START-1
+                    #MEMORY   :PAGE_END+1 ROM_END
+          #else if ROM > :PAGE_END
                     #MEMORY   ROM       ROM_END
+          #else
+                    #Fatal    ROM falls within PPAGE window
+          #endif
+          ;--------------------------------------
           #ifndef OS8PRELOADED
                     #!MEMORY  XROM      XROM_END
           #endif

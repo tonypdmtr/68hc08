@@ -1,7 +1,7 @@
 ;*******************************************************************************
 ;* Module    : DNCASE.SUB
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
-;* Purpose   : Lowercase conversion routines
+;* Purpose   : ASCII lowercase conversion routine
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
 ;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/dncase.html

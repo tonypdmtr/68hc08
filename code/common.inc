@@ -17,7 +17,9 @@
 ; Code labels use CamelCase
 ; Local labels end with @@ (although ASM8 allows @@ to be anywhere inside label)
 ;*******************************************************************************
-
+          #if :version < 1200
+                    #Warning  Some macros are incompatible with ASM8 v{:version(2)} (please update to ASM8 v12 or later)
+          #endif
 #ifmain ;-----------------------------------------------------------------------
                     #Fatal    This file can not be used stand-alone
 #endif ;------------------------------------------------------------------------
@@ -175,19 +177,37 @@ BUS_MHZ             def       BUS_KHZ/1000
           #else ifdef _PA_||_PT_||_PL_
                     #temp1    1
                     mset      0,1024
+          #else ifdef _AC_
+                    #temp1    2
+                    mset      0,1,64
           #else
                     #temp1    6
                     mset      0,512,1024,1536,608,1216,1824
           #endif
                     mdo
                     #temp     ~text[,]{:mloop}~
-          #ifz HZ*10\:temp
-          #if HZ*10/:temp >= 312500
-          #if HZ*10/:temp <= 390625
+          ;;------------------------------------- ;MCU variants with ICG
+          #ifdef ICGC1
+                    #temp2    HZ*7/243000/:temp
+            #if :temp2 >= 4
+              #if :temp2 <= 18
+                #ifz :temp2\2
 FLL_FACTOR          def       :temp
+                #endif
+              #endif
+            #endif
+          ;;-------------------------------------
+          #else
+          ;;------------------------------------- ;MCU variants without ICG
+            #ifz HZ*10\:temp
+              #if HZ*10/:temp >= 312500
+                #if HZ*10/:temp <= 390625
+FLL_FACTOR          def       :temp
+                #endif
+              #endif
+            #endif
           #endif
-          #endif
-          #endif
+          ;;-------------------------------------
                     mloop     :temp1
                     endm
                     @?calc_fll_factor
@@ -229,18 +249,33 @@ RANGE_              equ       RANGE<RANGE_SEL.    ;move RANGE bit to correct bit
 #endif
 ;===============================================================================
           #ifhcs
-            #ifnz FLL_FACTOR
-                    #temp     HZ*10/FLL_FACTOR
-            #ifz HZ*10\FLL_FACTOR
-                    #Message  Trim to IRCLK {:temp(1)} Hz (FLL_FACTOR={FLL_FACTOR})
+            #ifdef ICGC1
+              #ifnz FLL_FACTOR
+                    #temp     HZ*7/243000/FLL_FACTOR
+                #if :temp >= 4
+                  #if :temp <= 18
+                    #ifz :temp\2
+MFD                 equ       :temp
+                    #else
+                    #Warning  Out-of-range MFD {:temp}
+                    #endif
+                  #endif
+                #endif
+              #endif
             #else
+              #ifnz FLL_FACTOR
+                    #temp     HZ*10/FLL_FACTOR
+                #ifz HZ*10\FLL_FACTOR
+                    #Message  Trim to IRCLK {:temp(1)} Hz (FLL_FACTOR={FLL_FACTOR})
+                #else
                     #Warning  Unsupported CPU clock ({HZ(6)} MHz)
-            #endif
-            #if :temp < 312500
+                #endif
+                #if :temp < 312500
                     #Warning  Out-of-range trim value {:temp(1)} Hz
-            #else if :temp > 390625
+                #else if :temp > 390625
                     #Warning  Out-of-range trim value {:temp(1)} Hz
-            #endif
+                #endif
+              #endif
             #endif
           #endif
 
@@ -767,13 +802,17 @@ Parms               macro
                     endm
 
 ;*******************************************************************************
-; Check if we're in SPAUTO mode, and issue a warning if not
+; Check if we're in SPAUTO mode, and issue a (user defined) warning if not
 
-_needs_spauto_      macro
+_needs_spauto_      macro     [optional warning]
           #ifspauto
                     mexit
           #endif
+                    mset      #
+          #ifb ~1~
                     mstop     #SPAUTO mode required
+          #endif
+                    #Warning  ~1~
                     endm
 
 ;*******************************************************************************
@@ -1018,7 +1057,7 @@ swap.s              macro     Variable1 Variable2
 
 PUE                 macro     PortLabel
                     mdef      0,ABCDEFGHIJKLMNOPQRSTUVWXYZ
-          #!if PORT~text.{:loop}.1~ = ~1~
+          #!if PORT~text.{:loop}.1~ = [[~1~
 ~label~             set       PT~text.{:loop}.1~PUE
                     mexit
           #endif
@@ -2224,7 +2263,11 @@ _bset_              macro     PinName
               #ifnum ~1~
                     ora       #1<~1~
               #else
+                #ifdef ~1'.'~_
                     ora       #~1'.'~_
+                #else
+                    ora       #@~1'.'~
+                #endif
               #endif
                     sta       ~2~
                     mexit
@@ -2232,12 +2275,20 @@ _bset_              macro     PinName
                     !bset     ~@~
                     mexit
           #endif
-          #ifz ~1~&$FFFFFF00
+          #ifz [[~1~&$FFFFFF00
+            #ifdef ~1~.
                     !bset     ~1~.,~1~
+            #else
+                    !bset     ~1~
+            #endif
                     mexit
           #endif
                     lda       ~1~
+          #ifdef ~1~_
                     ora       #~1~_
+          #else
+                    ora       #@~1~
+          #endif
                     sta       ~1~
                     endm
 
@@ -2252,7 +2303,11 @@ _bclr_              macro     PinName
               #ifnum ~1~
                     and       #1<~1~^$FF
               #else
+                #ifdef ~1'.'~_
                     and       #~1'.'~_^$FF
+                #else
+                    and       #@~1'.'~^$FF
+                #endif
               #endif
                     sta       ~2~
                     mexit
@@ -2260,12 +2315,20 @@ _bclr_              macro     PinName
                     !bclr     ~@~
                     mexit
           #endif
-          #ifz ~1~&$FFFFFF00
+          #ifz [[~1~&$FFFFFF00
+            #ifdef ~1~.
                     !bclr     ~1~.,~1~
+            #else
+                    !bclr     ~1~
+            #endif
                     mexit
           #endif
                     lda       ~1~
+          #ifdef ~1~_
                     and       #~1~_^$FF
+          #else
+                    and       #@~1~^$FF
+          #endif
                     sta       ~1~
                     endm
 
@@ -2281,7 +2344,11 @@ bset                macro     PinName
               #ifnum ~1~
                     ora       #1<~1~
               #else
+                #ifdef ~1'.'~_
                     ora       #~1'.'~_
+                #else
+                    ora       #@~1'.'~
+                #endif
               #endif
                     sta       ~2~
                     pula
@@ -2290,13 +2357,21 @@ bset                macro     PinName
                     !bset     ~@~
                     mexit
           #endif
-          #ifz ~1~&$FFFFFF00
+          #ifz [[~1~&$FFFFFF00
+            #ifdef ~1~.
                     !bset     ~1~.,~1~
+            #else
+                    !bset     ~1~
+            #endif
                     mexit
           #endif
                     psha
                     lda       ~1~
+          #ifdef ~1~_
                     ora       #~1~_
+          #else
+                    ora       #@~1~
+          #endif
                     sta       ~1~
                     pula
                     endm
@@ -2313,7 +2388,11 @@ bclr                macro     PinName
               #ifnum ~1~
                     and       #1<~1~^$FF
               #else
+                #ifdef ~1'.'~_
                     and       #~1'.'~_^$FF
+                #else
+                    and       #@~1'.'~^$FF
+                #endif
               #endif
                     sta       ~2~
                     pula
@@ -2322,13 +2401,21 @@ bclr                macro     PinName
                     !bclr     ~@~
                     mexit
           #endif
-          #ifz ~1~&$FFFFFF00
+          #ifz [[~1~&$FFFFFF00
+            #ifdef ~1~.
                     !bclr     ~1~.,~1~
+            #else
+                    !bclr     ~1~
+            #endif
                     mexit
           #endif
                     psha
                     lda       ~1~
+          #ifdef ~1~_
                     and       #~1~_^$FF
+          #else
+                    and       #@~1~^$FF
+          #endif
                     sta       ~1~
                     pula
                     endm
@@ -2342,8 +2429,12 @@ brset               macro     PinName,Address
                     !brset    ~@~
                     mexit
           #endif
-          #ifz ~1~&$FFFFFF00
+          #ifz [[~1~&$FFFFFF00
+            #ifdef ~1~.
                     !brset    ~1~.,~1~,~2~
+            #else
+                    !brset    ~1~,~2~
+            #endif
                     mexit
           #endif
           #ifparm ~2~ = *
@@ -2351,7 +2442,11 @@ brset               macro     PinName,Address
           #endif
                     psha
                     lda       ~1~
+          #ifdef ~1~_
                     and       #~1~_
+          #else
+                    and       #@~1~
+          #endif
                     pula
                     bne       ~2~
                     endm
@@ -2365,8 +2460,12 @@ brclr               macro     PinName,Address
                     !brclr    ~@~
                     mexit
           #endif
-          #ifz ~1~&$FFFFFF00
+          #ifz [[~1~&$FFFFFF00
+            #ifdef ~1~.
                     !brclr    ~1~.,~1~,~2~
+            #else
+                    !brclr    ~1~,~2~
+            #endif
                     mexit
           #endif
           #ifparm ~2~ = *
@@ -2374,7 +2473,11 @@ brclr               macro     PinName,Address
           #endif
                     psha
                     lda       ~1~
+          #ifdef ~1~_
                     and       #~1~_
+          #else
+                    and       #@~1~
+          #endif
                     pula
                     beq       ~2~
                     endm
@@ -2500,6 +2603,19 @@ ByteX10             macro     Variable
                     sta       ~1~
                     pula
                     #pull
+                    endm
+
+;*******************************************************************************
+; Run a section of code with interrupts disabled; then restore to previous state
+
+NoInts              macro
+                    @@_needs_spauto_ Stack indexing may fail if not in #spauto mode
+                    psha
+                    tpa
+                    sei
+                    msuspend
+                    tap
+                    pula
                     endm
 
 ;*******************************************************************************

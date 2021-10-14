@@ -1780,8 +1780,6 @@ mPageErase          equ       $40
 
 ; **** END OF ORIGINAL DEFINITIONS *********************************************
 
-_9S08GW64_          def       *                   ;Tells us this INCLUDE has been used
-
 TEMPERATURE_CHANNEL equ       22                  ;Channel for internal temperature
 BANDGAP_CHANNEL     equ       23                  ;Channel for internal bandgap
 BANDGAP_VOLTAGE     def       1210                ;typical bandgap voltage in mV
@@ -1861,17 +1859,13 @@ EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 #endif
 
 ROM                 def       TRUE_ROM
-ROM_END             equ       $FF95               ;end of all flash (before NV registers and fixed vectors)
+ROM_END             def       $FF95               ;end of all flash (before NV registers and fixed vectors)
           #ifmmu
 XROM                def       $1960
 XROM_END            def       :PAGE_START-1       ;end of pre-window flash
           #endif
 XROM                def       EEPROM_END+1
 XROM_END            def       $17FF
-
-#ifdef BOOT&BOOTROM
-ROM_END             set       BOOTROM-1
-#endif
 
 ?                   macro
                     #temp     $10000              ;;count down from 64K
@@ -1996,8 +1990,16 @@ NVOPT_VALUE         def       %11000000           ;NVFEOPT transfers to FOPT on 
                     #RAM      RAM
                     #XRAM     XRAM
                     #ROM      ROM
-
+          ;--------------------------------------
+          #if ROM < :PAGE_START
+                    #MEMORY   ROM :PAGE_START-1
+                    #MEMORY   :PAGE_END+1 ROM_END
+          #else if ROM > :PAGE_END
                     #MEMORY   ROM       ROM_END
+          #else
+                    #Fatal    ROM falls within PPAGE window
+          #endif
+          ;--------------------------------------
                     #MEMORY   EEPROM    EEPROM_END
                     #MEMORY   NVBACKKEY NVBACKKEY+7
                     #MEMORY   NVPROT

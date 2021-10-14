@@ -24,14 +24,14 @@ FLASH_PAGE_SIZE     equ       64                  ;minimum that must be erased a
 FLASH_DATA_SIZE     def       0
 FLASH_DATA_SIZE     align     FLASH_PAGE_SIZE
 
-EEPROM              equ       TRUE_ROM
+EEPROM              def       TRUE_ROM
 EEPROM              align     FLASH_PAGE_SIZE
-EEPROM_END          equ       EEPROM+FLASH_DATA_SIZE-1
+EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 
 RAM                 equ       $80                 ;Start of on-chip RAM
 RAM_END             equ       $FF                 ;End of on-chip RAM
 ROM                 equ       EEPROM_END+1        ;Start of ROM after data area
-ROM_END             equ       $FDFF               ;End of ROM
+ROM_END             def       $FDFF               ;End of ROM
 VECTORS             equ       $FFDE               ;Start of Vectors
 
 FLBPR_MASK          equ       ROM>6&$FF           ;mask to use for FLBPR
@@ -134,7 +134,7 @@ Virq                equ       $FFFA               ;/IRQ vector
 Vswi                equ       $FFFC               ;SWI vector
 Vreset              equ       $FFFE               ;/RESET
 
-#ifndef MHZ¦HZ
+#ifndef MHZ||HZ
 KHZ                 def       12800               ;12.8 MHz internal oscillator
 #endif
 ;-------------------------------------------------------------------------------

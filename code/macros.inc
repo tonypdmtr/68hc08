@@ -157,11 +157,15 @@
 ;*           : 21.02.11 v2.30 No longer calls @MyDefaultDirectives at inclusion
 ;*           : 21.04.09 v2.31 Show hint when sema is already defined
 ;*           : 21.06.29 v2.32 Improved CopyPin macro to use CCR[C] if FromPin is missing
+;*           : 21.10.01 v2.33 Improved Input and Output macros to ignore non-register pins
+;*           : 21.10.06 v2.34 Removed practically useless _FindStr_ macro (Find String)
 ;*******************************************************************************
 
                     #Exit     _MACROS_
 _MACROS_
-
+          #if :version < 1200
+                    #Warning  Some macros are incompatible with ASM8 v{:version(2)} (please update to ASM8 v12 or later)
+          #endif
 ;*******************************************************************************
 ; My personal preferences for most situations (adjust to suit your needs)
 
@@ -1714,51 +1718,6 @@ ais                 macro     Size
                     endm
 
 ;*******************************************************************************
-; Find the Nth occurrence of a character/string inside given parameter text
-; (Positive number means search forward from start of text)
-; (Negative number means search backward from end of text)
-
-_FindStr_           macro     StrToFind,[-]Occurrence,Any text
-                    mreq      1:StrToFind,[-]Occurrence,Any text
-                    mdef      2,1
-                    mset      0,~1~
-          #ifnonum ~2~
-                    merror    Occurence has to be numeric
-          #endif
-                    #temp     ~2~
-                    mdel      1
-                    mdel      1
-                    mset      #
-          #if :text > :1
-                    mexit                         ;;string to find is larger than text
-          #endif
-#if :temp > 0                                     ;;search from the start
-                    mdo
-          #ifparm \@~text~\@ == \@~1.{:mloop}.{:text}~\@
-                    #temp     :temp-1
-            #ifz :temp
-                    mexit     :mloop
-            #endif
-          #endif
-                    mloop     :1-:text+1
-                    mexit
-#endif
-#if :temp < 0                                     ;;search from the end
-                    #temp     -:temp
-                    mdo
-          #ifparm \@~text~\@ == \@~1.{:1-:mloop-:text+2}.{:text}~\@
-                    #temp     :temp-1
-            #ifz :temp
-                    mexit     :1-:mloop-:text+2
-            #endif
-          #endif
-                    mloop     :1-:text+1
-                    mexit
-#endif
-                    merror    Occurrence must be positive or negative
-                    endm
-
-;*******************************************************************************
 ; Vector redirection for MCUs (like the QE128) which don't have it in hardware
 ; This should be placed first (and only) thing inside any hard ISR handler.
 
@@ -1879,8 +1838,10 @@ Pin                 macro     [[PinName,]PORT[,BitNumber]]
 
 CheckPin            macro     PinName[,PinName]*
           #ifndef ~{:loop}.~&&~{:loop}.~.&&~{:loop}.~_
-                    #Error    Pin \@~{:loop}.~\@ not defined with @pin
+            #ifnz ~{:loop}.~&$FFF8FF00            ;;complement of $700FF
+                    #Error    \@~{:loop}.~\@ not defined with [@]pin
                     mexit
+            #endif
           #endif
                     mtop      :n
                     endm
@@ -1893,7 +1854,7 @@ ExpPin              macro     PinName[,PinName]*
                     mdo
           #ifdef ~{:mloop}.~
                     @@CheckPin ~{:mloop}.~
-                    #Export   ~{:mloop}.~,~{:mloop}.~.,~{:mloop}.~_
+                    #!Export  ~{:mloop}.~,~{:mloop}.~.,~{:mloop}.~_
           #endif
                     mloop     :n
                     endm
@@ -1902,8 +1863,12 @@ ExpPin              macro     PinName[,PinName]*
 ; Read the status of a PIN into the CCR[C]
 
 ReadPin             macro     PinName
+          #ifdef ~1'.'~.
                     mdef      2,~1'.'~
                     !brset    ~1'.'~.,~2~,:pc+3
+          #else
+                    !brset    ~1~,:pc+3
+          #endif
                     endm
 
 ;*******************************************************************************
@@ -1913,11 +1878,24 @@ CopyPin             macro     [FromPin],ToPin
           #ifb ~1~
                     bcc       _0$$$               ;;if source low, go copy a low
           #else
+            #ifdef ~1~.
                     @@brclr   ~1~,_0$$$           ;;if source low, go copy a low
+            #else
+                    brclr     ~1~,_0$$$           ;;if source low, go copy a low
+            #endif
           #endif
+          #ifdef ~2~.
                     @@bset    ~2~                 ;;else, make target high
+          #else
+                    bset      ~2~                 ;;else, make target high
+          #endif
                     bra       Done$$$             ;;we're done
-_0$$$               @@bclr    ~2~                 ;;make target low
+_0$$$
+          #ifdef ~2~.
+                    @@bclr    ~2~                 ;;make target low
+          #else
+                    bclr      ~2~                 ;;make target low
+          #endif
 Done$$$             endm
 
 ;*******************************************************************************
@@ -1928,28 +1906,38 @@ Pullup              macro     PIN[,PIN]*[,,NoSaveRegAflag]
           #if :loop = 1
                     #temp
           #endif
+          #ifdef ~{:loop}.~
                     mdo
-          #ifndef ~{:loop}.~
-                    merror    ~{:loop}.~ not defined
-          #endif
           #ifdef PT~text.{:mloop}.1~PUE
-          #if ~{:loop}.~ = PORT~text.{:mloop}.1~
-          #ifz ]PT~text.{:mloop}.1~PUE
+            #if [[~{:loop}.~ = PORT~text.{:mloop}.1~
+              #ifz ]PT~text.{:mloop}.1~PUE
+                #ifdef ~{:loop}.~.
                     !bset     ~{:loop}.~.,PT~text.{:mloop}.1~PUE
-          #else
-              #if :n = :nn
-                #ifz :temp
+                #else
+                    #temp2    ~{:loop}.~
+                    !bset     {]]{:temp2}},PT~text.{:mloop}.1~PUE
+                #endif
+              #else
+                #if :n = :nn
+                  #ifz :temp
                     psha
                     #temp     1
+                  #endif
                 #endif
-              #endif
                     lda       PT~text.{:mloop}.1~PUE
+                #ifdef ~{:loop}.~_
                     ora       #~{:loop}.~_
+                #else
+                    ora       #@~{:loop}.~
+                #endif
                     sta       PT~text.{:mloop}.1~PUE
-          #endif
-          #endif
+              #endif
+            #endif
           #endif
                     mloop     :text
+          #else
+                    #Hint     Skipping \@~0~\@ on undefined \@~{:loop}.~\@
+          #endif
                     mtop      :n
               #ifnz :temp
                     pula
@@ -1982,16 +1970,27 @@ Bits                macro     BitName,MinNumber,MaxNumber[,FirstBit]
 Input               macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
-          #ifdef DDR
+          #if [[~1~ < RAM                         ;;only for registers, not flags
+            #ifdef DDR
+              #ifdef ~1~.
                     !bclr     ~1~.,~1~+DDR
-          #else
-            #ifnz ~1~+DDRO&$FFFFFF00
+              #else
+                    !bclr     ~1~+DDR
+              #endif
+            #else
+              #ifnz ~1~+DDRO&$FFFFFF00
                     psha
-            #endif
+              #endif
+              #ifdef ~1~.
                     @@_bclr_  ~1~.,~1~+DDRO
                     @@_bset_  ~1~.,~1~+DDRI
-            #ifnz ~1~+DDRO&$FFFFFF00
+              #else
+                    @@_bclr_  {]]~1~},~1~+DDRO
+                    @@_bset_  {]]~1~},~1~+DDRI
+              #endif
+              #ifnz ~1~+DDRO&$FFFFFF00
                     pula
+              #endif
             #endif
           #endif
                     mtop      :n
@@ -2000,16 +1999,27 @@ Input               macro     PinName[,PinName]*
 Output              macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
-          #ifdef DDR
+          #if [[~1~ < RAM                         ;;only for registers, not flags
+            #ifdef DDR
+              #ifdef ~1~.
                     !bset     ~1~.,~1~+DDR
-          #else
-            #ifnz ~1~+DDRO&$FFFFFF00
+              #else
+                    !bset     ~1~+DDR
+              #endif
+            #else
+              #ifnz ~1~+DDRO&$FFFFFF00
                     psha
-            #endif
+              #endif
+              #ifdef ~1~.
                     @@_bclr_  ~1~.,~1~+DDRI
                     @@_bset_  ~1~.,~1~+DDRO
-            #ifnz ~1~+DDRO&$FFFFFF00
+              #else
+                    @@_bclr_  {]]~1~},~1~+DDRI
+                    @@_bset_  {]]~1~},~1~+DDRO
+              #endif
+              #ifnz ~1~+DDRO&$FFFFFF00
                     pula
+              #endif
             #endif
           #endif
                     mtop      :n
@@ -2021,7 +2031,11 @@ Output              macro     PinName[,PinName]*
 On                  macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
+          #ifdef ~1~.
                     !bset     ~1~.,~1~
+          #else
+                    !bset     ~1~
+          #endif
                     @@Output  ~1~
                     mtop      :n
                     endm
@@ -2029,7 +2043,11 @@ On                  macro     PinName[,PinName]*
 Off                 macro     PinName[,PinName]*
                     mreq      1:PinName[,PinName]*
                     mswap     1,:loop
+          #ifdef ~1~.
                     !bclr     ~1~.,~1~
+          #else
+                    !bclr     ~1~
+          #endif
                     @@Output  ~1~
                     mtop      :n
                     endm
@@ -2043,7 +2061,11 @@ Toggle              macro     PinName[,PinName]*
                     mdo
                     mswap     1,:mloop
                     lda       ~1~
+          #ifdef ~1~_
                     eor       #~1~_               ;toggle pin
+          #else
+                    eor       #@~1~               ;toggle pin
+          #endif
                     sta       ~1~
                     mloop     :n
                     pula

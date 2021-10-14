@@ -39,6 +39,11 @@
 ;*           : 21.04.13 v1.40 BugFix: Strings no longer get trimmed
 ;*           :                BugFix: Strings including | are parsed correctly
 ;*           : 21.06.23 v1.41 Improved Print macro to use BSR instead of JSR when distance allows
+;*           : 21.10.04 v1.42 Added zero fill format to PrintNum macro when width
+;*           :                starts with zero. This also affects the Print macro
+;*           :                that calls PrintNum to print numbers.
+;*           : 21.10.06 v1.43 Added '@' prefix exception when forcing immediate
+;*           :                mode in Print macro due to ASM8 v12 use of @ as pin mask
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -117,7 +122,12 @@ s$$$                equ       ::,{:ais}           ;;assign it a name (and size)
                     bhs       *                   ;new string length is too big
             #endif
                     @@lea     s$$$,sp
+                    mset      1,~[:]3~
+            #ifparm ~1.1.2~ = #0
+                    call      StringPadLeftZeros
+            #else
                     call      StringPadLeft
+            #endif
           #endif
                     @@PrintStr s$$$,sp            ;;print it
                     ais       #:psp               ;;de-allocate all temporaries
@@ -180,6 +190,7 @@ Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:
                     mset      1,~'|'1~
           #endif
                     #temp
+          #ifnoparm ~1.1.1~ = @                   ;;if not like a pin mask (ASM8 v12)
           #ifdef ~#1~                             ;;if a defined symbol
             #ifnostr ~1~                          ;;but not a string
               #ifz ::~#1~                         ;;and having size zero
@@ -190,6 +201,7 @@ Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:
                 #endif
               #endif
             #endif
+          #endif
           #endif
           #ifparm ~#~                             ;;immediate mode is a char
                     #temp     1

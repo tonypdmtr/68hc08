@@ -12,13 +12,12 @@
                     #ListOff
                     #Uses     qd4.inc
                     #ListOn
-                    #MCF
-SCI_TX_PIN          @pin      PORTA,0
+SCI_TX_PIN          pin       PORTA,0
 #endif ;------------------------------------------------------------------------
 
                     @CheckPin SCI_TX_PIN
 
-?TX                 @pin      SCI_TX_PIN,SCI_TX_PIN.
+?TX                 equ       SCI_TX_PIN
 
 ;*******************************************************************************
 ; To determine the value to use for each bps rate, you must divide the

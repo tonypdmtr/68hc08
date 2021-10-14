@@ -394,20 +394,19 @@ IsPowerOfTwo        macro     Constant[,Constant]*
 
 Font                macro     GraphicBitmapPattern
                     mreq      1:GraphicBitmapPattern
-                    mdef      9,0
+                    mdef      9,%
           #ifparm ~1.{:loop}.1~ = _
-                    mset      9,{~9~<1}
-                    mtop      :1
+                    mset      9,~9~0
           #else
-                    mset      9,{~9~<1+1}
-                    mtop      :1
+                    mset      9,~9~1
           #endif
+                    mtop      :1
           #if :1 <= 8
-                    fcb       {~9~(H)}            ;~1~
+                    fcb       ~9~                 ;~1~
           #else if :1 <= 16
-                    dw        {~9~(H)}            ;~1~
+                    dw        ~9~                 ;~1~
           #else
-                    long      {~9~(H)}            ;~1~
+                    long      ~9~                 ;~1~
           #endif
                     endm
 

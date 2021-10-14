@@ -795,8 +795,6 @@ NVOPT               equ       $FFBF,1             ;NV flash options byte
                                                   ;NVFEOPT transfers to FOPT on reset
 ; **** END OF ORIGINAL DEFINITIONS *********************************************
 
-_9S08QE32_          def       *                   ;Tells us this INCLUDE has been used
-
 TEMPERATURE_CHANNEL equ       26                  ;Channel for internal temperature
 BANDGAP_CHANNEL     equ       27                  ;Channel for internal bandgap
 BANDGAP_VOLTAGE     def       1170                ;typical bandgap voltage in mV
@@ -869,11 +867,7 @@ EEPROM_END          def       EEPROM+FLASH_DATA_SIZE-1
 #endif
 
 ROM                 def       EEPROM_END+1
-ROM_END             equ       $FF9F               ;end of all flash (before NV registers and fixed vectors)
-
-#ifdef BOOT&BOOTROM
-ROM_END             set       BOOTROM-1
-#endif
+ROM_END             def       $FF9F               ;end of all flash (before NV registers and fixed vectors)
 
           #if FLASH_DATA_SIZE = 32*512*2          ;32KB in 512-byte pages
 ?NVPROT_MASK        def       1
