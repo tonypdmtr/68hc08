@@ -2484,7 +2484,7 @@ var_any_page        rmb       4                   ;for testing non-zero page ops
 
                     @Vector   Vreset,Start
 
-LED                 @pin      PORTA,0             ;define a port pin
+LED                 pin       PORTA               ;define a port pin
 
 Start               @align2   9                   ;as power of two
 ;                   @align    5                   ;as multiple of value
@@ -2493,10 +2493,10 @@ Start               @align2   9                   ;as power of two
 
                     @On       LED                 ;turn pin On and make output
                     @Off      LED                 ;turn pin Off and make output
-                    @bset     LED
-                    @bclr     LED
-                    @brset    LED,*
-                    @brclr    LED,*
+                    bset      LED
+                    bclr      LED
+                    brset     LED,*
+                    brclr     LED,*
 
                     @bitnum   ADPU,1              ;define a single bit
                     @bits     Flag,5,8            ;define Flag5..Flag8 bits & masks
@@ -2520,7 +2520,6 @@ MyCopyright         @Copyright
                     @StrPas   'Hello World!'      ;a Pascal string
                     @StrPas   '.. etc ..'         ;and another one
                     @StrPas   and w/o quotes
-
           #ifhcs
                     @StandardBaudRates            ;attempt to define all standard bps rates
                     @DefBaud  230400,460800       ;and some extra ones

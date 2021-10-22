@@ -596,7 +596,7 @@ equ                 macro     Label
 
 ;*******************************************************************************
 ; Macro to allocate a variable to #RAM or #XRAM (if XRAM defined) based on size
-; [Smaller variables (upto LONG size) go into #RAM, everything else into #XRAM]
+; [Smaller vars (upto LONG or MaxSizeForRAM) go to #RAM, everything else to #XRAM]
 
 Var                 macro     Size[,MaxSizeForRAM]
           #ifnb ~2~
@@ -611,7 +611,7 @@ Var                 macro     Size[,MaxSizeForRAM]
           #ifdef XRAM                             ;;when XRAM is defined
             #if ~#1~ > ~text~                     ;;anything above ~TEXT~ goes to XRAM
                     #XRAM
-            #else if :RAM+~#1~ > RAM_END          ;;if RAM is full or not enough, use XRAM
+            #else if :RAM+~#1~ > RAM_END+1        ;;if RAM is full or not enough, use XRAM
                     #XRAM
             #endif
           #endif
@@ -2578,8 +2578,8 @@ ByteX10             macro     Variable
                     call      RegAx10
                     mexit
             #endif
-            #if :mindex > 2
-                    #Hint     Consider size optimization #using lib/convert/regax10.sub
+            #if :index > 2
+                    #Hint     Consider \@#Uses lib/convert/regax10.sub\@ optimization
             #endif
                     pshx
                     ldx       #10
@@ -2595,11 +2595,7 @@ ByteX10             macro     Variable
                     #spauto   :sp
                     psha
                     lda       ~1~
-                    pshx
-                    ldx       #10
-                    mul
-                    lsrx                          ;CCR[C] = 9th bit of result
-                    pulx
+                    @@~0~
                     sta       ~1~
                     pula
                     #pull
@@ -2616,6 +2612,22 @@ NoInts              macro
                     msuspend
                     tap
                     pula
+                    endm
+
+;*******************************************************************************
+; Assign name to the non-volatile EEPROM image of an existing EE_[X]BLOCK variable
+
+eeprom              macro     Name,variable
+          #ifndef ~2~
+                    mexit
+          #endif
+          #ifdef EE_XBLOCK
+            #if ~2~ >= EE_XBLOCK
+~1~                 equ       ~2~-EE_XBLOCK+EEPROM+::EE_BLOCK,::~2~
+                    mexit
+            #endif
+          #endif
+~1~                 equ       ~2~-EE_BLOCK+EEPROM,::~2~
                     endm
 
 ;*******************************************************************************
