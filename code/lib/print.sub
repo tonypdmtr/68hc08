@@ -44,6 +44,7 @@
 ;*           :                that calls PrintNum to print numbers.
 ;*           : 21.10.06 v1.43 Added '@' prefix exception when forcing immediate
 ;*           :                mode in Print macro due to ASM8 v12 use of @ as pin mask
+;*           : 21.10.22       Added ! prefix to silence JSR warning in Print macro
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -233,7 +234,7 @@ Print               macro     [$[$]]('String'|@Routine|[StringVar]|#CONST|Expr[:
             #!if :pc-~1.2~ < 127
                     bsr       ~1.2~
             #else
-                    jsr       ~1.2~
+                    !jsr      ~1.2~
             #endif
           #endif
           #ifz :temp                              ;;assume math expression
