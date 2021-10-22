@@ -344,6 +344,9 @@
 ;*           : 20.12.31       Directly assigned proc names with corresponding version
 ;*           : 21.04.14       Added divisor as 2nd argument to DIV.S macro call
 ;*           : 21.04.25       Silenced a JMP to BRANCH hint
+;*           : 21.10.22       Added test case known to fail with buggy 32-bit math
+;*           : 21.10.23 v8.58 BugFix: Failed to add CCR[C] in v8.55 32-bit optimization [+3 bytes]
+;*           :                SPEED_SIZE activated optimization in relation to previous bug [-7 bytes]
 ;*******************************************************************************
 
 ;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
@@ -1190,6 +1193,10 @@ StackMul{?MS}       proc
                     tsx
                     lda       ?a+3,spx
                     ldx       ?b+2,spx
+          #if SPEED_SIZE = 2
+                    bsr       ?_Mul32
+                    tsx
+          #else
                     mul
                     add       ans@@+2,sp
                     sta       ans@@+2,sp
@@ -1197,7 +1204,10 @@ StackMul{?MS}       proc
                     tsx
                     adc       ans@@+1,spx
                     sta       ans@@+1,spx
-
+                    clra
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+          #endif
                     lda       ?a+3,spx
                     ldx       ?b+1,spx
                     mul
@@ -1217,6 +1227,10 @@ StackMul{?MS}       proc
           ;-------------------------------------- ;row 2
                     lda       ?a+2,spx
                     ldx       ?b+3,spx
+          #if SPEED_SIZE = 2
+                    bsr       ?_Mul32
+                    tsx
+          #else
                     mul
                     add       ans@@+2,sp
                     sta       ans@@+2,sp
@@ -1227,7 +1241,7 @@ StackMul{?MS}       proc
                     clra
                     adc       ans@@,spx
                     sta       ans@@,spx
-
+          #endif
                     lda       ?a+2,spx
                     ldx       ?b+1,spx
                     mul
@@ -1303,6 +1317,29 @@ CopyResult@@        pula
                     #spadd    1-?WORD
                               #temp :cycles*?WORD+:temp
                     jmp       ?RemoveAndReturn
+
+;*******************************************************************************
+#if MATHSIZE = 32
+  #if SPEED_SIZE = 2
+                    #spauto   2
+                              #temp :temp+:cycles
+?_Mul32             proc
+ans@@               equ       1,4
+                    mul
+                    add       ans@@+2,sp
+                    sta       ans@@+2,sp
+                    txa
+                    tsx
+                    adc       ans@@+1,spx
+                    sta       ans@@+1,spx
+                    clra
+                    adc       ans@@,spx
+                    sta       ans@@,spx
+                    rts
+
+                    #temp     :cycles*2+:temp
+  #endif
+#endif
 
 ?MulCycles          equ       :temp+:cycles
 
@@ -2087,6 +2124,10 @@ Start               proc
                     clra                          ;(keeps simulator happy)
 
                     @ClrVar   MyVars
+          ;-------------------------------------- ;a case known to fail with buggy 32-bit math
+          #ifdef SIGNED
+                    @Eval     ans = 1000 * (-1)
+          #endif
           ;-------------------------------------- ;test each operation (using related macros)
                     @Eval     ans = sqr(abs(N1 - N2) * abs(N1 + N2))
 
