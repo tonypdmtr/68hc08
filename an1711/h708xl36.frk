@@ -636,7 +636,7 @@ LVIPWR             def        1            ;Power Applied to LVI Module
 LVIRST             def        0            ;LVI Reset Enabled
 
 ;*******************************************************************************
-;                           Memory Map Equates
+; Memory Map Equates
 ;*******************************************************************************
 
 RAM                def        $0050

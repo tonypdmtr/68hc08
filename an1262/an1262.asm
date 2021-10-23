@@ -249,7 +249,7 @@ _1@@                jsr       SHIFTREG            ; Shift tempoary register to r
                     beq       Done@@              ; If reg now empty,go to Priority 2
                     jsr       INCSHIFT            ; Otherwise, increment shift counter
                     lda       shiftcnt,x          ; Read value in shift counter
-                    cmp       #$07                ; Completed max number of shifts ?
+                    cmpa      #$07                ; Completed max number of shifts ?
                     bls       Loop@@              ; If not, try next bit in Priority 1
 Done@@              rts
 
@@ -309,7 +309,7 @@ _@@                 bsr       WRITERAM            ; Go to write procedure in RAM
                     beq       _1@@                ; If now empty, go to PRIOR23_10
                     bsr       INCSHIFT            ; Otherwise,increment shift counter
                     lda       shiftcnt,x          ; Read value of shift counter
-                    cmp       #$07                ; Done max number of shifts ?
+                    cmpa      #$07                ; Done max number of shifts ?
                     bls       _2@@                ; If not, go to _2@@
 _1@@                bsr       CLRSHIFT            ; Go clear shift counter
 _2@@                clra                          ; Set address pointer back to
@@ -545,7 +545,7 @@ Loop@@              deca                          ; Keep looping round OUTLP unt
                     bne       Loop@@              ; accumulator is zero
                     inc       delay_var           ; Increment counter
                     lda       delay_var           ; Read counter value
-                    cmp       #$CC                ; Does it equal HEX CC
+                    cmpa      #$CC                ; Does it equal HEX CC
                     bls       DELAY               ; If not go back and start agin
                     rts                           ; Otherwise, exit
 
@@ -583,7 +583,7 @@ DATA                proc
 
                     and       #$0F                ; Convert LSB of ASCII char to HEX
                     ora       #'0'                ; $3(LSB) = "LSB"
-                    cmp       #'9'                ; 3A-3F need to change to 41-46
+                    cmpa      #'9'                ; 3A-3F need to change to 41-46
                     bls       _1@@                ; Branch if 30-39 OK
                     add       #7                  ; Add offset
 _1@@                psha                          ; Store LSB of HEX on stack
@@ -591,7 +591,7 @@ _1@@                psha                          ; Store LSB of HEX on stack
                     txa                           ; Read the original ASCII data
                     lsra:4                        ; Shift right 4 bits
                     ora       #'0'                ; ASCII for N is $3N
-                    cmp       #'9'                ; 3A-3F need to change to 41-46
+                    cmpa      #'9'                ; 3A-3F need to change to 41-46
                     bls       _2@@                ; Branch if 30-39
                     add       #7                  ; Add offset
 _2@@                psha                          ; MS nibble of HEX to stack
@@ -633,9 +633,9 @@ SENDATA             proc
 
 ;*******************************************************************************
 
-SPI                ;rti
-TIRQ               ;rti
-IRQ                ;rti
+SPI
+TIRQ
+IRQ
 SWI                 rti
 
 ;*******************************************************************************

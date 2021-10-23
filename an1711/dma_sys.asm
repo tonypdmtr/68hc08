@@ -76,17 +76,17 @@ Start               proc
                     mov       #$88,DSC            ;Set DMAP, Disable Looping, Set DMAWE
                     mov       #$80,DC1            ;Set bandwidth of DMA to 67%
 
-                    bsr       initramsci          ;Initialize RAM and SCI using DMA CH2
-                    bsr       srtwvfrm            ;Start waveform w/ SPI/TIM/DMA
-                    jsr       waitdma2            ;Wait for Intro message to finish
+                    bsr       Init_RAM_SCI        ;Initialize RAM and SCI using DMA CH2
+                    bsr       StartWaveform       ;Start waveform w/ SPI/TIM/DMA
+                    jsr       WaitDMA2            ;Wait for Intro message to finish
 
-Loop@@              jsr       SendStat            ;Send status message to user
+Loop@@              jsr       SendStatusString    ;Send status message to user
                     ldhx      #strsel             ;Prompt user for which function
-                    jsr       xmitstr
-                    jsr       waitdma2            ;Wait for transfer to finish
+                    jsr       XmitStr
+                    jsr       WaitDMA2            ;Wait for transfer to finish
                     lda       #3                  ;User can respond with 0 - 3
-                    jsr       getdigit            ;Get a valid value--dec result in Acc
-                    bsr       selresp             ;Respond to user's selection
+                    jsr       GetDigit            ;Get a valid value--dec result in Acc
+                    bsr       SelectAction        ;Respond to user's selection
                     bra       Loop@@              ;Keep going in the main loop
 
 ;*******************************************************************************
@@ -97,11 +97,11 @@ Loop@@              jsr       SendStat            ;Send status message to user
 ; Note(s): The introduction message started in this routine will be using
 ;        : the SCI and DMA CH2.  Any routine following this one that uses
 ;        : DMA CH2 should be sure to wait until this transfer is complete
-;        : by executing a 'jsr waitdma2'
+;        : by executing a 'jsr WaitDMA2'
 
                     #spauto
 
-initramsci          proc
+Init_RAM_SCI        proc
                     ldhx      #AbsMaxDuty         ;Set src addr to be abs max duty const
                     sthx      D2SH
                     ldhx      #bufbegin           ;Set dest addr to be buffer pointer
@@ -125,13 +125,13 @@ initramsci          proc
                     mov       #$10,SCC3           ;Enable the DMA SCI transmitter interrupt
                     mov       #$88,SCC2           ;Enable the SCI transmitter
           ;-------------------------------------- ;Transfer intro message via the SCI
-                    ldhx      #strint             ;H:X must have pointer to start of message
-                    jsr       xmitstr             ;Transmit introduction to user screen
+                    ldhx      #strint             ;HX must have pointer to start of message
+                    jsr       XmitStr             ;Transmit introduction to user screen
           ;-------------------------------------- ;Set up RAM buffer with initial waveform to send
                     mov       #INITMIN,min_duty
                     mov       #INITMAX,max_duty
                     mov       #INITSTEP,duty_step
-                    jmp       setupbuf
+                    jmp       SetupBuf
 
 ;*******************************************************************************
 ; Purpose: Set up SPI and DMA CH0 to create external clock for timer
@@ -140,7 +140,7 @@ initramsci          proc
 ; Output : None
                     #spauto
 
-srtwvfrm            proc
+StartWaveform       proc
                     ldhx      #spidata            ;Set up pointer to SPI data to send
                     sthx      D0SH
                     clr       D0DH                ;Destination is SPI data register
@@ -185,17 +185,17 @@ srtwvfrm            proc
 
                     #spauto
 
-selresp             proc
-                    cbeqa     #0,resetwv          ;Did user enter 0
+SelectAction        proc
+                    cbeqa     #0,ResetWaveform    ;Did user enter 0
                                                   ;If 0, reset waveform to default values
                                                   ;If not, see if it was 1
-                    cbeqa     #1,prmtmin          ;Did user ask to do selection 1?
+                    cbeqa     #1,PromptMinDuty    ;Did user ask to do selection 1?
                                                   ;If not, look to see if it was 2
                                                   ;If 1, prompt user for minimum value
                     cmpa      #2                  ;Did user ask to do selection 2?
-                    jeq       prmtmax             ;If not, must have asked for selection 3
+                    jeq       PromptMaxDuty       ;If not, must have asked for selection 3
                                                   ;If 2, prompt user for maximum value
-                    jmp       prmtdcs             ;Since 3, prompt for duty cycle step size
+                    jmp       PromptDutyStep      ;Since 3, prompt for duty cycle step size
 
 ;*******************************************************************************
 ; Purpose: Routine used to reset waveform back to it's default values
@@ -203,11 +203,11 @@ selresp             proc
 ; Output : None
                     #spauto
 
-resetwv             proc
+ResetWaveform       proc
                     mov       #INITMIN,min_duty   ;Reset buffer parameters back
                     mov       #INITMAX,max_duty   ; to the default values as
                     mov       #INITSTEP,duty_step ; requested by the user
-                    jmp       updatebuf           ;Update timer PWM buffer
+                    jmp       UpdateTimerBuffer   ;Update timer PWM buffer
                                                   ;All we need to do for selection 0
 ;*******************************************************************************
 ; Purpose: Prompt user to enter the minimum duty cycle value
@@ -216,28 +216,28 @@ resetwv             proc
 
                     #spauto
 
-prmtmin             proc
+PromptMinDuty       proc
                     ldhx      #mesbuf             ;Load address to beginning of message buffer
                     sthx      .mes                ;Reset message pointer to start of buffer
 
                     ldhx      #strgmn             ;Transfer next string into message buffer
-                    jsr       strxfr              ;Transfer the string into RAM buffer
+                    jsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       max_duty            ;Transfer a single byte value
-                    jsr       h2axfr              ; into the buffer as an ASCII value
-                    jsr       waitdma2            ;Wait for string transfer to finish
+                    jsr       HexToASCII          ; into the buffer as an ASCII value
+                    jsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strgmf             ;Transfer rest of string into RAM buffer
-                    jsr       strxfr
+                    jsr       StrXfr
                     ldhx      #mesbuf             ;Load in pointer to message to send
                     txa                           ;Put lower byte of address into Acc
                     psha      tmp@@               ;Use value to calc # of bytes in message
                     lda       .mes+1              ;Load least significant byte of pointer
                     sub       tmp@@,sp            ;Subtract least significant byte of start
                     ais       #1                  ;Remove value from the stack
-                    jsr       waitdma2            ;Wait for any previous transfer to finish
-                    jsr       xmitstr             ;Tranfer message to the user and
-                    jsr       waitdma2            ; wait for string to finish transmission
-                    jsr       getpbcd             ;Get the packed bcd response from user
+                    jsr       WaitDMA2            ;Wait for any previous transfer to finish
+                    jsr       XmitStr             ;Tranfer message to the user and
+                    jsr       WaitDMA2            ; wait for string to finish transmission
+                    jsr       GetPackedBCD        ;Get the packed BCD response from user
                     cmpa      max_duty            ;Is this less than the max duty cycle
                     blt       TooLow@@            ;If so, make sure it isn't too low
 
@@ -245,33 +245,33 @@ prmtmin             proc
                     sthx      .mes                ;Reset message pointer to start of buffer
 
                     ldhx      #stremh             ;Transfer next string into message buffer
-                    jsr       strxfr              ;Transfer the string into RAM buffer
+                    jsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       max_duty            ;Transfer a single byte value
-                    jsr       h2axfr              ; into the buffer as an ASCII value
-                    jsr       waitdma2            ;Wait for string transfer to finish
+                    jsr       HexToASCII          ; into the buffer as an ASCII value
+                    jsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strfin             ;Transfer rest of string into RAM buffer
-                    jsr       strxfr
+                    jsr       StrXfr
                     ldhx      #mesbuf             ;Load in pointer to message to send
                     txa                           ;Put lower byte of address into Acc
                     psha      tmp@@               ;Use value to calc # of bytes in message
                     lda       .mes+1              ;Load least significant byte of pointer
                     sub       tmp@@,sp            ;Subtract least significant byte of start
                     ais       #1                  ;Remove value from the stack
-                    jsr       waitdma2            ;Wait for any previous transfer to finish
-                    jsr       xmitstr             ;Tranfer message to the user and
-                    jsr       waitdma2            ; wait for string to finish transmission
-                    bra       prmtmin             ;Prompt them again for the value
+                    jsr       WaitDMA2            ;Wait for any previous transfer to finish
+                    jsr       XmitStr             ;Tranfer message to the user and
+                    jsr       WaitDMA2            ; wait for string to finish transmission
+                    bra       PromptMinDuty       ;Prompt them again for the value
 
 TooLow@@            cmpa      #9                  ;Is the value greater than 9
                     bgt       Save@@              ;If so, value is ok
                     ldhx      #streml             ;Tell user they entered too small a value
-                    jsr       xmitstr
-                    jsr       waitdma2
-                    bra       prmtmin             ;Prompt them again for the value
+                    jsr       XmitStr
+                    jsr       WaitDMA2
+                    bra       PromptMinDuty       ;Prompt them again for the value
 
 Save@@              sta       min_duty            ;Checks out ok, so save
-                    jmp       updatebuf           ;Update the timer buffer with this value
+                    jmp       UpdateTimerBuffer   ;Update the timer buffer with this value
                                                   ;All we need to do for 1 selection
 ;*******************************************************************************
 ; Purpose: Prompt user to enter the maximum duty cycle value
@@ -280,28 +280,28 @@ Save@@              sta       min_duty            ;Checks out ok, so save
 
                     #spauto
 
-prmtmax             proc
+PromptMaxDuty       proc
                     ldhx      #mesbuf             ;Load address to beginning of message buffer
                     sthx      .mes                ;Reset message pointer to start of buffer
 
                     ldhx      #strgmx             ;Transfer next string into message buffer
-                    jsr       strxfr              ;Transfer the string into RAM buffer
+                    jsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       min_duty            ;Transfer a single byte value
-                    jsr       h2axfr              ; into the buffer as an ASCII value
-                    jsr       waitdma2            ;Wait for string transfer to finish
+                    jsr       HexToASCII          ; into the buffer as an ASCII value
+                    jsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strgxf             ;Transfer rest of string into RAM buffer
-                    jsr       strxfr
+                    jsr       StrXfr
                     ldhx      #mesbuf             ;Load in pointer to message to send
                     txa                           ;Put lower byte of address into Acc
                     psha      tmp@@               ;Use value to calc # of bytes in message
                     lda       .mes+1              ;Load least significant byte of pointer
                     sub       tmp@@,sp            ;Subtract least significant byte of start
                     ais       #1                  ;Remove value from the stack
-                    jsr       waitdma2            ;Wait for any previous transfer to finish
-                    jsr       xmitstr             ;Tranfer message to the user and
-                    jsr       waitdma2            ; wait for string to finish transmission
-                    bsr       getpbcd             ;Get the packed bcd response from user
+                    jsr       WaitDMA2            ;Wait for any previous transfer to finish
+                    jsr       XmitStr             ;Tranfer message to the user and
+                    jsr       WaitDMA2            ; wait for string to finish transmission
+                    bsr       GetPackedBCD        ;Get the packed BCD response from user
                     cmpa      min_duty            ;Is this greater than the min duty cycle
                     bgt       TooBig@@            ;If so, make sure it isn't too large
 
@@ -309,33 +309,33 @@ prmtmax             proc
                     sthx      .mes                ;Reset message pointer to start of buffer
 
                     ldhx      #strexl             ;Transfer next string into message buffer
-                    jsr       strxfr              ;Transfer the string into RAM buffer
+                    jsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       min_duty            ;Transfer a single byte value
-                    jsr       h2axfr              ; into the buffer as an ASCII value
-                    jsr       waitdma2            ;Wait for string transfer to finish
+                    jsr       HexToASCII          ; into the buffer as an ASCII value
+                    jsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strfin             ;Transfer rest of string into RAM buffer
-                    jsr       strxfr
+                    jsr       StrXfr
                     ldhx      #mesbuf             ;Load in pointer to message to send
                     txa                           ;Put lower byte of address into Acc
                     psha      tmp@@               ;Use value to calc # of bytes in message
                     lda       .mes+1              ;Load least significant byte of pointer
                     sub       tmp@@,sp            ;Subtract least significant byte of start
                     ais       #1                  ;Remove value from the stack
-                    jsr       waitdma2            ;Wait for any previous transfer to finish
-                    jsr       xmitstr             ;Tranfer message to the user and
-                    jsr       waitdma2            ; wait for string to finish transmission
-                    bra       prmtmax             ;Prompt them again for the value
+                    jsr       WaitDMA2            ;Wait for any previous transfer to finish
+                    jsr       XmitStr             ;Tranfer message to the user and
+                    jsr       WaitDMA2            ; wait for string to finish transmission
+                    bra       PromptMaxDuty       ;Prompt them again for the value
 
 TooBig@@            cmpa      #91                 ;Is the value less than 91
                     blt       Save@@              ;If so, value is ok
                     ldhx      #strexh             ;Tell user they entered too large a value
-                    jsr       xmitstr
-                    jsr       waitdma2
-                    bra       prmtmax             ;Prompt them again for the value
+                    jsr       XmitStr
+                    jsr       WaitDMA2
+                    bra       PromptMaxDuty       ;Prompt them again for the value
 
 Save@@              sta       max_duty            ;Checks out ok, so save
-                    bra       updatebuf           ;Update the timer buffer with this value
+                    bra       UpdateTimerBuffer   ;Update the timer buffer with this value
                                                   ;All we need to do for 2 selection
 
 ;*******************************************************************************
@@ -345,26 +345,26 @@ Save@@              sta       max_duty            ;Checks out ok, so save
 
                     #spauto
 
-prmtdcs             proc
-                    ldhx      #strdcs             ;Prompt user to enter duty cycle step size
-                    jsr       xmitstr             ; (strdcs) via the SCI/DMA
-                    jsr       waitdma2            ;Wait for string transfer to finish
+PromptDutyStep      proc
+Loop@@              ldhx      #strdcs             ;Prompt user to enter duty cycle step size
+                    jsr       XmitStr             ; (strdcs) via the SCI/DMA
+                    jsr       WaitDMA2            ;Wait for string transfer to finish
                     lda       #9                  ;Max value for the step size is 9
-                    bsr       getdigit            ;Get the digit from the user
+                    bsr       GetDigit            ;Get the digit from the user
                     tsta                          ;Did he enter a non-zero number?
                     bne       Save@@              ;If so, then this is a good step size
 
                     ldhx      #strlss             ;Tell user that step size is too low
-                    jsr       xmitstr
-                    jsr       waitdma2
-                    bra       prmtdcs             ;Prompt them again for the value
+                    jsr       XmitStr
+                    jsr       WaitDMA2
+                    bra       Loop@@              ;Prompt them again for the value
 
 Save@@              sta       duty_step           ;Store value into global variable
-                    bra       updatebuf           ;Update the timer buffer with this value
+                    bra       UpdateTimerBuffer   ;Update the timer buffer with this value
                                                   ;All we need to do for 3 selection
 
 ;*******************************************************************************
-; Purpose: Get a packed bcd number from the user
+; Purpose: Get a packed BCD number from the user
 ; Input  : None
 ; Output : Packed BCD value will be in accumulator
 ; Note(s): Only valid decimal digits will be echoed to the user,
@@ -373,9 +373,9 @@ Save@@              sta       duty_step           ;Store value into global varia
 
                     #spauto
 
-getpbcd             proc
+GetPackedBCD        proc
                     lda       #9                  ;Set max potential digit to be 9
-                    bsr       getdigit            ;Get 1st digit of user's response
+                    bsr       GetDigit            ;Get 1st digit of user's response
                     asla                          ;Multiply digit by 2
                     psha      ans@@               ;Save result
                     tsx
@@ -383,10 +383,10 @@ getpbcd             proc
                     add       ans@@,spx           ;Acc = 8*digit+2*digit = 10*digit
                     sta       ans@@,spx           ;Save result over now useless data
                     lda       #9                  ;Set max potential digit to be 9
-                    bsr       getdigit            ;Get second digit of user's response
+                    bsr       GetDigit            ;Get second digit of user's response
                     add       ans@@,spx           ;Accumulator now has packed BCD value
                     ais       #:ais               ;Remove value from the stack
-                    rts                           ;Return with bcd number in acc
+                    rts                           ;Return with BCD number in acc
 
 ;*******************************************************************************
 ; Purpose: Update timer PWM buffer
@@ -395,14 +395,14 @@ getpbcd             proc
 ; Note(s): Dependancy: The three static variables min_duty, max_duty, and
 ;        : duty_step need to be properly setup before this
 ;        : routine is called.  It uses the static variable
-;        ; buf_size which is altered by the setupbuf routine.
+;        ; buf_size which is altered by the SetupBuf routine.
 
                     #spauto
 
-updatebuf           proc
+UpdateTimerBuffer   proc
                     bclr      TEC1,DC1            ;Disable timer's DMA channel
                     clr       D1BC                ; and ready it for a new transfer
-                    jsr       setupbuf            ;Update the buffer
+                    jsr       SetupBuf            ;Update the buffer
                     mov       buf_size,D1BL       ;Update the buffer size
                     bset      TEC1,DC1            ;Restart the timer PWM
                     rts                           ;New PWM has begun
@@ -423,7 +423,7 @@ updatebuf           proc
 
                     #spauto
 
-getdigit            proc
+GetDigit            proc
                     psha      max@@               ;Save max value
 Loop@@              lda       SCS1                ;Clear any pending SCI receive flags
                     lda       SCDR
@@ -458,53 +458,53 @@ Wait@@              wait                          ;Wait for digit to be accepted
 
                     #spauto
 
-SendStat            proc
+SendStatusString    proc
                     ldhx      #mesbuf             ;Load address to beginning of message buffer
                     sthx      .mes                ;Reset message pointer to start of buffer
 
                     ldhx      #strsbg             ;Transfer next string into message buffer
-                    bsr       strxfr              ;Transfer the string into RAM buffer
+                    bsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       min_duty            ;Transfer a single byte value
-                    bsr       h2axfr              ; into the buffer as an ASCII value
-                    bsr       waitdma2            ;Wait for string transfer to finish
+                    bsr       HexToASCII          ; into the buffer as an ASCII value
+                    bsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strsmd             ;Transfer next string into message buffer
-                    bsr       strxfr              ;Transfer the string into RAM buffer
+                    bsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       max_duty            ;Transfer a single byte value
-                    bsr       h2axfr              ; into the buffer as an ASCII value
-                    bsr       waitdma2            ;Wait for string transfer to finish
+                    bsr       HexToASCII          ; into the buffer as an ASCII value
+                    bsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strsed             ;Transfer next string into message buffer
-                    bsr       strxfr              ;Transfer the string into RAM buffer
+                    bsr       StrXfr              ;Transfer the string into RAM buffer
                     lda       duty_step           ;Transfer a single byte value
-                    bsr       h2axfr              ; into the buffer as an ASCII value
-                    bsr       waitdma2            ;Wait for string transfer to finish
+                    bsr       HexToASCII          ; into the buffer as an ASCII value
+                    bsr       WaitDMA2            ;Wait for string transfer to finish
 
                     ldhx      #strsfn             ;Transfer rest of string into RAM buffer
-                    bsr       strxfr
+                    bsr       StrXfr
                     ldhx      #mesbuf             ;Load in pointer to message to send
                     txa                           ;Put lower byte of address into Acc
                     psha      tmp@@               ;Use value to calc # of bytes in message
                     lda       .mes+1              ;Load least significant byte of pointer
                     sub       tmp@@,sp            ;Subtract least significant byte of start
                     ais       #1                  ;Remove value from the stack
-                    bsr       waitdma2            ;Wait for any previous transfer to finish
-                    bsr       xmitstr             ;Tranfer message to the user and
-                    bra       waitdma2            ; wait for string to finish transmission
+                    bsr       WaitDMA2            ;Wait for any previous transfer to finish
+                    bsr       XmitStr             ;Tranfer message to the user and
+                    bra       WaitDMA2            ; wait for string to finish transmission
 
 ;*******************************************************************************
-; Purpose: Convert a hex value into an ascii character, and then transfer
+; Purpose: Convert a hex value into an ASCII character, and then transfer
 ;        : it to the message buffer
 ; Input  : Hex value to convert is in Acc.
-;        : Buffer location to place ascii in .mes variable.
+;        : Buffer location to place ASCII in .mes variable.
 ; Output : .mes variable updated to point to next free location
 
                     #spauto
 
-h2axfr              proc
+HexToASCII          proc
                     push                          ;Save registers on the stack to preserve
 
-                    clrh                          ;Clear H so that H:X has proper byte offset
+                    clrh                          ;Clear H so that HX has proper byte offset
                     tax                           ;Transfer value into X to serve as offset
                     lda       h2pbcd,x            ;Load in converted value
                     psha                          ;Save value on stack
@@ -516,7 +516,7 @@ h2axfr              proc
                     ldhx      .mes                ;Load in place to store value
                     sta       ,x                  ;Store into message table
                     aix       #1                  ;Increment to next empty position in table
-                    bra       Skip@@              ;skip load of message point--in H:X
+                    bra       Skip@@              ;skip load of message point--in HX
 Lower@@             ldhx      .mes                ;Load in place to store converted value
 Skip@@              pula                          ;Restore converted value to print
                     and       #$0f                ;Mask off upper nibble
@@ -529,8 +529,8 @@ Skip@@              pula                          ;Restore converted value to pr
                     rts
 
 ;*******************************************************************************
-; Purpose: Use DMA CH2 to transfer an ascii string to RAM message buffer
-; Input  : Pointer to beginning of string to transfer in H:X
+; Purpose: Use DMA CH2 to transfer an ASCII string to RAM message buffer
+; Input  : Pointer to beginning of string to transfer in HX
 ;        : Number of bytes in string in Acc
 ;        : Place to put string in a RAM message pointer--.mes
 ; Output : None
@@ -538,7 +538,7 @@ Skip@@              pula                          ;Restore converted value to pr
 
                     #spauto
 
-strxfr              proc
+StrXfr              proc
                     bsr       Length              ;length of string in A
 
                     sthx      D2SH                ;Source is beginning of string
@@ -564,22 +564,21 @@ strxfr              proc
 ; Output : None
                     #spauto
 
-waitdma2            proc
+WaitDMA2            proc
                     sei                           ;Don't allow interrupt that is
                                                   ; needed to pull MCU out of wait
-                                                  ; to occur btwn brclr & wait
+                                                  ; to occur between BRCLR & WAIT
                     brclr     TEC2,DC1,Done@@     ;Transfer complete already?
 Loop@@              wait                          ;Allow DMA CH2 to complete
                                                   ; Also clears I bit to allow int
-                    sei                           ;Don't allow interrupt b/f wait
+                    sei                           ;Don't allow interrupt b/f WAIT
                     brset     TEC2,DC1,Loop@@     ;DMA CH2 finished if TEC2 is clear
 Done@@              cli                           ;Interrupt has been taken,
-                                                  ; so allow others to occur
-                    rts
+                    rts                           ; so allow others to occur
 
 ;*******************************************************************************
 ; Purpose: Subroutine used to initiate a transfer to the SCI via DMA CH2
-; Input  : 1) 16 bit address pointer to beginning of string in H:X
+; Input  : 1) 16 bit address pointer to beginning of string in HX
 ;        : 2) Number of bytes in string in Acc (max of 256).
 ; Output : None, but DMA CH2 is enabled to transmit to SCI
 ; Note(s): Assumptions: Channel 2 looping is disabled, DMA DMAP and bandwidth
@@ -587,7 +586,7 @@ Done@@              cli                           ;Interrupt has been taken,
 
                     #spauto
 
-xmitstr             proc
+XmitStr             proc
                     sthx      D2SH                ;Pointer to start of string -> src reg
 
                     clr       D2DH                ;Move SCI data register (in page zero)
@@ -611,17 +610,11 @@ xmitstr             proc
 
 Length              proc
                     pshhx
-
                     clra
-
 Loop@@              tst       ,x
                     beq       Done@@
-
-                    inca
-                    bne       Loop@@
-
-                    deca
-
+                    dbnza     Loop@@
+                    nega
 Done@@              pulhx
                     rts
 
@@ -634,7 +627,7 @@ Done@@              pulhx
 
                     #spauto
 
-setupbuf            proc
+SetupBuf            proc
                     push                          ;Save value of registers on stack
 
                     asl       duty_step           ;Double step size to keep buffer < 200 bytes
@@ -677,12 +670,11 @@ Buf2@@              sta       ,x                  ;Store value into buffer
 
                     #spauto
 
-DMA_SVR             proc
+DMA_Handler         proc
                     brclr     IFC2,DSC,Done@@     ;CH2 interrupt service routine
                     bclr      IFC2,DSC            ;Clear CH2 flag
                     clr       DC2                 ;Clear any software initiated transfer
-                                                  ;Not needed for SCI servicing
-Done@@              rti
+Done@@              rti                           ;Not needed for SCI servicing
 
 ;*******************************************************************************
 ; Purpose: Interrupt service routine for the SCI receiver
@@ -692,7 +684,7 @@ Done@@              rti
 
                     #spauto
 
-SCIRec_SVR          proc
+SCI_Handler         proc
                     lda       SCS1                ;Load status reg--ignore error flags
                     mov       SCDR,rx_byte        ;Store received byte for other routines
                     bclr      SCRIE,SCC2          ;Disable the SCI receiver interrupts
@@ -813,10 +805,10 @@ h2pbcd              fcb       $00,$01,$02,$03,$04,$05,$06,$07,$08,$09
 ;*******************************************************************************
 
                     org       SCIRec_INT
-                    dw        SCIRec_SVR
+                    dw        SCI_Handler
 
                     org       DMA_INT
-                    dw        DMA_SVR
+                    dw        DMA_Handler
 
                     org       Vreset
                     dw        Start

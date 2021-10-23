@@ -76,8 +76,8 @@
 ; PORT  DECLARATIONS *
 ;*********************
 
-PORTB               equ       $01                 ; Direct address - Port C
-DDRB                equ       $05                 ; Data direction register - Port C
+PORTB               equ       $01                 ; Direct address - Port B
+DDRB                equ       $05                 ; Data direction register - Port B
 
 ;**********
 ; MEMORY *
@@ -85,7 +85,7 @@ DDRB                equ       $05                 ; Data direction register - Po
 
 ROM                 equ       $2100               ; User ROM area in the MC68HC05L4
 RAM                 equ       $0050               ; RAM area in the MC68HC05L4
-VECTOR              equ       $3FF6               ; Start of vector address
+VECTORS             equ       $3FF6               ; Start of vector address
 
 ;***************************
 ; CORE TIMER DECLARARTIONS *
@@ -118,9 +118,8 @@ TW_OCPER            equ       $C8                 ; Output Compare Period set to
 TW_TSPER            equ       $0A                 ; Time Slice Period set to 10
 
 ;*******************************************************************************
-                    #RAM                          ; VARIABLE DECLARATIONS
+                    #RAM      RAM                 ; VARIABLE DECLARATIONS
 ;*******************************************************************************
-                    org       RAM
 
 TV_TSCP             rmb       1                   ; Programmable Timer Slice Counter
 TV_TSCC             rmb       1                   ; Core Timer Time Slice Counter
@@ -133,7 +132,7 @@ TV_DTASK            rmb       1                   ; To check if a task is to be 
                                                   ; out at that interrupt
 TV_STORE            rmb       1                   ; Bit 1 of this variable is clear or
                                                   ; set depending on if a timer
-                                                  ; interrupt has occured or not when
+                                                  ; interrupt has occurred or not when
                                                   ; using the Programmable Timer
 ;*******************************************************************************
 ; Pins
@@ -154,23 +153,23 @@ TASK_H              pin
 OC_FLG              pin       TV_TSRA,6
 
 ;*******************************************************************************
-                    #ROM
+                    #ROM      ROM                 ; Absolute address for this section (MC68HC705L4)
 ;*******************************************************************************
-                    org       ROM                 ; Absolute address label for this
-                                                  ; section of ROM (MC68HC705L4)
+
 ;****************
 ;  MAIN PROGRAM *
 ;****************
 
-T_SCHD05            bset      PGM_TIMER           ; Set a flag to determine which timer
+T_SCHD05            proc
+                    bset      PGM_TIMER           ; Set a flag to determine which timer
                     mov       #$FF,DDRB           ; Set PB7-PB0 as outputs
                     clr       PORTB
                     clr       TV_TSKCC            ; Clear Core Timer Task Counter
                     clr       TV_TSKCP            ; Clear Programmable Timer Task Counter
-T_SCHD10            brset     PGM_TIMER,T_SCHD99  ; Branch to choose the
+                    brset     PGM_TIMER,Done@@    ; Branch to choose the
                     bra       T_CORE05            ; Core Timer or the
 
-T_SCHD99           ;jmp       T_PROG05            ; Programmable Timer
+Done@@             ;jmp       T_PROG05            ; Programmable Timer
 
 ;***************
 ; SUBROUTINES *
@@ -184,7 +183,7 @@ T_SCHD99           ;jmp       T_PROG05            ; Programmable Timer
 ;
 ; Stack space used(bytes): 2
 ;
-; Subroutines used: T_PRIN05,T_TASK05
+; Subroutines used: T_PRIN05,Dispatcher
 ;
 ; External variables used: TW_OCPER,TW_TSPER,TV_TSKCP,TV_OPT
 ;
@@ -197,7 +196,8 @@ T_SCHD99           ;jmp       T_PROG05            ; Programmable Timer
 ;              carries it out.
 ;*******************************************************************************
 
-T_PROG05            lda       TV_TSRA             ; Clear Timer Status Register
+T_PROG05            proc
+                    lda       TV_TSRA             ; Clear Timer Status Register
                     lda       TV_OCLA             ; Compare flag cleared
                     lda       TV_TCLA             ; Timer overflow cleared
                     lda       TV_ICLA             ; Input capture flag cleared
@@ -205,13 +205,13 @@ T_PROG05            lda       TV_TSRA             ; Clear Timer Status Register
                     clr       TV_OCLA             ; Clear Output Compare (Low)
                     clr       TV_TSCP             ; Clear Time Slice Counter
                     mov       #$40,TV_TCRA        ; Set Output Compare Interrupt enable
-PROG10              cli                           ; Clear Interrupt Mask Bit
-PROG15              brset     TASK,PROG20         ; If bit is set,go to task routine
-                    bra       PROG15              ; If not set,wait for next interrupt
+Loop@@              cli                           ; Clear Interrupt Mask Bit
+_@@                 brset     TASK,Cont@@         ; If bit is set,go to task routine
+                    bra       _@@                 ; If not set,wait for next interrupt
 
-PROG20              bsr       T_TASK05            ; Jump to task routine
+Cont@@              bsr       Dispatcher          ; Jump to task routine
                     bclr      TASK                ; Clear task bit
-PROG99              bra       PROG10              ; Go wait for next interrupt
+                    bra       Loop@@              ; Go wait for next interrupt
 
 ;*******************************************************************************
 ; Name:T_CORE05
@@ -222,7 +222,7 @@ PROG99              bra       PROG10              ; Go wait for next interrupt
 ;
 ; Stack space used(bytes): 4
 ;
-; Subroutines used: T_CRIN05,T_TASK05
+; Subroutines used: T_CRIN05,Dispatcher
 ;
 ; External varaibles used: TW_TSPER,T_TSKCC
 ;
@@ -237,17 +237,18 @@ PROG99              bra       PROG10              ; Go wait for next interrupt
 ;              interrupt.
 ;*******************************************************************************
 
-T_CORE05            clr       TV_TSCC             ; Clear Core Time Slice Counter
+T_CORE05            proc
+                    clr       TV_TSCC             ; Clear Core Time Slice Counter
                     clr       TS_CTCSR            ; Verify Overflow Flag is clear
                     mov       #$23,TS_CTCSR       ; Set Core Timer Overflow Enable,
                                                   ; RT1 & RT0
-CORE10              wait                          ; Wait for Interrupt
-                    brset     TASK,CORE20         ; If task bit set,go to task routine
-                    bra       CORE10              ; If not,go wait for next interrupt
+_10@@               wait                          ; Wait for Interrupt
+                    brset     TASK,_20@@          ; If task bit set,go to task routine
+                    bra       _10@@               ; If not,go wait for next interrupt
 
-CORE20              bsr       T_TASK05            ; Jump to task routine
+_20@@               bsr       Dispatcher          ; Jump to task routine
                     bclr      TASK                ; Clear task bit
-                    bra       CORE10              ; Go to wait for next interrupt
+                    bra       _10@@               ; Go to wait for next interrupt
 
 ;*****************************
 ; INTERRUPT SERVICE ROUTINES *
@@ -276,18 +277,19 @@ CORE20              bsr       T_TASK05            ; Jump to task routine
 ;              is cleared.
 ;*******************************************************************************
 
-T_PRIN05            brclr     OC_FLG,PRIN99       ; Checks for Output Compare Flag
+T_PRIN05            proc
+                    brclr     OC_FLG,Done@@       ; Checks for Output Compare Flag
 
                     inc       TV_TSCP             ; Inrement Time Slice Counter
                     lda       TV_TSCP             ; Read the Time Slice Counter
-                    cmp       #TW_TSPER           ; Compare contents of ACCA with 10
-                    blo       PRIN10              ; If < 10, branch back to T_SCHED10
+                    cmpa      #TW_TSPER           ; Compare contents of ACCA with 10
+                    blo       Go@@                ; If < 10, branch back to T_SCHED10
                     clr       TV_TSCP             ; If = 10, clear Time Slice Counter
 
                     inc       TV_TSKCP            ; Increment Task Counter
                     bset      TASK                ; Set task bit
 
-PRIN10              lda       TV_OCLA             ; Read high byte of Output Compare
+Go@@                lda       TV_OCLA             ; Read high byte of Output Compare
                     add       #TW_OCPER           ; Load #200 into ACCA
                     sta       TV_OCLA             ; Store in Output Compare (Low)
 
@@ -298,7 +300,7 @@ PRIN10              lda       TV_OCLA             ; Read high byte of Output Com
                     lda       TV_OCLA             ; Read Output Compare (low)
                     sta       TV_OCLA             ; Write back to Output Compare (low)
 
-PRIN99              rti                           ; Return from Timer Interrupt
+Done@@              rti                           ; Return from Timer Interrupt
 
 ;*******************************************************************************
 ; Name:T_CRIN05
@@ -319,18 +321,19 @@ PRIN99              rti                           ; Return from Timer Interrupt
 ;              Overflow Flag is then reset.
 ;*******************************************************************************
 
-T_CRIN05            inc       TV_TSCC             ; Increment Core Time Slice Counter
+T_CRIN05            proc
+                    inc       TV_TSCC             ; Increment Core Time Slice Counter
                     lda       TV_TSCC             ; Read Time Slice Counter
-                    cmp       #TW_TSPER           ; Compare this to Time Slice Period
-                    blo       CRIN10              ; If < 10,go to update status register
+                    cmpa      #TW_TSPER           ; Compare this to Time Slice Period
+                    blo       Done@@              ; If < 10,go to update status register
                     clr       TV_TSCC             ; If = 10, clear Time Slice Counter
                     inc       TV_TSKCC            ; Increment Core Task Counter
                     bset      TASK                ; Set task bit
-CRIN10              mov       #$23,TS_CTCSR       ; Clear Overflow Flag
+Done@@              mov       #$23,TS_CTCSR       ; Clear Overflow Flag
                     rti                           ; Return from Interrupt
 
 ;*******************************************************************************
-; Name: T_TASK05
+; Name: Dispatcher
 ;
 ; Subroutine: Routine to find out which task is to be done  and
 ;             carries it out accordingly.
@@ -349,69 +352,76 @@ CRIN10              mov       #$23,TS_CTCSR       ; Clear Overflow Flag
 ;              the tasks are scheduled.
 ;*******************************************************************************
 
-;*************
-; TASK TABLE *
-;*************
+;*******************************************************************************
+; TASK TABLE
+;*******************************************************************************
 
-T_TASK05            lda       TV_TSKCC            ; Read Core Timer Task Counter
-                    bne       TASK15              ; Check if Core Timer or
-TASK10              lda       TV_TSKCP            ; Programmable has been used
-TASK15              sta       TV_TSKC             ; Stores task in memory
-                    brclr     TASK_A,TASK20       ; If bit 0 clear,go to Task A
-                    brclr     TASK_B,TASK25       ; If bit 1 clear,go to Task B
-                    brclr     TASK_C,TASK30       ; If bit 2 clear,go to Task C
-                    brclr     TASK_D,TASK35       ; If bit 3 clear,go to Task D
-                    brclr     TASK_E,TASK40       ; If bit 4 clear,go to Task E
-                    brclr     TASK_F,TASK45       ; If bit 5 clear,go to Task F
-                    brclr     TASK_G,TASK50       ; If bit 6 clear,go to Task G
-                    brclr     TASK_H,TASK55       ; If bit 7 clear,go to Task H
+Dispatcher          proc
+                    lda       TV_TSKCC            ; Read Core Timer Task Counter
+                    bne       Go@@                ; Check if Core Timer or
+                    lda       TV_TSKCP            ; Programmable has been used
+Go@@                sta       TV_TSKC             ; Stores task in memory
+                    brclr     TASK_A,T_20         ; If bit 0 clear,go to Task A
+                    brclr     TASK_B,T_25         ; If bit 1 clear,go to Task B
+                    brclr     TASK_C,T_30         ; If bit 2 clear,go to Task C
+                    brclr     TASK_D,T_35         ; If bit 3 clear,go to Task D
+                    brclr     TASK_E,T_40         ; If bit 4 clear,go to Task E
+                    brclr     TASK_F,T_45         ; If bit 5 clear,go to Task F
+                    brclr     TASK_G,T_50         ; If bit 6 clear,go to Task G
+                    brclr     TASK_H,T_55         ; If bit 7 clear,go to Task H
                     clr       PORTB               ; Clear Port B if Task Counter at #$FF
                     rts                           ; Return from routine
 
-TASK20              bra       T_20                ; Jump to first module
-TASK25              bra       T_25                ; Jump to second module
-TASK30              bra       T_30                ; Jump to third module
-TASK35              bra       T_35                ; Jump to fourth module
-TASK40              bra       T_40                ; Jump to fifth module
-TASK45              bra       T_45                ; Jump to sixth module
-TASK50              bra       T_50                ; Jump to seventh module
-TASK55              bra       T_55                ; Jump to eighth module
-
-;***************
-; TASKS FOLLOW *
-;***************
+;*******************************************************************************
+; TASKS FOLLOW
+;*******************************************************************************
 
 T_20                mov       #$01,PORTB          ; Example module
                     rts
 
+;*******************************************************************************
+
 T_25                mov       #$02,PORTB          ; Example module
                     rts
+
+;*******************************************************************************
 
 T_30                mov       #$04,PORTB          ; Example module
                     rts
 
+;*******************************************************************************
+
 T_35                mov       #$08,PORTB          ; Example module
                     rts
+
+;*******************************************************************************
 
 T_40                mov       #$10,PORTB          ; Example module
                     rts
 
+;*******************************************************************************
+
 T_45                mov       #$20,PORTB          ; Example module
                     rts
+
+;*******************************************************************************
 
 T_50                mov       #$40,PORTB          ; Example module
                     rts
 
+;*******************************************************************************
+
 T_55                mov       #$80,PORTB          ; Example module
                     rts
 
-IRQ                 rti
+;*******************************************************************************
+
+IRQ
 SWI                 rti
 
 ;*******************************************************************************
-                    #VECTORS
+                    #VECTORS  VECTORS
 ;*******************************************************************************
-                    org       VECTOR
 
                     dw        T_PRIN05            ; Programmable Interrupt Vector
                     dw        T_CRIN05            ; Core Timer Interrupt Vector
