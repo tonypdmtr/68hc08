@@ -74,13 +74,6 @@ SCCR1               equ       $0E                 ; SCI control register 1
 SCCR2               equ       $0F                 ; SCI control register 2
 SCDAT               equ       $11                 ; SCI data register
 SCSR                equ       $10                 ; SCI status register
-          ;-------------------------------------- ; PRIORITY SCHEDULER CONSTANTS
-LSB                 equ       0                   ; Bit 0 of task request registers
-DO_TASK             equ       1                   ; Flag to say do Priority 1 task
-TRY_PR3             equ       2                   ; Flag to say check Priority 3
-GO_PR1              equ       3                   ; Flag to say go back to Priority 1
-          ;-------------------------------------- ; EXAMPLE TASK CONSTANT
-FINAL               equ       4                   ; To indicate last time round Task D
 
 JMP_OPCODE          equ       $CD
 
@@ -102,6 +95,21 @@ delay_var           rmb       1                   ; Variable used in example rou
 time_on             rmb       1                   ; Variable used in example routine
 num_on_leds         rmb       1                   ; Controls seq of LEDS in example
 app_flag_reg        rmb       1                   ; Varaible used in example routine
+
+          ;-------------------------------------- ; PRIORITY SCHEDULER CONSTANTS
+LSB                 pin       tasktemp,0          ; Bit 0 of task request registers
+DO_TASK             pin       sysflag,1           ; Flag to say do Priority 1 task
+TRY_PR3             pin       sysflag,2           ; Flag to say check Priority 3
+GO_PR1              pin       sysflag,3           ; Flag to say go back to Priority 1
+          ;-------------------------------------- ; EXAMPLE TASK CONSTANT
+FINAL               pin       app_flag_reg,4      ; To indicate last time round Task D
+
+RDRF                pin       SCSR,5
+TDRE                pin       SCSR,7
+
+A                   pin       settasks
+B                   pin
+C                   pin
 
 ;*******************************************************************************
                     #ROM      ROM
@@ -208,7 +216,7 @@ PSCHED              proc
                     bsr       PRIOR_1             ; Examine & Execute Priority 1 tasks
                     bsr       PRIOR_2             ; Examine Priority 2 task reqest reg
 Loop@@              bsr       PRIOR_2OR3          ; Executes one Priority 2 or 3 task
-                    brset     TRY_PR3,sysflag,_@@ ;Go to examine Priority 3
+                    brset     TRY_PR3,_@@         ;Go to examine Priority 3
                     bra       PSCHED              ; Go back to Priority 1
 _@@                 bsr       PRIOR_3             ; Examine Priority 3
                     bra       Loop@@              ; Go & execute a Priority 2 or 3 task
@@ -230,12 +238,12 @@ PRIOR_1             proc
                     lda       shadowtask,x        ; Read this temporary location
                     beq       Done@@              ; If its empty, go try Priority 2
 Loop@@              jsr       CHECKBIT0           ; Otherwise,go check bit 0
-                    brset     DO_TASK,sysflag,_@@ ;If bit 0 set,go do a task
+                    brset     DO_TASK,_@@         ;If bit 0 set,go do a task
                     bra       _1@@                ; Otherwise shift right
 _@@                 bsr       WRITERAM            ; Go write subroutine in RAM
                     jsr       JumpLong            ; Go execute the correct task
                     inc       add_pointer         ; Update address pointer
-                    bclr      DO_TASK,sysflag     ; Clear flag to say done the task
+                    bclr      DO_TASK             ; Clear flag to say done the task
 _1@@                jsr       SHIFTREG            ; Shift tempoary register to right
                     lda       shadowtask,x        ; Read the temporary register
                     beq       Done@@              ; If reg now empty,go to Priority 2
@@ -270,7 +278,7 @@ _@@                 jsr       UPDATE              ; Update address pointer
                     lda       shadowtask,x        ; Read the temporary location
                     bne       Done@@              ; If its empty, set flag TRY_PR3
                                                   ; Otherwise, exit
-                    bset      TRY_PR3,sysflag     ; Set flag to say try Priority 3
+                    bset      TRY_PR3             ; Set flag to say try Priority 3
 Done@@              rts
 
 ;*******************************************************************************
@@ -286,16 +294,16 @@ Done@@              rts
 ;*******************************************************************************
 
 PRIOR_2OR3          proc
-                    brset     TRY_PR3,sysflag,Done@@ ;If TRY_PR3 set, exit
-                    brset     GO_PR1,sysflag,_2@@ ;If GO_PR1 set go PRIOR23
+                    brset     TRY_PR3,Done@@      ;If TRY_PR3 set, exit
+                    brset     GO_PR1,_2@@         ;If GO_PR1 set go PRIOR23
 Loop@@              bsr       CHECKBIT0           ; Otherwise try bit 0 in reg
-                    brset     DO_TASK,sysflag,_@@ ;If bit 0 set, go do task
+                    brset     DO_TASK,_@@         ;If bit 0 set, go do task
                     bsr       SHIFTREG            ; Otherwise, shift reg to the right
                     bsr       INCSHIFT            ; Increment shift counter
                     bra       Loop@@              ; Go check next bit
 _@@                 bsr       WRITERAM            ; Go to write procedure in RAM
                     jsr       JumpLong            ; Go to execute the task
-                    bclr      DO_TASK,sysflag     ; Clear flag to say done task
+                    bclr      DO_TASK             ; Clear flag to say done task
                     bsr       SHIFTREG            ; Shift reg to the right
                     lda       shadowtask,x        ; Read the temporary location
                     beq       _1@@                ; If now empty, go to PRIOR23_10
@@ -306,7 +314,7 @@ _@@                 bsr       WRITERAM            ; Go to write procedure in RAM
 _1@@                bsr       CLRSHIFT            ; Go clear shift counter
 _2@@                clra                          ; Set address pointer back to
                     sta       add_pointer         ; start of Priority 1 addresses
-                    bclr      GO_PR1,sysflag      ; Clear flag, go back to Priority 1
+                    bclr      GO_PR1              ; Clear flag, go back to Priority 1
 Done@@              rts
 
 ;*******************************************************************************
@@ -330,12 +338,12 @@ PRIOR_3             proc
 _@@                 bsr       UPDATE              ; Update address pointer
                     add       #$20                ; Set pointer to correct section
                     sta       add_pointer         ; in the task table
-                    bclr      TRY_PR3,sysflag     ; Clear flag
+                    bclr      TRY_PR3             ; Clear flag
                     ldx       pr_level            ; Read the temporary task
                     lda       shadowtask,x        ; request register
                     bne       Done@@              ; If empty set flag,go to Priority 1
                                                   ; Otherwise,go try bit 0
-                    bset      GO_PR1,sysflag
+                    bset      GO_PR1
 Done@@              rts
 
 ;*******************************************************************************
@@ -402,11 +410,11 @@ CHECKBIT0           proc
                     ldx       pr_level            ; Copy temporary location
                     lda       shadowtask,x        ; to another temporary location so
                     sta       tasktemp            ; can do a BRSET command
-                    brset     LSB,tasktemp,_@@    ;Bit 0 set,go execute a task
+                    brset     LSB,_@@             ;Bit 0 set,go execute a task
                     inc:2     add_pointer         ; Otherwise update address pointer
                                                   ; to point to next task in task table
                     bra       Done@@
-_@@                 bset      DO_TASK,sysflag     ; Set flag to say do a task
+_@@                 bset      DO_TASK             ; Set flag to say do a task
 Done@@              rts
 
 ;*******************************************************************************
@@ -508,7 +516,7 @@ TASKD               proc
 
 Loop@@              lda       num_on_leds         ; Read this value
                     bne       _1@@                ; If not empty, go to decrement
-                    bset      FINAL,app_flag_reg  ; Set flag to exit after o/p a zero
+                    bset      FINAL               ; Set flag to exit after o/p a zero
                     bra       _2@@                ; Go to copy vaue back to memory
 
 _1@@                deca                          ; Decrement number shown on LEDs
@@ -523,10 +531,10 @@ _3@@                bsr       DELAY               ; Go to DELAY subroutine
                     lda       time_on             ; Read the value
                     bne       _3@@                ; If <> 0, go back to delay again
 
-                    brset     FINAL,app_flag_reg,Done@@ ; If flag set, exit
+                    brset     FINAL,Done@@        ; If flag set, exit
                     bra       Loop@@              ; Otherwise, go to output next number
 
-Done@@              bclr      FINAL,app_flag_reg  ; Clear flag before leaving routine
+Done@@              bclr      FINAL               ; Clear flag before leaving routine
                     rts                           ; Exit
 
 ;***************************************************************************
@@ -602,9 +610,9 @@ _2@@                psha                          ; MS nibble of HEX to stack
 
                     clrx                          ; These seven lines demonstrate
                     clr       settasks            ; how flags are set in the Priority 1
-                    bset      0,settasks          ; (X=0) task request regiser in order
-                    bset      1,settasks          ; to set the corresponding tasks to
-                    bset      2,settasks          ; run. settasks is used as a temporary
+                    bset      A                   ; (X=0) task request register in order
+                    bset      B                   ; to set the corresponding tasks to
+                    bset      C                   ; run. settasks is used as a temporary
                     lda       settasks            ; register since the operation
                     sta       taskreq,x           ; BSET 0,taskreq,0, for instance,
                     rti                           ; cannot be done.
@@ -612,14 +620,14 @@ _2@@                psha                          ; MS nibble of HEX to stack
 ;*******************************************************************************
 
 GETDATA             proc
-                    brclr     5,SCSR,*            ; RDRF = 1 ?
+                    brclr     RDRF,*              ; RDRF = 1 ?
                     lda       SCDAT               ; OK, get data
                     rts
 
 ;*******************************************************************************
 
 SENDATA             proc
-                    brclr     7,SCSR,*            ; TDRE = 1 ?
+                    brclr     TDRE,*              ; TDRE = 1 ?
                     sta       SCDAT               ; OK, send data
                     rts
 

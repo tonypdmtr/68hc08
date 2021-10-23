@@ -135,6 +135,23 @@ TV_STORE            rmb       1                   ; Bit 1 of this variable is cl
                                                   ; set depending on if a timer
                                                   ; interrupt has occured or not when
                                                   ; using the Programmable Timer
+;*******************************************************************************
+; Pins
+;*******************************************************************************
+
+PGM_TIMER           pin       TV_OPT
+TASK                pin       TV_DTASK
+
+TASK_A              pin       TV_TSKC
+TASK_B              pin
+TASK_C              pin
+TASK_D              pin
+TASK_E              pin
+TASK_F              pin
+TASK_G              pin
+TASK_H              pin
+
+OC_FLG              pin       TV_TSRA,6
 
 ;*******************************************************************************
                     #ROM
@@ -145,12 +162,12 @@ TV_STORE            rmb       1                   ; Bit 1 of this variable is cl
 ;  MAIN PROGRAM *
 ;****************
 
-T_SCHD05            bset      0,TV_OPT            ; Set a flag to determine which timer
+T_SCHD05            bset      PGM_TIMER           ; Set a flag to determine which timer
                     mov       #$FF,DDRB           ; Set PB7-PB0 as outputs
-                    clr       PORTB               ; Clear Port B
+                    clr       PORTB
                     clr       TV_TSKCC            ; Clear Core Timer Task Counter
                     clr       TV_TSKCP            ; Clear Programmable Timer Task Counter
-T_SCHD10            brset     0,TV_OPT,T_SCHD99   ; Branch to choose the
+T_SCHD10            brset     PGM_TIMER,T_SCHD99  ; Branch to choose the
                     bra       T_CORE05            ; Core Timer or the
 
 T_SCHD99           ;jmp       T_PROG05            ; Programmable Timer
@@ -189,11 +206,11 @@ T_PROG05            lda       TV_TSRA             ; Clear Timer Status Register
                     clr       TV_TSCP             ; Clear Time Slice Counter
                     mov       #$40,TV_TCRA        ; Set Output Compare Interrupt enable
 PROG10              cli                           ; Clear Interrupt Mask Bit
-PROG15              brset     0,TV_DTASK,PROG20   ; If bit is set,go to task routine
+PROG15              brset     TASK,PROG20         ; If bit is set,go to task routine
                     bra       PROG15              ; If not set,wait for next interrupt
 
 PROG20              bsr       T_TASK05            ; Jump to task routine
-                    bclr      0,TV_DTASK          ; Clear task bit
+                    bclr      TASK                ; Clear task bit
 PROG99              bra       PROG10              ; Go wait for next interrupt
 
 ;*******************************************************************************
@@ -225,11 +242,11 @@ T_CORE05            clr       TV_TSCC             ; Clear Core Time Slice Counte
                     mov       #$23,TS_CTCSR       ; Set Core Timer Overflow Enable,
                                                   ; RT1 & RT0
 CORE10              wait                          ; Wait for Interrupt
-                    brset     0,TV_DTASK,CORE20   ; If task bit set,go to task routine
+                    brset     TASK,CORE20         ; If task bit set,go to task routine
                     bra       CORE10              ; If not,go wait for next interrupt
 
 CORE20              bsr       T_TASK05            ; Jump to task routine
-                    bclr      0,TV_DTASK          ; Clear task bit
+                    bclr      TASK                ; Clear task bit
                     bra       CORE10              ; Go to wait for next interrupt
 
 ;*****************************
@@ -259,7 +276,7 @@ CORE20              bsr       T_TASK05            ; Jump to task routine
 ;              is cleared.
 ;*******************************************************************************
 
-T_PRIN05            brclr     6,TV_TSRA,PRIN99    ;Checks for Output Compare Flag
+T_PRIN05            brclr     OC_FLG,PRIN99       ; Checks for Output Compare Flag
 
                     inc       TV_TSCP             ; Inrement Time Slice Counter
                     lda       TV_TSCP             ; Read the Time Slice Counter
@@ -268,7 +285,7 @@ T_PRIN05            brclr     6,TV_TSRA,PRIN99    ;Checks for Output Compare Fla
                     clr       TV_TSCP             ; If = 10, clear Time Slice Counter
 
                     inc       TV_TSKCP            ; Increment Task Counter
-                    bset      0,TV_DTASK          ; Set task bit
+                    bset      TASK                ; Set task bit
 
 PRIN10              lda       TV_OCLA             ; Read high byte of Output Compare
                     add       #TW_OCPER           ; Load #200 into ACCA
@@ -308,7 +325,7 @@ T_CRIN05            inc       TV_TSCC             ; Increment Core Time Slice Co
                     blo       CRIN10              ; If < 10,go to update status register
                     clr       TV_TSCC             ; If = 10, clear Time Slice Counter
                     inc       TV_TSKCC            ; Increment Core Task Counter
-                    bset      0,TV_DTASK          ; Set task bit
+                    bset      TASK                ; Set task bit
 CRIN10              mov       #$23,TS_CTCSR       ; Clear Overflow Flag
                     rti                           ; Return from Interrupt
 
@@ -340,14 +357,14 @@ T_TASK05            lda       TV_TSKCC            ; Read Core Timer Task Counter
                     bne       TASK15              ; Check if Core Timer or
 TASK10              lda       TV_TSKCP            ; Programmable has been used
 TASK15              sta       TV_TSKC             ; Stores task in memory
-                    brclr     0,TV_TSKC,TASK20    ; If bit 0 clear,go to Task A
-                    brclr     1,TV_TSKC,TASK25    ; If bit 1 clear,go to Task B
-                    brclr     2,TV_TSKC,TASK30    ; If bit 2 clear,go to Task C
-                    brclr     3,TV_TSKC,TASK35    ; If bit 3 clear,go to Task D
-                    brclr     4,TV_TSKC,TASK40    ; If bit 4 clear,go to Task E
-                    brclr     5,TV_TSKC,TASK45    ; If bit 5 clear,go to Task F
-                    brclr     6,TV_TSKC,TASK50    ; If bit 6 clear,go to Task G
-                    brclr     7,TV_TSKC,TASK55    ; If bit 7 clear,go to Task H
+                    brclr     TASK_A,TASK20       ; If bit 0 clear,go to Task A
+                    brclr     TASK_B,TASK25       ; If bit 1 clear,go to Task B
+                    brclr     TASK_C,TASK30       ; If bit 2 clear,go to Task C
+                    brclr     TASK_D,TASK35       ; If bit 3 clear,go to Task D
+                    brclr     TASK_E,TASK40       ; If bit 4 clear,go to Task E
+                    brclr     TASK_F,TASK45       ; If bit 5 clear,go to Task F
+                    brclr     TASK_G,TASK50       ; If bit 6 clear,go to Task G
+                    brclr     TASK_H,TASK55       ; If bit 7 clear,go to Task H
                     clr       PORTB               ; Clear Port B if Task Counter at #$FF
                     rts                           ; Return from routine
 
