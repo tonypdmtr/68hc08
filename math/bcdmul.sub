@@ -6,7 +6,6 @@
                     #ListOff
                     #Uses     mcu.inc
                     #ListOn
-
 buf                 @var      10
 #endif ;------------------------------------------------------------------------
 
@@ -25,9 +24,7 @@ BCDMULT             proc
                     bsr       BCDCONV             ; Convert packed BCD byte to binary
 
                     psha      mult@@              ; Multiplier (binary) value 0-99
-
-          ; Packed BCD (5-digit) to binary
-
+          ;-------------------------------------- ; Packed BCD (5-digit) to binary
                     lda       buf                 ; MS byte ($00- $09)
                     and       #$0F                ; Ensure high nibble is zero
                     ldx       #100
@@ -59,9 +56,7 @@ Skip@@0             stx       buf                 ; Temporary storage
                     bcc       Skip@@1             ; Skip next if no carry
                     incx
 Skip@@1             pshx      ans@@
-
-          ; Multiplication process
-
+          ;-------------------------------------- ; Multiplication process
                     ldx       mult@@,sp           ; Multiplier (binary)
                     lda       ans@@+2,sp
                     mul
@@ -140,19 +135,19 @@ b2@@                equ       buf+1,2
                     pshh                          ; Store remainder to stack
 
                     ldx       #10
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf
 
                     pula
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+1
 
                     pula
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+2
 
                     pula
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+3
                     rts
 
@@ -163,7 +158,7 @@ b2@@                equ       buf+1,2
 
                     #spauto
 
-BCDPACK             proc
+PackBCD             proc
                     clrh
                     div
                     nsa

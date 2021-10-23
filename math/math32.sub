@@ -124,7 +124,7 @@ CONVERT3            proc
                     psha      counter@@           ; additional storage on stack
                     lda       #5                  ; number of divisions required
 Loop@@              sta       counter@@,sp        ; digit counter
-                    bsr       DIV10               ; divide HX by 10
+                    bsr       Div10               ; divide HX by 10
                     psha      digit@@             ; save next ASCII numeral
           ;-------------------------------------- ; Swap last two stack positions
                     lda       counter@@,sp        ; counter value
@@ -161,7 +161,7 @@ CONVERT4            proc
                     ldhx      ,x                  ; binary value to be converted
                     clra
                     psha                          ; ASCIZ terminator
-DivDigit@@          bsr       DIV10               ; divide HX by 10
+DivDigit@@          bsr       Div10               ; divide HX by 10
                     psha                          ; save next ASCII numeral
                     cphx      #0                  ; test for zero quotient
                     bne       DivDigit@@          ; loop for next digit if not
@@ -188,7 +188,7 @@ Copy@@              pula                          ; get value from stack
 
                     #spauto
 
-DIV10               proc
+Div10               proc
                     pshx      lsb@@               ; dividend LS byte (2,sp)
                     tha                           ; MS byte
                     ldhx      #10                 ; divisor

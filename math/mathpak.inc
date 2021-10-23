@@ -8,8 +8,7 @@
                     #ListOff
                     #Uses     mcu.inc
                     #ListOn
-                    @var      ,6
-binary              @var      2
+binary              @var      2,6
 bin2                @var      2
 bin3                @var      2
 digits              @var      6
@@ -163,10 +162,9 @@ Done@@              rts
 ; Enter with number of times to shift in X.
 
 SHR                 proc
-sft@@               equ       binary
-
-Loop@@              lsr       sft@@               ; shift upper byte to right
-                    ror       sft@@+1             ; rotate lower byte to right
+n@@                 equ       binary
+Loop@@              lsr       n@@                 ; shift upper byte to right
+                    ror       n@@+1               ; rotate lower byte to right
                     dbnzx     Loop@@              ; decrement shift counter until = 0
                     rts
 

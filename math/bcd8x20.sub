@@ -8,11 +8,8 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
 
-                    #push
-                    #RAM
-buf                 rmb       5
+buf                 @var      5,5
 num                 def       buf,3
-                    #pull
 
 ;*******************************************************************************
 ; Purpose: BCD MULTIPLY
@@ -158,19 +155,19 @@ CONVERT             proc                          ; Convert to four byte values 
 
                     pshh                          ; Store remainder to stack
 
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf
 
                     pula
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+1
 
                     pula
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+2
 
                     pula
-                    bsr       BCDPACK             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+3
                     rts
 
@@ -181,7 +178,7 @@ CONVERT             proc                          ; Convert to four byte values 
 ; Note(s):
                     #spauto
 
-BCDPACK             proc
+PackBCD             proc
                     pshhx
                     ldhx      #10
                     div

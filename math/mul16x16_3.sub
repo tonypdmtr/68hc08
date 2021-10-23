@@ -1,11 +1,10 @@
-                    org       *
+#ifmain ;-----------------------------------------------------------------------
+                    #ListOff
+                    #Uses     mcu.inc
+                    #ListOn
+#endif ;------------------------------------------------------------------------
 
-                    #push
-                    #RAM
-
-pacc                rmb       4                   ; The 32 bit pseudo-accumulator
-
-                    #pull
+pacc                @var      4                   ; The 32 bit pseudo-accumulator
 
 ;*******************************************************************************
 ; Multiply a 16 bit, unsigned integer in the pseudo-accumulator (pacc =

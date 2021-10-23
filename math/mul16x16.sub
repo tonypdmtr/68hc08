@@ -33,9 +33,7 @@
 Mul16x16            proc
                     @parms    a 2,b 2
                     push      .ans@@              ; C uses HX for result address argument
-
-          ; ah * bh * 2^16 calculation
-
+          ;-------------------------------------- ; ah * bh * 2^16 calculation
                     tsx                           ; X addressing is faster/ smaller (HX = SP + 1)
                     lda       a@@,spx             ; get ah and bh
                     ldx       b@@,spx
@@ -45,9 +43,7 @@ Mul16x16            proc
                     sta       1,x                 ; save result
                     pula
                     sta       ,x                  ; save result
-
-          ; al * bl calculation
-
+          ;-------------------------------------- ; al * bl calculation
                     tsx
                     lda       a@@+1,spx           ; get al and bl
                     ldx       b@@+1,spx
@@ -57,16 +53,12 @@ Mul16x16            proc
                     sta       3,x                 ; save result
                     pula
                     sta       2,x                 ; save result
-
-          ; ah * bl * 2^8 calculation
-
+          ;-------------------------------------- ; ah * bl * 2^8 calculation
                     tsx
                     lda       a@@,spx             ; get ah and bl
                     ldx       b@@+1,spx
                     bsr       ?AddTerm
-
-          ; al * bh * 2^8 calculation
-
+          ;-------------------------------------- ; al * bh * 2^8 calculation
                     tsx
                     lda       a@@+1,spx           ; get al and bh
                     ldx       b@@,spx

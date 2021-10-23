@@ -4,8 +4,6 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
 
-; File: math.asm
-
 mult1               @var      4
 mult2               @var      4
 product             @var      4
@@ -24,7 +22,7 @@ product             @var      4
                     #spauto
 
 UMULT16             proc
-                    @local    temp16,prod32 4
+                    @local    tmp,prod32 4
 
                     ldhx      #mult2              ; Multiplier
                     lda       1,x                 ; LS byte
@@ -59,14 +57,14 @@ UMULT16             proc
 _1@@                lda       mult16@@,spx        ; Multiplier MS byte
                     ldx       mcand16@@+1,spx     ; Multiplicand LS byte
                     mul
-                    stx       temp16@@,sp
+                    stx       tmp@@,sp
                     tsx
                     add       prod32@@+2,spx
                     sta       prod32@@+2,spx
                     bcc       _2@@
-                    inc       temp16@@,spx
+                    inc       tmp@@,spx
 _2@@                lda       prod32@@+1,spx
-                    add       temp16@@,spx
+                    add       tmp@@,spx
                     sta       prod32@@+1,spx
                     bcc       _3@@
                     inc       prod32@@,spx
@@ -74,19 +72,18 @@ _3@@
                     lda       mult16@@,spx        ; Multiplier MS byte again
                     ldx       mcand16@@,spx       ; Multiplicand MS byte
                     mul
-                    stx       temp16@@,sp
+                    stx       tmp@@,sp
                     tsx
                     add       prod32@@+1,spx
                     sta       prod32@@+1,spx
                     bcc       _4@@
-                    inc       temp16@@,spx
+                    inc       tmp@@,spx
 _4@@                lda       prod32@@,spx
-                    add       temp16@@,spx
+                    add       tmp@@,spx
                     sta       prod32@@,spx
-
-          ; Unload stack frame structure
-
-                    ais       #:ais-4             ; Adjust stack pointer
+          ;-------------------------------------- ; Unload stack frame structure
+                    ais       #:ais-::prod32@@    ; Adjust stack pointer
+                    @tos      prod32@@
 
                     ldhx      #product
 
@@ -122,20 +119,16 @@ CONVERT3            proc
 
                     lda       #5                  ; Number of divisions required
 Loop@@              psha      count@@             ; Digit counter
-                    bsr       DIV10               ; Divide H:X by 10
+                    bsr       Div10               ; Divide H:X by 10
                     psha                          ; Save next ASCII numeral
                     bsr       SwapStack           ; Swap last two stack positions
                     pula                          ; A = count@@ (because of swap)
                     dbnza     Loop@@              ; Loop for next digit
 
                     #spadd    5-1
-
-          ; Get buffer address into H:X
-
+          ;-------------------------------------- ; Get buffer address into H:X
                     ldhx      .buffer@@,sp        ; H:X = buffer address
-
-          ; Transfer stack contents to buffer
-
+          ;-------------------------------------- ; Transfer stack contents to buffer
 Save@@              pula                          ; Get value from stack
                     sta       ,x                  ; Save digit to buffer
                     aix       #1
@@ -154,9 +147,7 @@ Save@@              pula                          ; Get value from stack
                     #spauto   2
 
 SwapStack           proc
-                    psha
-                    @_swap_,  1,sp 2,sp
-                    pula
+                    @swap.b   1,sp 2,sp
                     rts
 
 ;*******************************************************************************
@@ -176,26 +167,20 @@ CONVERT4            proc
                     ldhx      ,x                  ; Binary value to be converted
                     clra
                     psha                          ; ASCIZ terminator
-Loop@@              bsr       DIV10               ; Divide H:X by 10
+Loop@@              bsr       Div10               ; Divide H:X by 10
                     psha                          ; Save next ASCII numeral
                     cphx      #0                  ; Test for zero quotient
                     bne       Loop@@              ; Loop for next digit if not
 
                     #spadd    -1
-
-          ; Find position of null
-
+          ;-------------------------------------- ; Find position of null
                     tsx
 FindNull@@          aix       #1
                     lda       ,x
                     bne       FindNull@@          ; Loop if not null
-
-          ; Get buffer address into H:X
-
+          ;-------------------------------------- ; Get buffer address into H:X
                     ldhx      1,x                 ; H:X = saved buffer address
-
-          ; Transfer stack contents to buffer
-
+          ;-------------------------------------- ; Transfer stack contents to buffer
 Save@@              pula                          ; Get value from stack
                     sta       ,x                  ; Save digit to buffer
                     aix       #1
@@ -213,7 +198,7 @@ Save@@              pula                          ; Get value from stack
 
                     #spauto   2
 
-DIV10               proc
+Div10               proc
                     pshhx     num@@               ;save dividend
 
                     clrh

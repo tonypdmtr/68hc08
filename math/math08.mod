@@ -1,3 +1,4 @@
+;*******************************************************************************
 ; math1.asm
 ; Uses:
 ; Benötigt: MAT1,MAT2,MAT3,MAT3,MAT4,MAT5,MAT6,MAT7
@@ -27,7 +28,7 @@
 ; MULU168  (MAT0;MAT1)*(MAT2) -> (MAT0..MAT3) max. 24Bit lang!/ max.24 bits long
 ; MULU1616 (MAT0;MAT1)*(MAT4;MAT5) -> (MAT0..MAT3)
 ; Addition (MAT0;MAT1)+(MAT4;MAT5) -> (MAT0;MAT1) Achtung ohne Uebertrag!
-;                                                 no carry!
+;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
                     #ListOff

@@ -8,11 +8,8 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
 
-                    #push
-                    #RAM
-buf                 rmb       5
+buf                 @var      5,5
 num                 def       buf,2
-                    #pull
 
 ;*******************************************************************************
 ; 16-BIT BINARY TO 5-DIGIT BCD CONVERSION
@@ -27,9 +24,7 @@ Convert             proc
 Divide@@            bsr       ?DivideByTen
                     pshh                          ; Store remainder to stack
                     dbnza     Divide@@            ; Loop for next digit
-
-                    #spadd    ::buf-1
-
+                              #spadd    ::buf-1
                     ldhx      #buf                ; Buffer index
 Loop@@              pula                          ; Get value from stack
                     add       #'0'                ; Convert to numeric ASCII
@@ -37,9 +32,7 @@ Loop@@              pula                          ; Get value from stack
                     aix       #1
                     cphx      #buf+::buf          ; Test for maximum digits
                     blo       Loop@@              ; Loop if not
-
-                    #spadd    1-::buf
-
+                              #spadd    1-::buf
                     rts
 
 ;*******************************************************************************
