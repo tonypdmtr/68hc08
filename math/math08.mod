@@ -225,7 +225,7 @@ Loop@@              lda       remainder@@         ; get remainder msb
 ;     Check dividend/quotient lsb. If clear, set lsb of quotient to indicate
 ;     successful subraction, else add both bytes of divisor back to remainder
 ;
-                    brclr     0,dividend@@+3,Skip@@  ; check for a carry from subtraction
+                    brclr     dividend@@+3,Skip@@ ; check for a carry from subtraction
                                                   ; and add divisor to remainder if set
                     @add.s,   remainder@@ divisor@@,sp remainder@@ ; add divisor msb to remainder msb
 
@@ -235,7 +235,7 @@ Loop@@              lda       remainder@@         ; get remainder msb
 
                     bra       Cont@@              ; do next shift and subtract
 
-Skip@@              bset      0,dividend@@+3
+Skip@@              bset      dividend@@+3
 
 Cont@@              dbnz      count@@,sp,Loop@@   ; decrement loop counter and do next
 ;

@@ -74,7 +74,7 @@ prdct@@             equ       bin3
                     clr       prdct@@+1
 
                     ldx       #16                 ; set bit counter
-Loop@@              brclr     0,mer@@+1,Rotate@@  ; branch if MER(0)=0
+Loop@@              brclr     mer@@+1,Rotate@@    ; branch if MER(0)=0
 
                     lda       mcand@@+1           ; mcand + prdct -> prdct
                     add       prdct@@+1

@@ -33,7 +33,9 @@
 ; Erase Line            <ESC>[2K                     ok
 ; Erase Screen          <ESC>[2J                     ok
 ;*******************************************************************************
+                    #ListOff
                     #Uses     qy4.inc
+                    #ListOn
 ;*******************************************************************************
 ; SYSTEM DEFINITIONS AND EQUATES
 ;*******************************************************************************
@@ -42,15 +44,13 @@ TRIMLOC             equ       $FFC0               ; nonvolatile trim value (flas
 INIT_CONFIG1        equ       %01001001           ; Config Register1
 GetByte             equ       $2D6b               ; ROM routine getbyte on PTA0
           ;-------------------------------------- ; Application Specific Definitions
-LCD_CTRL            equ       $00                 ; PORTA
-LCD_DATA            equ       $01                 ; PORTB
+LCD_DATA            equ       PORTB
 LCD_COLS            equ       16                  ; LCD columns
-E                   equ       4                   ; PORTA, bit 4
-RS                  equ       5                   ; PORTA, bit 5
+LCD_E               pin       PORTA,4
+LCD_RS              pin       PORTA,5
 ESC                 def       $1B                 ; Escape Character
           ;-------------------------------------- ; SCI definitions
-KEY                 equ       PORTA
-KEY.                equ       0                   ; bit #0 for PTA0
+KEY                 pin       PORTA
           ;-------------------------------------- ; LCD commands
 CLRDISP             equ       %00000001           ; Clear display
 CURHOME             equ       %00000010           ; Cursor Home
@@ -73,7 +73,7 @@ ROW2ADR             equ       $C0                 ; Start address line 2
 ;*******************************************************************************
 
 time                rmb       1                   ; used in delay routine
-zeichen             rmb       1                   ; current character
+current_ch          rmb       1                   ; current character
 row                 rmb       1                   ; row
 col                 rmb       1                   ; column
 inptr               rmb       1                   ; position in the receive buffer for reception
@@ -99,13 +99,13 @@ Start               proc
 
                     jsr       RamInit             ; Initialize ram
           ;-------------------------------------- ; Initialize ports
-                    bclr      E,LCD_CTRL          ; clear LCD_CTRL
-                    bclr      RS,LCD_CTRL
+                    bclr      LCD_E               ; clear LCD_CTRL
+                    bclr      LCD_RS
                     clr       LCD_DATA            ; clear LCD_DATA
                     lda       #$FF                ; make ports outputs
                     sta       DDRB                ; PortB output
-                    bset      E,DDRA              ; PORTA Pins as outputs
-                    bset      RS,DDRA
+                    bset      LCD_E+DDR           ; PORTA Pins as outputs
+                    bset      LCD_RS+DDR
           ;-------------------------------------- ; Initialize keyboard int on PTA0
                     sei                           ; first prohibit interuppts
                     mov       #%00000100,KBSCR    ; Pending ints delete ints allow falling edge
@@ -125,13 +125,13 @@ MainLoop@@          jsr       GetChar             ; Fetch characters
                     cmpa      #' '
                     blo       Ctrl@@              ; < space is control character
 
-                    sta       zeichen
+                    sta       current_ch
                     jsr       LCD_Write           ; Output characters
                     lda       row
                     nsa
                     add       col
                     tax
-                    lda       zeichen
+                    lda       current_ch
                     sta       screen,x
                     inc       col                 ; Count up the column
                     lda       col                 ; Last column ?
@@ -191,22 +191,22 @@ DELAY@@             equ       BUS_KHZ/10-:cycles-:ocycles/:temp
 
 LCD_Init            proc
           ;-------------------------------------- ; with 15ms delay
-                    bclr      RS,LCD_CTRL         ; LCD auf Instruction setzen
+                    bclr      LCD_RS              ; LCD auf Instruction setzen
                     mov       #150,time           ; set delay time
                     bsr       VarDelay            ; sub for 0.1ms delay
           ;-------------------------------------- ; send init command
                     lda       #FUNCSET            ; LCD init command
                     sta       LCD_DATA
-                    bset      E,LCD_CTRL          ; clock in data
-                    bclr      E,LCD_CTRL
+                    bset      LCD_E               ; clock in data
+                    bclr      LCD_E
           ;-------------------------------------- ; 4.1ms delay
                     mov       #41,time            ; set delay time
                     bsr       VarDelay            ; sub for 0.1ms delay
           ;-------------------------------------- ; send init command (2nd time)
                     lda       #FUNCSET            ; LCD init command
                     sta       LCD_DATA
-                    bset      E,LCD_CTRL          ; clock in data
-                    bclr      E,LCD_CTRL
+                    bset      LCD_E               ; clock in data
+                    bclr      LCD_E
           ;-------------------------------------- ; 100us delay
                     mov       #1,time             ; set delay time
                     bsr       VarDelay            ; sub for 0.1ms delay
@@ -349,8 +349,8 @@ Done@@              rts
 
 LCD_Write           proc
                     sta       LCD_DATA            ; output on data port
-                    bset      E,LCD_CTRL          ; clock in data
-                    bclr      E,LCD_CTRL
+                    bset      LCD_E               ; clock in data
+                    bclr      LCD_E
 ;                   bra       ?Delay40us
 
 ;*******************************************************************************
@@ -370,12 +370,12 @@ DELAY@@             equ       40*BUS_KHZ/1000-:cycles-:ocycles/:temp
 ; Sets the LCD address to the value of the registers
 
 LCD_Addr            proc
-                    bclr      RS,LCD_CTRL         ; LCD in command mode
+                    bclr      LCD_RS              ; LCD in command mode
                     sta       LCD_DATA            ; output on data port
-                    bset      E,LCD_CTRL          ; clock in data
-                    bclr      E,LCD_CTRL
+                    bset      LCD_E               ; clock in data
+                    bclr      LCD_E
                     bsr       ?Delay40us
-                    bset      RS,LCD_CTRL         ; LCD in data mode
+                    bset      LCD_RS              ; LCD in data mode
                     rts
 
 ;*******************************************************************************
@@ -597,7 +597,7 @@ Done@@              rts
 KBD_Handler         proc
                     pshh
                     mov       #%00000010,KBIER    ; Disable 4 KB int
-                    bclr      KEY.,KEY            ; initialize PTA0 for serial comms
+                    bclr      KEY                 ; initialize PTA0 for serial comms
                     jsr       GetByte             ; RS232 byte received
                     ldx       inptr               ; Load pointer for receive buffer
                     sta       data,x              ; and secure characters
