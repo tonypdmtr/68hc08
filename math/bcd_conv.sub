@@ -31,19 +31,19 @@ Bin24ToBCD          proc
                     bsr       Divide2
                     pshh                          ; Store remainder to stack
 
-                    bsr       PackBcd             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf
 
                     pula
-                    bsr       PackBcd             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+1
 
                     pula
-                    bsr       PackBcd             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+2
 
                     pula
-                    bsr       PackBcd             ; Convert to packed BCD
+                    bsr       PackBCD             ; Convert to packed BCD
                     sta       buf+3
                     rts
 
@@ -86,7 +86,8 @@ Divide2             proc
 
                     #spauto   2
 
-PackBcd             proc
+PackBCD             proc
+                    pshhx
                     clrh
                     ldx       #10
                     div
@@ -94,6 +95,7 @@ PackBcd             proc
                     pshh
                     ora       1,asp
                     pulh                          ; Adjust stack pointer
+                    pulhx
                     rts
 
                     #sp

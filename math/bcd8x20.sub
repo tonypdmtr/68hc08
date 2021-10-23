@@ -26,9 +26,7 @@ BCDMULT             proc
                     bsr       BCDCONV             ; Convert packed BCD byte to binary
 
                     psha      mult@@              ; Multiplier (binary) value 0-99
-
-          ; Packed BCD (5-digit) to binary
-
+          ;-------------------------------------- ; Packed BCD (5-digit) to binary
                     lda       buf                 ; MS byte ($00- $09)
                     and       #$0F                ; Ensure high nibble is zero
                     ldx       #100
@@ -68,9 +66,7 @@ BCDMULT             proc
                     pula
                     adc       #0
                     psha      ans@@
-
-          ; Multiplication process
-
+          ;-------------------------------------- ; Multiplication process
                     lda       ans@@+2,spx
                     ldx       mult@@,spx          ; Multiplier (binary)
                     mul
@@ -180,19 +176,20 @@ CONVERT             proc                          ; Convert to four byte values 
 
 ;*******************************************************************************
 ; Purpose: Convert byte value to packed BCD
-; Input  : A byte value
-;        : X = 10
+; Input  : A = byte value
 ; Output : A = packed BCD
 ; Note(s):
                     #spauto
 
 BCDPACK             proc
+                    pshhx
                     ldhx      #10
                     div
                     nsa
                     pshh
                     ora       1,asp
                     pulh                          ; Adjust stack pointer
+                    pulhx
                     rts
 
 ;*******************************************************************************
