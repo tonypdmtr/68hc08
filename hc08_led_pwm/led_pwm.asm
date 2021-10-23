@@ -31,30 +31,26 @@ TSC1                equ       $28
 TCH1H               equ       $29
 TCH1L               equ       $2A
 
-TOF.                equ       7
+TSC_TOF             pin       TSC,7
 ;-------------------------------------------------------------------------------
 ; I/O
 ; pA0 output PWM to LED1
 ; pA1 output PWM to LED2
 ; pA2 input ON/OFF Control: ON(1),OFF(0)
 ;-------------------------------------------------------------------------------
-LED1                equ       PORTA
-LED1.               equ       1
-
-LED2                equ       PORTA
-LED2.               equ       2
+LED1                pin       PORTA,1
+LED2                pin       PORTA,2
+SWITCH              pin       PORTA,2
 
 ;*******************************************************************************
-                    #RAM                          ; VARIABLES
+                    #RAM      RAM                 ; VARIABLES
 ;*******************************************************************************
-                    org       RAM
 
 ramp_counter        rmb       1                   ; Ramp time counter
 
 ;*******************************************************************************
-                    #ROM                          ; INITIALIZATION
+                    #ROM      ROM                 ; INITIALIZATION
 ;*******************************************************************************
-                    org       ROM
 
 Start               proc
                     rsp                           ; reset Stack Pointer = $FF
@@ -73,8 +69,8 @@ Start               proc
 
                     clr       PORTA
 
-                    bset      LED1.,LED1+DDR      ; make LED pins outputs
-                    bset      LED2.,LED2+DDR
+                    bset      LED1+DDR            ; make LED pins outputs
+                    bset      LED2+DDR
 
                     ldhx      #PWM_PERIOD         ; PWM PERIOD save to TMODH
                     sthx      TMODH
@@ -85,13 +81,13 @@ Start               proc
 ;*******************************************************************************
 
 MainLoop            proc
-;                   brset     2,PORTA,_1@@        ; start working only when pA2=1
+;                   brset     SWITCH,_1@@         ; start working only when pA2=1
 ;                   clr       TSC0
 ;                   clr       TSC1
 ;                   bra       MainLoop
 
-_1@@                brclr     TOF.,TSC,*          ; wait for the end of PWM_PERIOD, loop here
-                    bclr      TOF.,TSC            ; TOF reset
+_1@@                brclr     TSC_TOF,*           ; wait for the end of PWM_PERIOD, loop here
+                    bclr      TSC_TOF             ; TOF reset
                     inc       ramp_counter        ; set the next time step
                     lda       ramp_counter        ; is the time overpassed the ramp 1
 
