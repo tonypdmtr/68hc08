@@ -29,9 +29,9 @@
                     #Uses     mcu.inc
                     #ListOn
           #ifdef WIDEBUS
-                    #Message  LCD in 8-bit mode
+                    #Hint     LCD in 8-bit mode
           #else
-                    #Message  LCD in 4-bit mode
+                    #Hint     LCD in 4-bit mode (-dWIDEBUS for 8-bit)
           #endif
 ;*******************************************************************************
 ; Application Specific Definitions
