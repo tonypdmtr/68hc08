@@ -168,14 +168,13 @@ Loop@@              bsr       Delay100us
 ;*******************************************************************************
                               #Cycles :temp
 Delay100us          proc
-                    pshhx
-                    ldhx      #DELAY@@
+                    psha
+                    lda       #DELAY@@
                               #Cycles
-Loop@@              aix       #-1
-                    cphx      #0
-                    bne       Loop@@
+Loop@@              nop
+                    dbnza     Loop@@
                               #temp :cycles
-                    pulhx
+                    pula
                     rts
 
 DELAY@@             equ       100*BUS_KHZ/1000-:cycles-:ocycles/:temp
