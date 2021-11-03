@@ -666,25 +666,25 @@ CAN_BASE            def       $1880
 
 CANCTL0             equ       CAN_BASE,1          ;MSCAN Control 0 Register
 
-CAN_INITRQ          @pin      CANCTL0,0           ;Initialization Mode Request
-CAN_SLPRQ           @pin      CANCTL0,1           ;Sleep Mode Request
-CAN_WUPE            @pin      CANCTL0,2           ;Wake-Up Enable
-CAN_TIME            @pin      CANCTL0,3           ;Timer Enable
-CAN_SYNCH           @pin      CANCTL0,4           ;Synchronized Status
-CAN_CSWAI           @pin      CANCTL0,5           ;CAN Stops in Wait Mode
-CAN_RXACT           @pin      CANCTL0,6           ;Receiver Active Status
-CAN_RXFRM           @pin      CANCTL0,7           ;Received Frame Flag
+CAN_INITRQ          @pin      CANCTL0             ;Initialization Mode Request
+CAN_SLPRQ           @pin                          ;Sleep Mode Request
+CAN_WUPE            @pin                          ;Wake-Up Enable
+CAN_TIME            @pin                          ;Timer Enable
+CAN_SYNCH           @pin                          ;Synchronized Status
+CAN_CSWAI           @pin                          ;CAN Stops in Wait Mode
+CAN_RXACT           @pin                          ;Receiver Active Status
+CAN_RXFRM           @pin                          ;Received Frame Flag
 
 CANCTL1             equ       CAN_BASE+$01,1      ;MSCAN Control 1 Register
 
-CAN_INITAK          @pin      CANCTL1,0           ;Initialization Mode Acknowledge
-CAN_SLPAK           @pin      CANCTL1,1           ;Sleep Mode Acknowledge
-CAN_WUPM            @pin      CANCTL1,2           ;Wake-Up Mode
-CAN_BORM            @pin      CANCTL1,3           ;Bus-Off Recovery Mode
-CAN_LISTEN          @pin      CANCTL1,4           ;Listen Only Mode
-CAN_LOOPB           @pin      CANCTL1,5           ;Loop Back Self Test Mode
-CAN_CLKSRC          @pin      CANCTL1,6           ;MSCAN Clock Source
-CAN_CANE            @pin      CANCTL1,7           ;MSCAN Enable
+CAN_INITAK          @pin      CANCTL1             ;Initialization Mode Acknowledge
+CAN_SLPAK           @pin                          ;Sleep Mode Acknowledge
+CAN_WUPM            @pin                          ;Wake-Up Mode
+CAN_BORM            @pin                          ;Bus-Off Recovery Mode
+CAN_LISTEN          @pin                          ;Listen Only Mode
+CAN_LOOPB           @pin                          ;Loop Back Self Test Mode
+CAN_CLKSRC          @pin                          ;MSCAN Clock Source
+CAN_CANE            @pin                          ;MSCAN Enable
 
 CANBTR0             equ       CAN_BASE+$02,1      ;MSCAN Bus Timing Register 0
 
@@ -697,67 +697,67 @@ CAN_SAMP            @pin      CANBTR1,7           ;Sampling
 
 CANRFLG             equ       CAN_BASE+$04,1      ;MSCAN Receiver Flag Register
 
-CAN_RXF             @pin      CANRFLG,0           ;Receive Buffer Full
-CAN_OVRIF           @pin      CANRFLG,1           ;Overrun Interrupt Flag
-CAN_TSTAT0          @pin      CANRFLG,2           ;Transmitter Status Bit 0
-CAN_TSTAT1          @pin      CANRFLG,3           ;Transmitter Status Bit 1
-CAN_RSTAT0          @pin      CANRFLG,4           ;Receiver Status Bit 0
-CAN_RSTAT1          @pin      CANRFLG,5           ;Receiver Status Bit 1
-CAN_CSCIF           @pin      CANRFLG,6           ;CAN Status Change Interrupt Flag
-CAN_WUPIF           @pin      CANRFLG,7           ;Wake-up Interrupt Flag
+CAN_RXF             @pin      CANRFLG             ;Receive Buffer Full
+CAN_OVRIF           @pin                          ;Overrun Interrupt Flag
+CAN_TSTAT0          @pin                          ;Transmitter Status Bit 0
+CAN_TSTAT1          @pin                          ;Transmitter Status Bit 1
+CAN_RSTAT0          @pin                          ;Receiver Status Bit 0
+CAN_RSTAT1          @pin                          ;Receiver Status Bit 1
+CAN_CSCIF           @pin                          ;CAN Status Change Interrupt Flag
+CAN_WUPIF           @pin                          ;Wake-up Interrupt Flag
 
 CANRIER             equ       CAN_BASE+$05,1      ;MSCAN Receiver Interrupt Enable Register
 
-CAN_RXFIE           @pin      CANRIER,0           ;Receiver Full Interrupt Enable
-CAN_OVRIE           @pin      CANRIER,1           ;Overrun Interrupt Enable
-CAN_TSTATE0         @pin      CANRIER,2           ;Transmitter Status Change Enable 0
-CAN_TSTATE1         @pin      CANRIER,3           ;Transmitter Status Change Enable 1
-CAN_RSTATE0         @pin      CANRIER,4           ;Receiver Status Change Enable 0
-CAN_RSTATE1         @pin      CANRIER,5           ;Receiver Status Change Enable 1
-CAN_CSCIE           @pin      CANRIER,6           ;CAN Status Change Interrupt Enable
-CAN_WUPIE           @pin      CANRIER,7           ;Wake-up Interrupt Enable
+CAN_RXFIE           @pin      CANRIER             ;Receiver Full Interrupt Enable
+CAN_OVRIE           @pin                          ;Overrun Interrupt Enable
+CAN_TSTATE0         @pin                          ;Transmitter Status Change Enable 0
+CAN_TSTATE1         @pin                          ;Transmitter Status Change Enable 1
+CAN_RSTATE0         @pin                          ;Receiver Status Change Enable 0
+CAN_RSTATE1         @pin                          ;Receiver Status Change Enable 1
+CAN_CSCIE           @pin                          ;CAN Status Change Interrupt Enable
+CAN_WUPIE           @pin                          ;Wake-up Interrupt Enable
 
 CANTFLG             equ       CAN_BASE+$06,1      ;MSCAN Transmitter Flag Register
 
-CAN_TXE0            @pin      CANTFLG,0           ;Transmitter Buffer Empty 0
-CAN_TXE1            @pin      CANTFLG,1           ;Transmitter Buffer Empty 1
-CAN_TXE2            @pin      CANTFLG,2           ;Transmitter Buffer Empty 2
+CAN_TXE0            @pin      CANTFLG             ;Transmitter Buffer Empty 0
+CAN_TXE1            @pin                          ;Transmitter Buffer Empty 1
+CAN_TXE2            @pin                          ;Transmitter Buffer Empty 2
 
 CANTIER             equ       CAN_BASE+$07,1      ;MSCAN Transmitter Interrupt Enable Register
 
-CAN_TXEIE0          @pin      CANTIER,0           ;Transmitter Empty Interrupt Enable 0
-CAN_TXEIE1          @pin      CANTIER,1           ;Transmitter Empty Interrupt Enable 1
-CAN_TXEIE2          @pin      CANTIER,2           ;Transmitter Empty Interrupt Enable 2
+CAN_TXEIE0          @pin      CANTIER             ;Transmitter Empty Interrupt Enable 0
+CAN_TXEIE1          @pin                          ;Transmitter Empty Interrupt Enable 1
+CAN_TXEIE2          @pin                          ;Transmitter Empty Interrupt Enable 2
 
 CANTARQ             equ       CAN_BASE+$08,1      ;MSCAN Transmitter Message Abort Request
 
-CAN_ABTRQ0          @pin      CANTARQ,0           ;Abort Request 0
-CAN_ABTRQ1          @pin      CANTARQ,1           ;Abort Request 1
-CAN_ABTRQ2          @pin      CANTARQ,2           ;Abort Request 2
+CAN_ABTRQ0          @pin      CANTARQ             ;Abort Request 0
+CAN_ABTRQ1          @pin                          ;Abort Request 1
+CAN_ABTRQ2          @pin                          ;Abort Request 2
 
 CANTAAK             equ       CAN_BASE+$09,1      ;MSCAN Transmitter Message Abort Control
 
-CAN_ABTAK0          @pin      CANTAAK,0           ;Abort Acknowledge 0
-CAN_ABTAK1          @pin      CANTAAK,1           ;Abort Acknowledge 1
-CAN_ABTAK2          @pin      CANTAAK,2           ;Abort Acknowledge 2
+CAN_ABTAK0          @pin      CANTAAK             ;Abort Acknowledge 0
+CAN_ABTAK1          @pin                          ;Abort Acknowledge 1
+CAN_ABTAK2          @pin                          ;Abort Acknowledge 2
 
 CANTBSEL            equ       CAN_BASE+$0A,1      ;MSCAN Transmit Buffer Selection
 
-CAN_TX0             @pin      CANTBSEL,0          ;Transmit Buffer Select 0
-CAN_TX1             @pin      CANTBSEL,1          ;Transmit Buffer Select 1
-CAN_TX2             @pin      CANTBSEL,2          ;Transmit Buffer Select 2
+CAN_TX0             @pin      CANTBSEL            ;Transmit Buffer Select 0
+CAN_TX1             @pin                          ;Transmit Buffer Select 1
+CAN_TX2             @pin                          ;Transmit Buffer Select 2
 
 CANIDAC             equ       CAN_BASE+$0B,1      ;MSCAN Identifier Acceptance Control Register
 
-CAN_IDHIT0          @pin      CANIDAC,0           ;Identifier Acceptance Hit Indicator 0
-CAN_IDHIT1          @pin      CANIDAC,1           ;Identifier Acceptance Hit Indicator 1
-CAN_IDHIT2          @pin      CANIDAC,2           ;Identifier Acceptance Hit Indicator 2
+CAN_IDHIT0          @pin      CANIDAC             ;Identifier Acceptance Hit Indicator 0
+CAN_IDHIT1          @pin                          ;Identifier Acceptance Hit Indicator 1
+CAN_IDHIT2          @pin                          ;Identifier Acceptance Hit Indicator 2
 CAN_IDAM0           @pin      CANIDAC,4           ;Identifier Acceptance Mode 0
-CAN_IDAM1           @pin      CANIDAC,5           ;Identifier Acceptance Mode 1
+CAN_IDAM1           @pin                          ;Identifier Acceptance Mode 1
 
 CANMISC             equ       CAN_BASE+$0D,1      ;MSCAN Miscellaneous Register
 
-CAN_BOHOLD          @pin      CANMISC,0           ;Bus-off State Hold Until User Request - If BORM is set
+CAN_BOHOLD          @pin      CANMISC             ;Bus-off State Hold Until User Request - If BORM is set
 
 CANRXERR            equ       CAN_BASE+$0E,1      ;MSCAN Receive Error Counter Register
 CANTXERR            equ       CAN_BASE+$0F,1      ;MSCAN Transmit Error Counter Register
@@ -791,7 +791,7 @@ CANR_SRR            @pin      CANRIDR1,4          ;Substitute Remote Request
 CANRIDR2            equ       CAN_BASE+$22,1      ;MSCAN 0 Receive Identifier Register 2
 CANRIDR3            equ       CAN_BASE+$23,1      ;MSCAN 0 Receive Identifier Register 3
 
-CANR_RTR            @pin      CANRIDR3,0          ;Remote Transmission Request
+CANR_RTR            @pin      CANRIDR3            ;Remote Transmission Request
 
 CANRDSR             equ       CAN_BASE+$24,8      ;MSCAN Receive Data Segment Registers
 CANRDSR0            equ       CAN_BASE+$24,1      ;MSCAN Receive Data Segment Register 0
@@ -805,10 +805,10 @@ CANRDSR7            equ       CAN_BASE+$2B,1      ;MSCAN Receive Data Segment Re
 
 CANRDLR             equ       CAN_BASE+$2C,1      ;MSCAN Receive Data Length Register
 
-CANR_DLC0           @pin      CANRDLR,0           ;Data Length Code Bit 0
-CANR_DLC1           @pin      CANRDLR,1           ;Data Length Code Bit 1
-CANR_DLC2           @pin      CANRDLR,2           ;Data Length Code Bit 2
-CANR_DLC3           @pin      CANRDLR,3           ;Data Length Code Bit 3
+CANR_DLC0           @pin      CANRDLR             ;Data Length Code Bit 0
+CANR_DLC1           @pin                          ;Data Length Code Bit 1
+CANR_DLC2           @pin                          ;Data Length Code Bit 2
+CANR_DLC3           @pin                          ;Data Length Code Bit 3
 
 CANRTSR             equ       CAN_BASE+$2E,2      ;MSCAN Receive Time Stamp Register
 CANRTSRH            equ       CAN_BASE+$2E,1      ;MSCAN Receive Time Stamp Register High
@@ -823,7 +823,7 @@ CANT_SRR            @pin      CANTIDR1,4          ;Substitute Remote Request
 CANTIDR2            equ       CAN_BASE+$32,1      ;MSCAN 0 Transmit Identifier Register 2
 CANTIDR3            equ       CAN_BASE+$33,1      ;MSCAN 0 Transmit Identifier Register 3
 
-CANT_RTR            @pin      CANTIDR3,0          ;Remote Transmission Request
+CANT_RTR            @pin      CANTIDR3            ;Remote Transmission Request
 
 CANTDSR             equ       CAN_BASE+$34,8      ;MSCAN Transmit Data Segment Registers
 CANTDSR0            equ       CAN_BASE+$34,1      ;MSCAN Transmit Data Segment Register 0
@@ -837,10 +837,10 @@ CANTDSR7            equ       CAN_BASE+$3B,1      ;MSCAN Transmit Data Segment R
 
 CANTDLR             equ       CAN_BASE+$3C,1      ;MSCAN Transmit Data Length Register
 
-CANT_DLC0           @pin      CANTDLR,0           ;Data Length Code Bit 0
-CANT_DLC1           @pin      CANTDLR,1           ;Data Length Code Bit 1
-CANT_DLC2           @pin      CANTDLR,2           ;Data Length Code Bit 2
-CANT_DLC3           @pin      CANTDLR,3           ;Data Length Code Bit 3
+CANT_DLC0           @pin      CANTDLR             ;Data Length Code Bit 0
+CANT_DLC1           @pin                          ;Data Length Code Bit 1
+CANT_DLC2           @pin                          ;Data Length Code Bit 2
+CANT_DLC3           @pin                          ;Data Length Code Bit 3
 
 CANTTBPR            equ       CAN_BASE+$3D,1      ;MSCAN Transmit Buffer Priority
 CANTTSR             equ       CAN_BASE+$3E,2      ;MSCAN Transmit Time Stamp Register

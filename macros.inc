@@ -159,6 +159,8 @@
 ;*           : 21.06.29 v2.32 Improved CopyPin macro to use CCR[C] if FromPin is missing
 ;*           : 21.10.01 v2.33 Improved Input and Output macros to ignore non-register pins
 ;*           : 21.10.06 v2.34 Removed practically useless _FindStr_ macro (Find String)
+;*           : 21.10.25 v2.35 Added DEPRECATED hint in ExpPin and PIN macros
+;*           : 21.11.01 v2.36 COP macro will do nothing if NO_COP is defined
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -194,7 +196,7 @@ COP                 macro                         ;kick the COP watchdog
           #ifparm ~1~ = #SAVE#                    ;to be compatible with special COP macro versions
                     mexit
           #endif
-          #ifdef COP
+          #ifdef COP&&!NO_COP
                     sta       COP
           #endif
                     endm
@@ -1825,6 +1827,9 @@ Pin                 macro     [[PinName,]PORT[,BitNumber]]
           #if :temp > 7
                     #Warning  BitNumber ({:temp}) > 7
           #endif
+          #if :index = 1
+                    #Hint     Deprecated. Use built-in PIN pseudo-op instead
+          #endif
                     endm
 
 ;*******************************************************************************
@@ -1850,6 +1855,7 @@ CheckPin            macro     PinName[,PinName]*
 ; Export pin(s)
 
 ExpPin              macro     PinName[,PinName]*
+                    #Hint     Deprecated. Use PIN and #EXPORT instead
                     mreq      1:PinName[,PinName]*
                     mdo
           #ifdef ~{:mloop}.~
@@ -2487,7 +2493,6 @@ var_any_page        rmb       4                   ;for testing non-zero page ops
 LED                 pin       PORTA               ;define a port pin
 
 Start               @align2   9                   ;as power of two
-;                   @align    5                   ;as multiple of value
 
                     @rsp
 

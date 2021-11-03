@@ -7,7 +7,7 @@
                     #Drop     COP
           #endif
 COP                 macro     #SAVE#              ;kick the COP watchdog
-          #ifndef WDOG_CNT
+          #ifdef NO_COP||!WDOG_CNT
                     mexit
           #endif
           #ifparm ~1~ = #SAVE#

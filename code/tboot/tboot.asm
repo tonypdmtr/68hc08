@@ -461,7 +461,7 @@ pc@@                equ       ::,2                ;SP offset to return address
 ?PrintString        proc
                     psha
 Loop@@              lda       ,x                  ;get char to print
-                    !aix      #1                  ;bump up pointer
+                    aix       #1                  ;bump up pointer
                     beq       Done@@              ;on terminator, done
                     bsr       ?PutChar            ;print character
                     bra       Loop@@              ;repeat for all chars
@@ -658,7 +658,7 @@ Save@@              jsr       ?FlashWrite         ;Save to Flash
                     @?print   BS,'F'              ;Flash error indicator
 
 NextByte@@          ldhx      ?address
-                    !aix      #1                  ;Adjust the PC value by 1
+                    aix       #1                  ;Adjust the PC value by 1
                     sthx      ?address
                     dbnz      ?length,Loop@@      ;One less byte to read
 ;-------------------------------------------------------------------------------
@@ -1048,7 +1048,11 @@ Done@@              lda       #FPVIOL_|FACCERR_
 
                     brclr     LOCK.,ICGS1,*       ;wait for FLL lock
           #endif
+          #ifdef _AC_
+SOPT_VALUE          def       %00110011
+          #else              ; |||xxxxx
 SOPT_VALUE          def       %00100010
+          #endif             ; ||||||||
                              ; ||||||||
                              ; |||||||+---------  RSTPE - RST pin enable
                              ; ||||||+----------  BKGDPE - BKGD/MS pin for debugging only
@@ -1107,7 +1111,7 @@ Loop@@              lda       ?RAM_Code-1,x
                     clrhx
 Loop@@              lda       ?RAM_Code,x
                     sta       ?burn_routine,x
-                    !aix      #1                  ;point to next byte to process
+                    aix       #1                  ;point to next byte to process
                     cphx      #::?RAM_Code        ;are we done?
                     blo       Loop@@
           #endif
@@ -1400,7 +1404,7 @@ Fail@@              equ       ?No
                     @?        Virq                ;IRQ pin vector
                     @?        Vswi                ;SWI vector
           #else ifdef AC96
-                    @?        Vspi2
+                    @?        Vspi2               ;SPI2 vector
                     @?        Vtpm3ovf            ;TPM3 overflow vector
                     @?        Vtpm3ch1            ;TPM3 channel 1 vector
                     @?        Vtpm3ch0            ;TPM3 channel 0 vector
@@ -1411,6 +1415,9 @@ Fail@@              equ       ?No
                     @?        Vsci2tx             ;SCI2 TX vector
                     @?        Vsci2rx             ;SCI2 RX vector
                     @?        Vsci2err            ;SCI2 Error vector
+                    @?        Vsci1tx             ;SCI1 TX vector
+                    @?        Vsci1rx             ;SCI1 RX vector
+                    @?        Vsci1err            ;SCI1 Error vector
                     @?        Vspi                ;SPI vector
                     @?        Vtpm2ovf            ;TPM2 overflow vector
                     @?        Vtpm2ch5            ;TPM2 channel 5 vector
