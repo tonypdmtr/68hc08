@@ -75,50 +75,41 @@
 ;  X                    X                       Misc. computational
 ;                                                use.
 ;*******************************************************************************
-; Register and Variable Equates
-;
-;       None
-;*******************************************************************************
 
-; Memory
-                    #RAM      $50
+                    #push
+                    #RAM      *
 
-codeword            rmb       1
-infoword            rmb       1
-word_counter        rmb       1
+?codeword           rmb       1
+?infoword           rmb       1
+?word_counter       rmb       1
+
+                    #pull
 
 ;*******************************************************************************
-
-                    #ROM      $1000
-Start               equ       *                   ; beginning of program area
-
-;*******************************************************************************
-; Main Routine
-
 ; As stated in the header, the first place to start is
 ; the clearing of data space:
 
 HamEnc2             proc
-                    clr       word_counter
-                    clr       codeword
+                    clr       ?word_counter
+                    clr       ?codeword
           ;--------------------------------------
           ; Next, before we begin the process of multiplying and adding the
           ; codeword with the info word, we need to save a copy of the info word
           ; (remember, we are entering the routine with ACCA having the
           ; info word):
           ;--------------------------------------
-                    sta       infoword
+                    sta       ?infoword
           ;--------------------------------------
           ; Now we begin the fun stuff...doing the actual multiplication and
           ; addition that is required to this super-fun Hamming stuff. Each
           ; multiplication with binary data is actually a logical AND on a
           ; bitwise basis:
           ;--------------------------------------
-GetInfoWord@@       lda       infoword            ; get the info word for the
+GetInfoWord@@       lda       ?infoword           ; get the info word for the
                                                   ; multiplication.
-                    ldx       word_counter        ; get the current row count
+                    ldx       ?word_counter       ; get the current row count
                                                   ; into the generator matrix.
-                    and       GenMatrix,x         ; Go forth and multiply...
+                    and       ?GenMatrix,x        ; Go forth and multiply...
           ;--------------------------------------
           ; Well...that wasn't so bad, was it? Now that the multiplication
           ; is complete we begin the task of adding the product, bit-by-bit
@@ -130,7 +121,7 @@ GetInfoWord@@       lda       infoword            ; get the info word for the
           ;--------------------------------------
                     tax                           ; the byte to have parity
                                                   ; encoded resides in ACCA.
-                    lda       ParaTee,x           ; get the parity value from LUT
+                    lda       ?ParaTee,x          ; get the parity value from LUT
           ;--------------------------------------
           ; As mentioned in the header, the actual codeword is constructed
           ; one-bit at a time. For each multiplication and addition we do,
@@ -138,7 +129,7 @@ GetInfoWord@@       lda       infoword            ; get the info word for the
           ; then, we must construct another bit of the codeword from the
           ; last multiplcation and addition:
           ;--------------------------------------
-                    beq       BumpCntr1@@         ; if parity is odd, then
+                    beq       Cont@@              ; if parity is odd, then
                                                   ; we do nothing to the
                                                   ; final codeword.
                                                   ; here's the branch to do
@@ -155,29 +146,30 @@ GetInfoWord@@       lda       infoword            ; get the info word for the
           ; contains only one bit=1...in each case only the bit that we wish
           ; to set within the byte:
           ;--------------------------------------
-                    ldx       word_counter        ; word_counter has the current bit
+                    ldx       ?word_counter       ; word_counter has the current bit
                                                   ; position in it.
                     lda       CoSet,x             ; get bit (in correct position)
                                                   ; to be set.
-                    ora       codeword            ; set the bit.
-                    sta       codeword            ; modify codeword for next use.
+                    ora       ?codeword           ; set the bit.
+                    sta       ?codeword           ; modify codeword for next use.
           ;--------------------------------------
           ; This completes a single cycle in the process of encoding an info
           ; word into a bit within the final codeword. All that is left to do
           ; is to check to see if we have completed the entire codeword. If
           ; we haven't, then pointers get modified so we can do the next one:
           ;--------------------------------------
-BumpCntr1@@         inc       word_counter        ; inc current row/bit position
-                    lda       word_counter        ; load updated word_counter
-                    cmp       #7                  ; check to see if we're done.
+Cont@@              inc       ?word_counter       ; inc current row/bit position
+                    lda       ?word_counter       ; load updated word_counter
+                    cmpa      #7                  ; check to see if we're done.
                     blo       GetInfoWord@@       ; Go back, Jack, and
                                                   ; do it again...
-                    bra       *                   ; done !!!
+                    rtc                           ; done !!!
 
 ;*******************************************************************************
 ; Tables
+;*******************************************************************************
 
-GenMatrix           fcb       %00001011
+?GenMatrix          fcb       %00001011
                     fcb       %00001110
                     fcb       %00000111
                     fcb       %00001000
@@ -185,7 +177,7 @@ GenMatrix           fcb       %00001011
                     fcb       %00000010
                     fcb       %00000001
 
-ParaTee             fcb       $00
+?ParaTee            fcb       $00
                     fcb       $FF
                     fcb       $FF
                     fcb       $00
@@ -211,10 +203,8 @@ CoSet               fcb       %01000000
                     fcb       %00000001
 
 ;*******************************************************************************
-; Vector Setup
-;*******************************************************************************
-
-                    #VECTORS  $FFFE
-                    dw        Start               ; set up reset vector
-
+#ifmain
+                    #VECTORS  $FFFE               ;reset vector
+                    dw        HamEnc2
+#endif
 ;*******************************************************************************

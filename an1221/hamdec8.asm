@@ -50,8 +50,8 @@
 ;  ACCA                                         Enter routine with
 ;                                                ACCA=Codeword.
 ;                       ACCA                    Same contents
-;                                                as infoword.
-;                       infoword                The recovered
+;                                                as ?infoword.
+;                       ?infoword               The recovered
 ;                                                info word.
 ;
 ; LOCAL DATA:
@@ -59,7 +59,7 @@
 ;  ----------------     -----------------       -------------
 ;  bit_counter          bit_counter             Keeps track of the
 ;                                                column # within
-;                                                HTranspose.
+;                                                ?HTranspose.
 ;  CodeWord             CodeWord                Yup, you guessed it
 ;                                                ...this is where we
 ;                                                keep a temp version
@@ -68,7 +68,7 @@
 ;                                                H-transpose column
 ;                                                that is combined
 ;                                                with the codeword.
-;                       infoword                The recovered
+;                       ?infoword               The recovered
 ;                                                info word.
 ;  Syndrome             Syndrome                Data which gives us
 ;                                                the location of any
@@ -78,54 +78,45 @@
 ;  X                    X                       Misc. computational
 ;                                                use.
 ;*******************************************************************************
-; Register and Variable Equates
-;
-;       None
-;*******************************************************************************
 
-; Memory
-                    #RAM      $50
+                    #push
+                    #RAM      *
 
-bit_counter         rmb       1
-codeword            rmb       1
-column_counter      rmb       1
-infoword            rmb       1
-parity              rmb       1
-syndrome            rmb       1
+?bit_counter        rmb       1
+?codeword           rmb       1
+?column_counter     rmb       1
+?infoword           rmb       1
+?parity             rmb       1
+?syndrome           rmb       1
+
+                    #pull
 
 ;*******************************************************************************
-
-                    #ROM      $1000               ; beginning of program
-Start               equ       *
-
-;*******************************************************************************
-; Main Routine
-
 ; We must prepare the workspace...any nonzero stuff in some variables
 ; could really mess up our process. So...
 
 HamDec              proc
-                    clr       column_counter
-                    clr       syndrome
+                    clr       ?column_counter
+                    clr       ?syndrome
           ;--------------------------------------
           ; Since we enter this routine with the codeword contained in the
           ; accumulator, and use the codeword multiple times, a copy is first
           ; made into the location called "codeword":
           ;--------------------------------------
-                    sta       codeword
+                    sta       ?codeword
 
-GetCodeWord@@       lda       codeword            ; get the first argument
+GetCodeWord@@       lda       ?codeword           ; get the first argument
                                                   ; used in our multiplication.
-                    ldx       column_counter      ; get the current column to
+                    ldx       ?column_counter     ; get the current column to
                                                   ; be worked on
-                    and       HTranspose,x        ; Multiply!
+                    and       ?HTranspose,x       ; Multiply!
           ;--------------------------------------
           ; The next step in the process is to calculate the parity of the
           ; received codeword. This is accomplished by rotating each bit
           ; through the carry bit and then complementing a byte called "parity":
           ;--------------------------------------
-                    clr       parity              ; clear the workspace
-                    mov       #8,bit_counter      ; prep loop counter x to do
+                    clr       ?parity             ; clear the workspace
+                    mov       #8,?bit_counter     ; prep loop counter x to do
                                                   ; all eight bits in received
                                                   ; codeword.
                                                   ; it's now prepped.
@@ -133,18 +124,16 @@ RotateIt@@          lsla                          ; start the process of deter-
                                                   ; mining the state of each
                                                   ; bit within the rec'd
                                                   ; codeword.
-                    bcc       BumpCntr2@@         ; if carry is not positive,
+                    bcc       Cont@@              ; if carry is not positive,
                                                   ; then do nothing but
                                                   ; bump counter.
-          ; Otherwise, fall through to here:
-
-                    com       parity
+                    com       ?parity
           ;--------------------------------------
           ; Bump pointer for the next bit to do. If the
           ; counter is zero, then the process stops:
           ;--------------------------------------
-BumpCntr2@@         dbnz      bit_counter,RotateIt@@
-                    lda       parity
+Cont@@              dbnz      ?bit_counter,RotateIt@@
+                    lda       ?parity
           ;--------------------------------------
           ; The next step in our overall decoding of the codeword into an
           ; information word, is to calculate the syndrome. Remember, the
@@ -157,27 +146,27 @@ BumpCntr2@@         dbnz      bit_counter,RotateIt@@
                     bne       BildSynDun@@        ; if syndrome (bit#=X)
                                                   ; is a 0, then
                                                   ; branch else fall through...
-                    ldx       column_counter      ; find out which part of the
+                    ldx       ?column_counter     ; find out which part of the
                                                   ; syndrome we're working on.
-                    lda       CoSet,x             ; get ith bit of syndrome
+                    lda       ?CoSet,x            ; get ith bit of syndrome
                                                   ; and set to a one.
-                    ora       syndrome
-                    sta       syndrome            ; save it for later use.
+                    ora       ?syndrome
+                    sta       ?syndrome           ; save it for later use.
           ;--------------------------------------
           ; We're finally to the point where we want to see if all of the bits
           ; have been processed. This is done by updating the column counter
-          ; (column_counter) and branching back to the top of the process if we
+          ; (?column_counter) and branching back to the top of the process if we
           ; must finish constructing the syndrome. Else, we move down into
           ; correcting the error and/or just recovering the codeword.
           ;--------------------------------------
-BildSynDun@@        inc       column_counter      ; inc current column counter
-                    lda       column_counter      ; load column counter
+BildSynDun@@        inc       ?column_counter      ; inc current column counter
+                    lda       ?column_counter      ; load column counter
                     cmpa      #3
                     blo       GetCodeWord@@       ; branch if not done with
                                                   ; all 3 columns
-                    ldx       syndrome
-                    lda       codeword            ; get codeword for correction
-                    eor       CoSet2,x            ; correct the codeword. ACCA
+                    ldx       ?syndrome
+                    lda       ?codeword           ; get codeword for correction
+                    eor       ?CoSet2,x           ; correct the codeword. ACCA
                                                   ; now contains the corrected
                                                   ; codeword.
           ;--------------------------------------
@@ -190,22 +179,21 @@ BildSynDun@@        inc       column_counter      ; inc current column counter
           ;--------------------------------------
                     and       #$0F                ; ACCA now has the original
                                                   ; info word.
-                    sta       infoword
-
-                    bra       *                   ; done !!!
+                    sta       ?infoword
+                    rtc                           ; done !!!
 
 ;**********************************************************************
 ; Tables
 
-HTranspose          fcb       %01001011
+?HTranspose         fcb       %01001011
                     fcb       %00101110
                     fcb       %00010111
 
-CoSet               fcb       %00000100
+?CoSet              fcb       %00000100
                     fcb       %00000010
                     fcb       %00000001
 
-CoSet2              fcb       %00000000
+?CoSet2             fcb       %00000000
                     fcb       %00010000
                     fcb       %00100000
                     fcb       %00000100
@@ -215,9 +203,8 @@ CoSet2              fcb       %00000000
                     fcb       %00000010
 
 ;*******************************************************************************
-; Vector Setup
-;*******************************************************************************
-                    #VECTORS  $FFFE
-                    dw        Start               ; set up reset vector
-
+#ifmain
+                    #VECTORS  $FFFE               ;reset vector
+                    dw        HamDec
+#endif
 ;*******************************************************************************

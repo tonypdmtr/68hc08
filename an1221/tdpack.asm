@@ -78,33 +78,24 @@
 ;  X                    X                       Misc. computational
 ;                                                use.
 ;*******************************************************************************
-; Register and Variable Equates
-;
-;       None
-;*******************************************************************************
 
-; Memory
-                    #RAM      $50
+                    #push
+                    #RAM      *
 
-bit_counter         rmb       1
-dest_counter        rmb       1
-src_counter         rmb       1
-src_buffer          rmb       8
-dest_buffer         rmb       8
+?bit_counter        rmb       1
+?dest_counter       rmb       1
+?src_counter        rmb       1
+?src_buffer         rmb       8
+?dest_buffer        rmb       8
+
+                    #pull
 
 ;*******************************************************************************
-
-                    #ROM      $1000               ; beginning of program area
-Start               equ       *
-
-;*******************************************************************************
-; Main Routine
-
 ; Initialization of the variables must occur before the data can
 ; be manipulated.
 
 TDPack              proc
-                    mov       #src_buffer,src_counter
+                    mov       #?src_buffer,?src_counter
                                                   ; the starting place for
                                                   ; source data manipulation
           ;--------------------------------------
@@ -112,19 +103,19 @@ TDPack              proc
           ; basic workspace initialization, the initialization occurs
           ; every 8-bits of source data manipulation:
           ;--------------------------------------
-SetUpDestPntr@@     mov       #dest_buffer,dest_counter
+SetUpDestPntr@@     mov       #?dest_buffer,?dest_counter
                                                   ; these two lines allow us to
-                                                  ; point to dest_buffer
+                                                  ; point to ?dest_buffer
           ;--------------------------------------
           ; A separate bit counter is maintained to ease the hassle of
           ; evaluating the loop point for the 8 bits:
           ;--------------------------------------
-                    mov       #8,bit_counter      ; (bit_counter) <- #8
+                    mov       #8,?bit_counter     ; (bit_counter) <- #8
           ;--------------------------------------
           ; At this point, the inner loop (which counts the
           ; bits shifted out of the source buffer) begins.
           ;--------------------------------------
-InnerLoop@@         ldx       src_counter         ; src_counter contains the
+InnerLoop@@         ldx       ?src_counter        ; src_counter contains the
                                                   ; location of the current
                                                   ; byte to be shifted
                                                   ; out of the source buffer.
@@ -134,7 +125,7 @@ InnerLoop@@         ldx       src_counter         ; src_counter contains the
           ;--------------------------------------
           ; Time to move the data into the destination buffer:
           ;--------------------------------------
-                    ldx       dest_counter        ; like the src_counter, this
+                    ldx       ?dest_counter       ; like the src_counter, this
                                                   ; pointer contains the
                                                   ; address of the destination
                                                   ; byte.
@@ -143,9 +134,9 @@ InnerLoop@@         ldx       src_counter         ; src_counter contains the
           ;--------------------------------------
           ; Here's where we determine if we've shifted enough data bits:
           ;--------------------------------------
-                    inc       dest_counter        ; proceed to next
+                    inc       ?dest_counter       ; proceed to next
                                                   ; destination byte
-                    dbnz      bit_counter,InnerLoop@@
+                    dbnz      ?bit_counter,InnerLoop@@
                                                   ; branch if we've not moved
                                                   ; eight bits in eight of
                                                   ; the destination bytes.
@@ -155,19 +146,17 @@ InnerLoop@@         ldx       src_counter         ; src_counter contains the
           ; value of the pointer into the source buffer. It also contains
           ; the test for completion of movement into the destination buffer:
           ;--------------------------------------
-                    inc       src_counter         ; update counter
-                    lda       src_counter         ; get counter in ACCA
+                    inc       ?src_counter        ; update counter
+                    lda       ?src_counter        ; get counter in ACCA
 
-                    cmpa      #src_buffer+8       ; test
+                    cmpa      #?src_buffer+8      ; test
                     bne       SetUpDestPntr@@     ; branch if we haven't
                                                   ; moved everything.
-                    bra       *                   ; done !!!
+                    rtc                           ; done !!!
 
 ;*******************************************************************************
-; Vector Setup
-;*******************************************************************************
-
-                    #VECTORS  $FFFE
-                    dw        Start               ; set up reset vector
-
+#ifmain
+                    #VECTORS  $FFFE               ;reset vector
+                    dw        TDPack
+#endif
 ;*******************************************************************************
