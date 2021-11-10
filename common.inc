@@ -832,6 +832,22 @@ _not_x_             macro
                     endm
 
 ;*******************************************************************************
+; Checks the passed parameter and issues an error if it is SP-indexed
+; (This is meant to be called from other macros -- not to be called directly)
+
+_not_sp_            macro
+                    mset      #' '
+          #ifb ~1~
+                    mexit                         ;;nothing to do
+          #endif
+          #ifparm ~'~,1~'.{:1-1}~ = sp
+                    #Error    SP-index not allowed (~1~)
+          #endif
+                    mdel      1
+                    mtop
+                    endm
+
+;*******************************************************************************
 ; Checks the passed parameter and issues an error if it is immediate mode
 ; (This is meant to be called from other macros -- not to be called directly)
 
@@ -1165,7 +1181,7 @@ PutNextA            macro     Pointer [DoneOnZero]
 ; Automatically splits offset into as many AIX as needed.  If the number of
 ; bytes required is bigger than ADDHX size, it uses a single ADDHX instead.
 
-aix                 macro   #OffsetConstant
+aix                 macro     #OffsetConstant
           #ifz ~#1~
                     mexit
           #endif
@@ -1810,6 +1826,30 @@ mova.s              macro     [#]Source Destination
           #endif
                     sta       ~2,~+{:mloop-1}~,2~
                     mloop     ::~2,~
+                    endm
+
+;*******************************************************************************
+; MOVX emulation of a hypothetical instruction that will use the same X-index to
+;      move a single byte from source X-offset to dest X-offset and advance the
+;      HX index afterwards. It will behave as an atomic instruction.
+; Example:          clrhx
+;                   lda       #10                 ;number of bytes to copy
+; Loop@@            @movx     EEPROM,RAM
+;                   dbnza     Loop@@
+
+movx                macro     source_offset,destination_offset
+                    @@_not_x_ ~1~ ~2~
+                    @@_not_sp_ ~1~ ~2~
+                    psha
+                    tpa
+                    psha
+                    sei
+                    lda       ~#1~,x
+                    sta       ~#2~,x
+                    aix       #1
+                    pula
+                    tap
+                    pula
                     endm
 
 ;*******************************************************************************
