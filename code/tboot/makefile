@@ -1,6 +1,6 @@
 ################################################################################
-# [Borland/Embarcadero v5.41] Makefile for TBOOT (Tiny Bootloader)
-# Copyright (c) by Tony G. Papadimitriou <tonyp@acm.org>
+# [Borland/Embarcadero v5.43] Makefile for TBOOT (Tiny Bootloader)
+# Copyright (c) 2021 by Tony G. Papadimitriou <tonyp@acm.org>
 ################################################################################
 
 HELP:
@@ -13,20 +13,18 @@ HELP:
  @echo "* Defines: DEBUG
  @echo "*********************************************************
 
-ASM8 = asm8.exe
-OPTS = -s+ -l+ -m+ -e+ -ls -lss -exp+ $(OPTS)
-
 !ifdef DEBUG
-DEBUG = -dDEBUG -dMAP
+O = $(O) -dDEBUG -dMAP
 !else
-PRIVATE = -dPRIVATE
+O = $(O) -dPRIVATE
 !endif
 
-OPTS = $(OPTS) $(DEBUG) $(PRIVATE)
+ASM8 = asm8.exe tboot -s+ -l+ -m+ -e+ -ls -lss -exp+ $(O) -b$@
 
 ################################################################################
 
 all     : qg8 qe8 qe32 qe128 dz32 dz60 fl16 sh8 ac32 ac96
+
 gb60    : tboot_gb60.s
 qg8     : tboot_qg8.s
 qe8     : tboot_qe8.s
@@ -50,66 +48,66 @@ faq.pdf: faq.md
 ################################################################################
 
 tboot_qg8.s: qg8.inc
- $(ASM8) tboot $(OPTS) -dQG8 -b$@
+ $(ASM8) -dQG8
 
 ################################################################################
 
 tboot_qe8.s: qe8.inc
- $(ASM8) tboot $(OPTS) -dQE8 -b$@
+ $(ASM8) -dQE8
 
 ################################################################################
 
 tboot_qe32.s: qe32.inc
- $(ASM8) tboot $(OPTS) -dQE32 -b$@
+ $(ASM8) -dQE32
 
 ################################################################################
 
 tboot_ac32.s: ac32.inc
- $(ASM8) tboot $(OPTS) -dAC32 -b$@
+ $(ASM8) -dAC32
 
 ################################################################################
 
 tboot_ac96.s: ac96.inc
- $(ASM8) tboot $(OPTS) -dAC96 -b$@
+ $(ASM8) -dAC96
 
 ################################################################################
 
 tboot_ac96mmu.s: ac96.inc
- $(ASM8) tboot $(OPTS) -dAC96 -mmu -b$@
+ $(ASM8) -dAC96 -mmu
 
 ################################################################################
 
 tboot_fl16.s: fl16.inc
- $(ASM8) tboot $(OPTS) -dFL16 -dDISABLE_SURE -b$@
+ $(ASM8) -dFL16 -dDISABLE_SURE
 
 ################################################################################
 
 tboot_qe128.s: qe128.inc
- $(ASM8) tboot $(OPTS) -dQE128 -b$@
+ $(ASM8) -dQE128
 
 ################################################################################
 
 tboot_qe128mmu.s: qe128.inc
- $(ASM8) tboot $(OPTS) -dQE128 -mmu -b$@
+ $(ASM8) -dQE128 -mmu
 
 ################################################################################
 
 tboot_gb60.s: gb60.inc
- $(ASM8) tboot $(OPTS) -dGB60 -b$@
+ $(ASM8) -dGB60
 
 ################################################################################
 
 tboot_dz32.s: dz32.inc
- $(ASM8) tboot $(OPTS) -dDZ32 -b$@
+ $(ASM8) -dDZ32
 
 ################################################################################
 
 tboot_dz60.s: dz60.inc
- $(ASM8) tboot $(OPTS) -dDZ60 -b$@
+ $(ASM8) -dDZ60
 
 ################################################################################
 
 tboot_sh8.s: sh8.inc
- $(ASM8) tboot $(OPTS) -dSH8 -b$@
+ $(ASM8) -dSH8
 
 ################################################################################
