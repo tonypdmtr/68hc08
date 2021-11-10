@@ -1445,6 +1445,7 @@ Fail@@              equ       ?No
                     #Export   APP_CODE_START,APP_CODE_END
                     #Export   APP_CODE_START ROM,APP_CODE_END ROM_END
                     #Export   BOOTROM,BOOTROM_VERSION
+                    #Export   FLASH_DATA_SIZE
           #ifnz FLASH_DATA_SIZE
                     #Export   EEPROM,EEPROM_END
           #endif
