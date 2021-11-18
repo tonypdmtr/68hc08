@@ -4,7 +4,6 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
                     #Uses     upcase.sub
-
 ;*******************************************************************************
 ; Purpose: Compare buffers pointed to by HX and TOS (case sensitive)
 ; Input  : A = maximum number of bytes to compare
@@ -156,7 +155,8 @@ NextChar@@          aix       #1                  ;No, let's go check next ones
           ;---------------------------------------------------------------------
           ; CMP affected flags always in correct state when coming to Done@@
           ;---------------------------------------------------------------------
-Done@@              tpa                           ;A = actual CMP result [CCR]
+Done@@              tsx
+                    tpa                           ;A = actual CMP result [CCR]
                     and       #CMP_AFFECTED_      ;mask off unused CCR flags
                     ora       ans@@,spx           ;combine with our CCR result bits
                     tap                           ;set return CCR
