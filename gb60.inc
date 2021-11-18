@@ -264,9 +264,9 @@ SPIS                equ       $2B,1               ;SPI status register
 
 ; bit numbers for use in BCLR, BSET, BRCLR, and BRSET
 
-SPRF                @pin      SPIS,7              ;SPI Rx full flag
-SPTEF               @pin      SPIS,5              ;SPI Transmit Buffer Empty Flag
-MODF                @pin      SPIS,4              ;mode fault flag
+                    @bitnum   SPRF,7              ;SPI Rx full flag
+                    @bitnum   SPTEF,5             ;SPI Transmit Buffer Empty Flag
+                    @bitnum   MODF,4              ;mode fault flag
 
 SPID                equ       $2D,1               ;SPI data register
 
