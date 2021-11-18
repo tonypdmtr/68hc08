@@ -4,7 +4,6 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
                     #Uses     upcase.sub
-
 ;*******************************************************************************
 ; Purpose: Convert ASCIZ string pointed to by HX to uppercase
 ; Input  : HX -> string
@@ -24,9 +23,7 @@ StringUpcase        macro     [[#]String]
                     pulhx
                     #pull
                     endm
-
 ;-------------------------------------------------------------------------------
-
                     #spauto   :ab
 
 StringUpcase        proc

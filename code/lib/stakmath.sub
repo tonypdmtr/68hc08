@@ -1845,7 +1845,7 @@ ExpandLoop@@        psha
 
                     clr       ,x                  ;positive sign extension
           #ifdef SIGNED                           ;signed version
-                    lda       ccr@@-1,sp          ;BugFix: 2014.10.14 (WAS: ccr@@,sp)
+                    lda       ccr@@-1,sp
                     tap
                     bcc       ExpandNext@@
 

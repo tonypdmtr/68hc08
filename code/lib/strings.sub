@@ -495,7 +495,7 @@ Done@@              ais       #:ais
                     and       #CMP_NOT_AFFECTED_  ;mask off our CCR result bits
                     ora       {::},spx            ;combine with our CCR result bits
                     sta       ccr@@,spx           ;save it for the caller
-                    pula                          ;(WAS: ais #:psp)
+                    pula
 
                     pula                          ;shorter PULCC (since RegA
                     tap                           ;will be restored by PULL)

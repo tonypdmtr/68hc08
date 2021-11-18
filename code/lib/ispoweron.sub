@@ -18,7 +18,7 @@
 
 PowerOn?            proc
                     lda       ?SRS                ;check cause of reset
-                    bit       #POR_               ;power-on? (WAS: #POR_|LVD_|LVI_)
+                    bit       #POR_               ;power-on?
                     clc                           ;indicate 'Yes'
                     bne       Done@@
                     sec                           ;indicate 'No'
