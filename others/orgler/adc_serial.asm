@@ -1,38 +1,40 @@
-$include 'mr_regs.inc'
+;*******************************************************************************
+                    #Uses     mr_regs.inc
+;*******************************************************************************
+                    #ROM      $8000
 
-                ORG     $8000
+Start               proc
+                    mov       #$91,CONFIG         ;disable COP
+                    mov       #$55,PORTA
+                    mov       #$FF,DDRA
+                    clr       DDRB
+                    mov       #$FF,DDRE
 
-START           mov     #$91,CONFIG     ; disable COP
-                mov     #$55,PORTA
-                mov     #$FF,DDRA
-                mov     #0,DDRB
-                mov     #$FF,DDRE
+                    mov       #$70,ADCLK          ;8 Bit Modus
 
-                mov     #$70,ADCLK     ; 8 Bit Modus
+                    mov       #$02,SCBR           ;9600 bps
+                    mov       #$40,SCC1
+                    mov       #$0C,SCC2           ;RX and TX enabled
+                                                  ;only TX is in use
+Loop@@              clr       ADSCR
 
-                mov     #$02,SCBR       ;  Baudrate 9600
-                mov     #$40,SCC1
-                mov     #$0C,SCC2       ; RX and TX enabled
-                                        ; only TX is in use
-LOOP            lda     #0
-                sta     ADSCR
+                    ldhx      #$1000
+_@@                 aix       #-1
+                    cphx      #0
+                    bne       _@@
 
-                ldhx    #$1000
-next_delay      aix     #-1
-                cphx    #$0
-                bne     next_delay
+                    ldhx      ADRH
+                    stx       PORTA
 
-                ldhx    ADRH
-                stx     PORTA
+                    tst       SCS1                ;read first status register
+                    stx       SCDR                ;send byte
 
-                lda     SCS1  ; read first status register
-                stx     SCDR            ; send byte
+                    lda       PORTE
+                    eor       #$FF
+                    sta       PORTE
 
-                lda     PORTE
-                eor     #$FF
-                sta     PORTE
+                    bra       Loop@@
 
-                bra     LOOP
-
-                ORG     $FFFE
-                dw      START           ; Reset vector
+;*******************************************************************************
+                    #VECTORS  $FFFE
+                    dw        Start               ;Reset vector
