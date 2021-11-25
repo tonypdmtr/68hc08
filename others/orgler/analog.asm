@@ -1,30 +1,34 @@
-$include 'mr_regs.inc'
+;*******************************************************************************
+                    #Uses     mr_regs.inc
+;*******************************************************************************
+                    #ROM      $8000
 
-                ORG     $8000
+Start               proc
+                    mov       #$91,CONFIG         ;disable COP
+                    mov       #$FF,DDRA           ;PORTA all outputs
+                    clr       DDRB
+                    mov       #$FF,DDRE           ;PORTE all outputs
 
-START           mov     #$91,CONFIG     ; disable COP
-                mov     #$FF,DDRA       ;PORTA all outputs
-                mov     #0,DDRB
-                mov     #$FF,DDRE       ;PORTE all outputs
+                    mov       #$70,ADCLK          ;8 Bit Modus
 
-                mov     #$70,ADCLK     ; 8 Bit Modus
+Loop@@              clr       ADSCR
 
-LOOP            lda     #0
-                sta     ADSCR
+                    ldhx      #$1000
+_@@                 aix       #-1
+                    cphx      #0
+                    bne       _@@
 
-                ldhx    #$1000
-next_delay      aix     #-1
-                cphx    #$0
-                bne     next_delay
+                    ldhx      ADRH
+                    stx       PORTA
 
-                ldhx    ADRH
-                stx     PORTA
+                    lda       PORTE
+                    eor       #$FF
+                    sta       PORTE
 
-                lda     PORTE
-                eor     #$FF
-                sta     PORTE
+                    bra       Loop@@
 
-                bra     LOOP
-
-                ORG     $FFFE
-                dw      START      ; Reset vector
+;*******************************************************************************
+                    #VECTORS
+;*******************************************************************************
+                    org       $FFFE
+                    dw        Start               ;Reset vector
