@@ -1,0 +1,1566 @@
+<!-- saved from url=(0020)http://www.orgler.it-->
+<HTML><HEAD>
+<title>SWMR32 MC68HC908MR32 software examples</title>
+<META NAME="description" CONTENT="MC68HC908MR32 assembler software examples ">
+<META NAME="Keywords" CONTENT="68HC908,68HC908MR32,MC68HC908MR32,assembler,application,pwm,six pwm,inverter,trifase,
+analog,adc,serial,RS232,interface,timer,output compare,input capture,interrupt,vector">
+
+<link rel="stylesheet" type="text/css" href="css/ccstyle.css">
+
+<script language="JavaScript">
+var progaktiv  =     2;
+var strId      = 'win';
+var portb     = 0;
+var direction = 1;
+
+function ChangeWin( newWindow ){
+if(progaktiv==newWindow )return;
+document.getElementById('win'+progaktiv).style.visibility = "hidden";
+progaktiv = newWindow;
+document.getElementById('win'+progaktiv).style.visibility = "visible";
+hideleds();
+hideobjects();
+
+portb = 0;
+ switch(progaktiv)
+ {
+ case 1: prog1_run(); document.getElementById('cpumr32').style.visibility = "visible"; break;
+ case 2: prog2_run(); document.getElementById('cpumr32').style.visibility = "visible"; break;
+ case 3: prog3_run(); document.getElementById('cpumr32').style.visibility = "visible"; break;
+ case 4: prog4_run(); document.getElementById('cpumr32').style.visibility = "visible"; break;
+ case 5:              document.getElementById('cpumr32pwm').style.visibility = "visible"; break;
+ case 6: 	      document.getElementById('cpumr32pwm').style.visibility = "visible"; break;
+ }
+}
+
+function prog1_run(){
+	if (progaktiv != 1) return;
+
+	portb++;
+	if(portb == 10) portb=0;
+
+	view_portb();
+
+        setTimeout("prog1_run()",500);
+}
+
+function prog2_run(){
+	if (progaktiv != 2) return;
+
+	if(portb == 0)   portb=1; else portb *= 2;
+	if(portb == 256) portb = 1;
+
+	view_portb();
+
+ 	setTimeout("prog2_run()",500);
+}
+
+function prog3_run(){
+	if (progaktiv != 3) return;
+
+	if(portb == 0)   portb = 256;
+	if(portb == 1)   portb = 256;
+        portb /= 2;
+
+	view_portb();
+
+        setTimeout("prog3_run()",500);
+}
+
+function prog4_run(){
+	if (progaktiv != 4) return;
+
+	if(direction == 1)
+	{
+	if(portb == 0)   portb = 1; else portb *= 2;
+	if(portb == 256) direction = -1;
+	}
+
+	if(direction == -1)
+	{
+	portb /= 2;
+	if(portb < 1) { portb=1; direction = 1;}
+	}
+
+	view_portb();
+
+        setTimeout("prog4_run()",500);
+}
+
+function hideleds(){
+document.getElementById('ledrot0').style.visibility = "hidden";
+document.getElementById('ledrot1').style.visibility = "hidden";
+document.getElementById('ledrot2').style.visibility = "hidden";
+document.getElementById('ledrot3').style.visibility = "hidden";
+document.getElementById('ledrot4').style.visibility = "hidden";
+document.getElementById('ledrot5').style.visibility = "hidden";
+document.getElementById('ledrot6').style.visibility = "hidden";
+document.getElementById('ledrot7').style.visibility = "hidden";
+}
+
+function hideobjects(){
+document.getElementById('cpumr32').style.visibility = "hidden";
+document.getElementById('cpumr32pwm').style.visibility = "hidden";
+}
+
+function view_portb(){
+hideleds();
+if(portb & 0x01) document.getElementById('ledrot0').style.visibility = "visible";
+if(portb & 0x02) document.getElementById('ledrot1').style.visibility = "visible";
+if(portb & 0x04) document.getElementById('ledrot2').style.visibility = "visible";
+if(portb & 0x08) document.getElementById('ledrot3').style.visibility = "visible";
+if(portb & 0x10) document.getElementById('ledrot4').style.visibility = "visible";
+if(portb & 0x20) document.getElementById('ledrot5').style.visibility = "visible";
+if(portb & 0x40) document.getElementById('ledrot6').style.visibility = "visible";
+if(portb & 0x80) document.getElementById('ledrot7').style.visibility = "visible";
+}
+</script>
+</head>
+
+<BODY  onLoad="ChangeWin(1);" style="BACKGROUND-REPEAT: repeat-x" text=#000000 vLink=#551a8b aLink=#cc9933 link=#0033cc bgColor=#FFFFFF leftMargin=0 background=imm01/bg01.gif topMargin=0 marginwidth="0" marginheight="0">
+<div  style="position:absolute; visibility:visible; left:5px; top:10px;" ><img src="imm01/orgler_logo.jpg"></div>
+
+<div  class="button" style="left:10px"><input type=button value="Home" onClick="self.location.href='index.htm'"></div>
+
+<div  class="titel">Assembler</div>
+<div  class="desc" >MC68HC908MR32</div>
+
+<div id="cpumr32"    class="bild" style="visibility:visible;"><img src="immhc08/cpumr32.gif"></div>
+<div id="cpumr32pwm" class="bild"><img src="immhc08/cpumr32pwm.gif"></div>
+
+<div id="ledrot0" class="bild" style="top:438px; left:137px;"><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot1" class="bild" style="top:438px; left:110px;"><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot2" class="bild" style="top:465px; left:83px; "><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot3" class="bild" style="top:492px; left:83px; "><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot4" class="bild" style="top:519px; left:83px; "><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot5" class="bild" style="top:546px; left:83px; "><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot6" class="bild" style="top:573px; left:83px; "><img src="immhc08/ledrot1.bmp"></div>
+<div id="ledrot7" class="bild" style="top:600px; left:83px; "><img src="immhc08/ledrot1.bmp"></div>
+
+<div id="win0" class="winmitte" >
+<div class="titlebar">mr_regs.inc save this file in the same direction as the asm-file</div>
+<div class="content">
+<pre>
+PTA    EQU $0000     ; Ports and data direction
+PORTA  EQU $0000
+PTB    EQU $0001
+PORTB  EQU $0001
+PTC    EQU $0002
+PORTC  EQU $0002
+PTD    EQU $0003
+PORTD  EQU $0003
+DDRA   EQU $0004
+DDRB   EQU $0005
+DDRC   EQU $0006
+DDRD   EQU $0007
+PTE    EQU $0008
+PORTE  EQU $0008
+PTF    EQU $0009
+PORTF  EQU $0009
+DDRE   EQU $000C
+DDRF   EQU $000D
+
+TASC    EQU $000E    ; Timer A
+TACNTH  EQU $000F
+TACNTL  EQU $0010
+TAMODH  EQU $0011
+TAMODL  EQU $0012
+TASC0   EQU $0013
+TACH0H  EQU $0014
+TACH0L  EQU $0015
+TASC1   EQU $0016
+TACH1H  EQU $0017
+TACH1L  EQU $0018
+TASC2   EQU $0019
+TACH2H  EQU $001A
+TACH2L  EQU $001B
+TASC3   EQU $001C
+TACH3H  EQU $001D
+TACH3L  EQU $001E
+
+CONFIG  EQU $001F    ; System configuration
+
+PCTL1   EQU $0020    ; Pulse width modulator
+PCTL2   EQU $0021
+FCR     EQU $0022
+FSR     EQU $0023
+FTACK   EQU $0024
+PWMOUT  EQU $0025
+PCNTH   EQU $0026
+PCNTL   EQU $0027
+PMODH   EQU $0028
+PMODL   EQU $0029
+PVAL1H  EQU $002A
+PVAL1L  EQU $002B
+PVAL2H  EQU $002C
+PVAL2L  EQU $002D
+PVAL3H  EQU $002E
+PVAL3L  EQU $002F
+PVAL4H  EQU $0030
+PVAL4L  EQU $0031
+PVAL5H  EQU $0032
+PVAL5L  EQU $0033
+PVAL6H  EQU $0034
+PVAL6L  EQU $0035
+DEADTM  EQU $0036
+DISMAP  EQU $0037
+
+SCC1    EQU $0038    ; SCI (Asyncronous communications)
+SCC2    EQU $0039
+SCC3    EQU $003A
+SCS1    EQU $003B
+SCS2    EQU $003C
+SCDR    EQU $003D
+SCBR    EQU $003E
+
+INTSCR  EQU $003F    ; IRQ status/control
+ISCR    EQU $003F
+
+ADSCR   EQU $0040    ; A to D converter
+ADRH    EQU $0041
+ADRL    EQU $0042
+ADCLK   EQU $0043
+
+SPCR    EQU $0044    ; SPI (Syncronous communications)
+SPSCR   EQU $0045
+SPDR    EQU $0046
+
+TBSC    EQU $0051    ; Timer B
+TBCNTH  EQU $0052
+TBCNTL  EQU $0053
+TBMODH  EQU $0054
+TBMODL  EQU $0055
+TBSC0   EQU $0056
+TBCH0H  EQU $0057
+TBCH0L  EQU $0058
+TBSC1   EQU $0059
+TBCH1H  EQU $005A
+TBCH1L  EQU $005B
+
+PCTL    EQU $005C    ; Clock Generator Module
+PBWC    EQU $005D
+PPG     EQU $005E
+
+SBSR    EQU $FE00    ; System integration
+SRSR    EQU $FE01
+SBFCR   EQU $FE03
+
+FLCR    EQU $FE08
+
+BRKH    EQU $FE0C    ; Hardware breakpoint
+BRKL    EQU $FE0D
+BRKSCR  EQU $FE0E
+
+LVISR   EQU $FE0C    ; Low voltage detect
+FLBPR   EQU $FF7E    ; Flash boot protect
+
+COPCTL  EQU $FFFF    ; COP (Computer operating properly) control
+</pre>
+</div>
+</div>
+
+<div id="win1" class="winmitte" style=" height: 600px; visibility:visible">
+<div class="titlebar"  >Decimal counter output on PORTB</div>
+<div class="content" style=" height: 570px;">
+<pre>
+CONFIG  EQU  $001F
+PORTB   EQU  $0001
+DDRB    EQU  $0005
+
+                ORG     $8000
+
+START           mov     #$01,CONFIG     ; disable COP
+                mov     #$FF,PORTB
+                mov     #$FF,DDRB
+                clra
+
+LOOP            inca
+                cmpa    #10            ; T -> decimal
+                blo     WRITE_PORTB
+                clra
+WRITE_PORTB     sta     PORTB
+
+                ldhx    #60000          ; delay time
+next_x1         aix     #-1
+                cphx    #0
+                bne     next_x1
+
+                ldhx    #60000          ; delay time
+next_x2         aix     #-1
+                cphx    #0
+                bne     next_x2
+
+                JMP     LOOP
+
+                ORG     $FFFE
+                dw      START           ; Reset vector
+</pre>
+</div>
+</div>
+
+<div id="win11" class="winmitte" >
+<div class="titlebar">flashing lights left</div>
+<div class="content">
+<pre>
+CONFIG  EQU  $001F
+PORTB   EQU  $0001
+DDRB    EQU  $0005
+
+                ORG     $8000
+
+START           mov     #$01,CONFIG     ; disable COP
+                mov     #$FF,DDRB
+                mov     #$01,PORTB
+
+LOOP            ldhx    #60000
+next_delay      aix     #-1
+                cphx    #0
+                bne     next_delay
+
+                lsl     PORTB
+                tst     PORTB
+                bne     SHIFT_OKAY
+                mov     #$01,PORTB
+SHIFT_OKAY
+
+                JMP     LOOP
+
+                ORG     $FFFE
+                dw      START           ; Reset vector
+</pre>
+</div>
+</div>
+
+<div id="win12" class="winmitte" >
+<div class="titlebar">flashing lights right</div>
+<div class="content">
+<pre>
+CONFIG  EQU  $001F
+PORTB   EQU  $0001
+DDRB    EQU  $0005
+
+                ORG     $8000
+
+START           mov     #$01,CONFIG     ; disable COP
+                mov     #$FF,DDRB
+                mov     #$80,PORTB
+
+LOOP            ldhx    #60000
+next_delay      aix     #-1
+                cphx    #0
+                bne     next_delay
+
+                lsr     PORTB
+                tst     PORTB
+                bne     SHIFT_OKAY
+                mov     #$80,PORTB
+SHIFT_OKAY
+                JMP     LOOP
+
+                ORG     $FFFE
+                dw      START           ; Reset vector
+</pre>
+</div>
+</div>
+
+<div id="win13" class="winmitte" >
+<div class="titlebar">flashing lights runs from left to right and back</div>
+<div class="content">
+<pre>
+CONFIG  EQU  $001F
+PORTB   EQU  $0001
+DDRB    EQU  $0005
+
+                ORG     $60
+direction       ds      1
+
+                ORG     $8000
+
+START           mov     #$01,CONFIG     ; disable COP
+                mov     #$FF,DDRB
+                mov     #$01,PORTB
+                mov     #$0,direction
+
+LOOP            ldhx    #60000
+next_delay      aix     #-1
+                cphx    #0
+                bne     next_delay
+
+                tst     direction
+                bne     GO_RIGHT
+                lsl     PORTB
+                tst     PORTB
+                bne     SHIFT_OKAY
+                mov     #$80,PORTB
+                mov     #1,direction
+                bra     SHIFT_OKAY
+
+GO_RIGHT        lsr     PORTB
+                tst     PORTB
+                bne     SHIFT_OKAY
+                mov     #$01,PORTB
+                mov     #0,direction
+
+SHIFT_OKAY
+                JMP     LOOP
+
+                ORG     $FFFE
+                dw      START           ; Reset vector
+<pre>
+</div>
+</div>
+
+<div id="win2" class="winmitte" >
+<div class="titlebar">TIMER CONTROL COMPARE FUNCTION</div>
+<div class="content">
+we initialize TIMER B and set only the compare function
+<pre>
+****************************************
+** Register **
+$include        'mr_regs.inc'
+
+        ORG     $F000
+START   RSP
+        MOV     #$01,CONFIG
+        MOV     #$FF,DDRB
+        MOV     #$AA,PORTB
+        MOV     #$30,TBSC       ; stop Timer to make changes
+        MOV     #$10,TBSC0      ; only compare
+        MOV     #$00,TBSC       ; start Timer
+
+LOOP    lda     TBSC0
+        bpl     LOOP		; wait until BIT7 is set
+        bclr    7,TBSC0
+        lda     PORTB           ; on PORTB 18.76 Hz
+        eor     #$FF
+        sta     PORTB
+
+        jmp     LOOP
+
+********* Reset vector *********************
+        ORG     $FFFE
+        dw      START
+</pre>
+</div>
+</div>
+
+<div id="win21" class="winmitte" >
+<div class="titlebar">TIMER_A COMPARE with TOGGLE OUTPUT 1KHz</div>
+<div class="content">
+TimerA The compare function with output toggle is set
+<pre>
+****************************************
+** Register **
+$include        'mr_regs.inc'
+
+        ORG     $F000
+START   RSP
+        MOV     #$01,CONFIG
+        MOV     #$FF,DDRB
+        MOV     #$AA,PORTB
+        MOV     #$30,TASC       ; stop Timer to make changes
+        MOV     #$14,TASC0      ; compare with toggle
+        MOV     #$00,TASC       ; start Timer
+
+LOOP    lda     TASC0
+        bpl     LOOP
+        bclr    7,TASC0
+        lda     PORTB           ; on PORTA 1 Khz
+        eor     #$FF
+        sta     PORTB
+*       ---------------
+        lda     TACH0L
+        add     #$CC            ; add 1228 decimal
+        sta     TACH0L          ; hex 04 CC
+        lda     TACH0H
+        adc     #$04
+        sta     TACH0H
+
+        lda     TACH0L          ; write again to low byte
+        sta     TACH0L
+*       ----------------
+
+        jmp     LOOP
+
+********* Reset vector *********************
+        ORG     $FFFE
+        dw      START
+
+***  on PTE4 output compare with toggle 1 KHz  ***
+</pre>
+</div>
+</div>
+
+<div id="win22" class="winmitte" >
+<div class="titlebar">Timer B COMPARE with TOGGLE OUTPUT 1KHz</div>
+<div class="content">
+TIMER B The compare function with output toggle is set
+<pre>
+****************************************
+** Register **
+$include        'mr_regs.inc'
+
+        ORG     $F000
+START   RSP
+        MOV     #$01,CONFIG
+        MOV     #$FF,DDRB
+        MOV     #$AA,PORTB
+        MOV     #$30,TBSC       ; stop Timer to make changes
+        MOV     #$14,TBSC0      ; compare with toggle
+        MOV     #$00,TBSC       ; start Timer
+
+LOOP    lda     TBSC0
+        bpl     LOOP
+        bclr    7,TBSC0
+        lda     PORTB           ; on PORTB 1 Khz
+        eor     #$FF
+        sta     PORTB
+*       ---------------
+        lda     TBCH0L
+        add     #$CC            ; add 1228 decimal
+        sta     TBCH0L          ; hex 04 CC
+        lda     TBCH0H
+        adc     #$04
+        sta     TBCH0H
+
+        lda     TBCH0L          ; write again to low byte
+        sta     TBCH0L
+*       ----------------
+
+        jmp     LOOP
+
+********* Reset vector *********************
+        ORG     $FFFE
+        dw      START
+
+***  on PTE1 output compare with toggle 1 KHz  ***
+</pre>
+</div>
+</div>
+
+<div id="win23" class="winmitte" >
+<div class="titlebar">Timer B INTERRUPT OUTPUT 1KHz</div>
+<div class="content">
+The same example with INTERRUPT routine
+<pre>
+****************************************
+** Register **
+$include        'mr_regs.inc'
+
+        ORG     $F000
+START   RSP
+        MOV     #$01,CONFIG
+        MOV     #$30,TBSC       ; stop Timer to make changes
+        MOV     #$54,TBSC0      ; compare with toggle + interrupt
+        MOV     #$00,TBSC       ; start Timer
+        CLI                     ; enable interrupt
+
+LOOP        jmp     LOOP
+
+****************************************
+INT_TB_CH0
+        bclr    7,TBSC0
+        lda     TBCH0L
+        add     #$CC            ; add 1228 decimal
+        sta     TBCH0L          ; hex 04 CC
+        lda     TBCH0H
+        adc     #$04
+        sta     TBCH0H
+
+        lda     TBCH0L          ; write again to low byte
+        sta     TBCH0L
+
+        RTI
+
+********* Reset vector *********************
+
+        ORG     $FFE2
+        dw      INT_TB_CH0
+
+        ORG     $FFFE
+        dw      START
+
+***  on PTE1 output compare with toggle 1 KHz  ***
+
+</pre>
+</div>
+</div>
+
+<div id="win24" class="winmitte" >
+<div class="titlebar">Timer B TWO INTERRUPTS OUTPUT 1KHz and 3KHz</div>
+<div class="content">
+*TWO INTERRUPT routines
+<pre>
+****************************************
+** Register **
+$include        'mr_regs.inc'
+
+        ORG     $F000
+START   RSP
+        MOV     #$01,CONFIG
+        MOV     #$30,TBSC       ; stop Timer to make changes
+        MOV     #$54,TBSC0      ; compare with toggle + interrupt
+        MOV     #$54,TBSC1      ; compare with toggle + interrupt
+        ldhx    #$04CC
+        sthx    TBCH0H
+        ldhx    #$019A
+        sthx    TBCH1H
+        MOV     #$00,TBSC       ; start Timer
+        CLI                     ; enable interrupt
+
+LOOP        jmp     LOOP
+
+****************************************
+INT_TB_CH0
+        bclr    7,TBSC0
+        lda     TBCH0L
+        add     #$CC            ; add 1228 decimal
+        sta     TBCH0L          ; hex 04 CC
+        lda     TBCH0H
+        adc     #$04
+        sta     TBCH0H
+
+        lda     TBCH0L          ; write again to low byte
+        sta     TBCH0L
+
+        RTI
+
+****************************************
+INT_TB_CH1
+        bclr    7,TBSC1
+        lda     TBCH1L
+        add     #$9A            ; add
+        sta     TBCH1L          ; hex 01 9A
+        lda     TBCH1H
+        adc     #$01
+        sta     TBCH1H
+
+        lda     TBCH1L          ; write again to low byte
+        sta     TBCH1L
+
+        RTI
+
+********* Reset vector *********************
+
+        ORG     $FFE0
+        dw      INT_TB_CH1
+
+        ORG     $FFE2
+        dw      INT_TB_CH0
+
+        ORG     $FFFE
+        dw      START
+
+***  on PTE1 output compare with toggle Freq: 1 KHz  ***
+***  on PTE2 output compare with toggle Freq: 3 KHz  ***
+
+</pre>
+</div>
+</div>
+
+<div id="win3" class="winmitte" >
+<div class="titlebar">PWM single output</div>
+<div class="content">
+<pre>
+$Include 'mr_regs.inc'
+
+       org $8000
+
+START  mov   #$91,CONFIG    ; EDGE=1, INDEP=1, COPD=1 (cop disabled)
+       ldhx  #$100          ; Load Counter Modulo Register with 256
+       sthx  PMODH
+
+       ldhx  #$20           ; PWM 25%
+       sthx  PVAL1H
+
+       mov   #0,PCTL2       ; Reload every PWM cycle, fastest PWM frequency
+       mov   #3,PCTL1       ; no interrupt, load parameters, PWM on
+       bset  1,PCTL1        ; force reload on PWM parameters
+       mov   #$3F,PWMOUT
+
+LOOP
+
+       jmp LOOP
+
+       ORG $FFFE
+       dw   START             ; Reset Vector
+</pre>
+</div>
+</div>
+
+<div id="win31" class="winmitte" >
+<div class="titlebar">PWM six outputs</div>
+<div class="content">
+<pre>
+RomStart     EQU  $8000         ; Valid Rom for MR32
+
+$Include 'mr_regs.inc'
+
+        org RomStart
+
+START   rsp
+        mov #$91,CONFIG     ; EDGE=1, INDEP=1, COPD=1 (cop disabled)
+        ldhx  #256        ; Load Counter Modulo Register with 256
+        sthx  pmodh
+
+        ldhx  #0           ; PWM 0/6
+        sthx  pval1h
+
+        ldhx  #43          ; PWM 1/6
+        sthx  pval2h
+
+        ldhx  #85          ; PWM 2/6
+        sthx  pval3h
+
+        ldhx  #128         ; PWM 3/6
+        sthx  pval4h
+
+        ldhx  #171         ; PWM 4/6
+        sthx  pval5h
+
+        ldhx  #213         ; PWM 5/6
+        sthx  pval6h
+
+        mov   #00,PCTL2     ; Reload every PWM cycle, fastest PWM frequency
+        mov   #03,PCTL1     ; no interrupt, load parameters, PWM on
+        bset  1,PCTL1       ; force reload on PWM parameters
+        mov   #$3F,pwmout
+
+LOOP    inc   pval1l
+        inc   pval2l
+        inc   pval3l
+        inc   pval4l
+        inc   pval5l
+        inc   pval6l
+
+        bset  1,PCTL1        ; force reload on PWM parameters
+
+        ldhx  #0
+next_x  aix   #1
+        cphx  #$800
+        blo   next_x
+
+        jmp   LOOP
+
+        ORG  $FFFE
+        dw   START    ; Reset Vector
+</pre>
+</div>
+</div>
+
+<div id="win32" class="winmitte" >
+<div class="titlebar">PWM 6 outputs to drive a 3phase ac motor</div>
+<div class="content">
+<pre>
+RAMStart    EQU $0060
+RomStart    EQU $8000
+VectorStart EQU $FFD2
+
+$Include 'mr_regs.inc'
+
+        org RAMStart
+
+PTR_SINUS       ds 3
+LOOPTIMING      ds 1
+LOOPCOUNTER     ds 1
+TEMP            ds 1
+TIMER           ds 1
+
+              org RomStart
+;******** sine table with 192 base points
+SINE_TABLE
+ DB 128,132,136,140,145,149,153,157   ; line 1
+ DB 161,165,169,173,177,180,184,188   ; line 2
+ DB 192,195,199,202,205,209,212,215   ; line 3
+ DB 218,221,223,226,229,231,234,236   ; line 4
+ DB 238,240,242,244,245,247,248,250   ; line 5
+ DB 251,252,253,253,254,254,255,255   ; line 6
+ DB 255,255,255,254,254,253,253,252   ; line 7
+ DB 251,250,248,247,245,244,242,240   ; line 8
+ DB 238,236,234,231,229,226,223,221   ; line 9
+ DB 218,215,212,209,205,202,199,195   ; line 10
+ DB 191,188,184,180,177,173,169,165   ; line 11
+ DB 161,157,153,149,145,140,136,132   ; line 12
+ DB 128,124,120,116,111,107,103,099   ; line 13
+ DB 095,091,087,083,079,076,072,068   ; line 14
+ DB 064,061,057,054,051,047,044,041   ; line 15
+ DB 038,035,033,030,027,025,022,020   ; line 16
+ DB 018,016,014,012,011,009,008,006   ; line 17
+ DB 005,004,003,003,002,002,001,001   ; line 18
+ DB 001,001,001,002,002,003,003,004   ; line 19
+ DB 005,006,008,009,011,012,014,016   ; line 20
+ DB 018,020,022,025,027,030,033,035   ; line 21
+ DB 038,041,044,047,051,054,057,061   ; line 22
+ DB 065,068,072,076,079,083,087,091   ; line 23
+ DB 095,099,103,107,111,116,120,124   ; line 24
+
+;*****REPEAT TABLE*****
+ DB 128,132,136,140,145,149,153,157   ; line 25
+ DB 161,165,169,173,177,180,184,188   ; line 26
+ DB 192,195,199,202,205,209,212,215   ; line 27
+ DB 218,221,223,226,229,231,234,236   ; line 28
+ DB 238,240,242,244,245,247,248,250   ; line 29
+ DB 251,252,253,253,254,254,255,255   ; line 30
+ DB 255,255,255,254,254,253,253,252   ; line 31
+ DB 251,250,248,247,245,244,242,240   ; line 32
+ DB 238,236,234,231,229,226,223,221   ; line 33
+ DB 218,215,212,209,205,202,199,195   ; line 34
+ DB 191,188,184,180,177,173,169,165   ; line 35
+ DB 161,157,153,149,145,140,136,132   ; line 36
+ DB 128,124,120,116,111,107,103,099   ; line 37
+ DB 095,091,087,083,079,076,072,068   ; line 38
+ DB 064,061,057,054,051,047,044,041   ; line 39
+ DB 038,035,033,030,027,025,022,020   ; line 40
+ DB 018,016,014,012,011,009,008,006   ; line 41
+ DB 005,004,003,003,002,002,001,001   ; line 42
+ DB 001,001,001,002,002,003,003,004   ; line 43
+ DB 005,006,008,009,011,012,014,016   ; line 44
+ DB 018,020,022,025,027,030,033,035   ; line 45
+ DB 038,041,044,047,051,054,057,061   ; line 46
+ DB 065,068,072,076,079,083,087,091   ; line 47
+ DB 095,099,103,107,111,116,120,124   ; line 48
+
+;*****REPEAT TABLE*****
+ DB 128,132,136,140,145,149,153,157   ; line 25
+ DB 161,165,169,173,177,180,184,188   ; line 26
+ DB 192,195,199,202,205,209,212,215   ; line 27
+ DB 218,221,223,226,229,231,234,236   ; line 28
+ DB 238,240,242,244,245,247,248,250   ; line 29
+ DB 251,252,253,253,254,254,255,255   ; line 30
+ DB 255,255,255,254,254,253,253,252   ; line 31
+ DB 251,250,248,247,245,244,242,240   ; line 32
+ DB 238,236,234,231,229,226,223,221   ; line 33
+ DB 218,215,212,209,205,202,199,195   ; line 34
+ DB 191,188,184,180,177,173,169,165   ; line 35
+ DB 161,157,153,149,145,140,136,132   ; line 36
+ DB 128,124,120,116,111,107,103,099   ; line 37
+ DB 095,091,087,083,079,076,072,068   ; line 38
+ DB 064,061,057,054,051,047,044,041   ; line 39
+ DB 038,035,033,030,027,025,022,020   ; line 40
+ DB 018,016,014,012,011,009,008,006   ; line 41
+ DB 005,004,003,003,002,002,001,001   ; line 42
+ DB 001,001,001,002,002,003,003,004   ; line 43
+ DB 005,006,008,009,011,012,014,016   ; line 44
+ DB 018,020,022,025,027,030,033,035   ; line 45
+ DB 038,041,044,047,051,054,057,061   ; line 46
+ DB 065,068,072,076,079,083,087,091   ; line 47
+ DB 095,099,103,107,111,116,120,124   ; line 48
+
+                org $9000
+**************************************************************
+* DUMMY_ISR - Dummy Interrupt Service Routine. *
+**************************************************************
+dummy_isr       rti             ; interrupt return
+
+Main_Init:      mov     #$01,CONFIG     ;INDEP=0, complementary output  COPD=0 (cop enabled)
+;               ---------------
+                bclr    5,PCTL          ; set PLL activ
+                lda     #$33
+                sta     PPG
+                bset    5,PCTL
+                bset    4,PCTL
+;               ----------------------- set Stack Pointer
+                ldhx    #$02FF
+                txs
+;--------------------------------- clear RAM ------------
+                clr     TEMP
+                ldhx    #RAMStart
+next_x          mov     TEMP,X+
+                cphx    #$0300
+                blo     next_x
+;---------------------------------------
+                bset    3,DDRB                  ; only for test to see interrupt time
+                bset    6,DDRB                  ; only for test to see loop time
+                jsr     Init_PWMMC
+                cli                             ; Allow interrupts to happen
+*************************************************************
+**************************************************************
+LOOP            sta    $FFFF                    ;   reset watchdog if cop enabled
+                brclr 7,LOOPTIMING,LOOP         ;   Realtime approx. 5 msec
+                bclr  7,LOOPTIMING
+* -----
+                dec     LOOPCOUNTER
+                bne     LoopCountOkay
+
+                lda     PORTB
+                and     #%01000000
+                beq     set_6
+                bclr    6,PORTB
+                bra     ok_6
+set_6           bset    6,PORTB
+ok_6
+                mov     #200,LOOPCOUNTER
+LoopCountOkay
+                jmp LOOP
+
+**************************************************************
+* Init_PWM for 3 phase sine output
+**************************************************************
+Init_PWMMC      ldhx  #256           ; Load Counter Modulo Register with 256
+                sthx   pmodh
+                mov    #0,DEADTM
+
+                ldhx   #$8000
+                sthx   PTR_SINUS
+
+                ldhx   #20
+                sthx   PVAL1H
+
+                ldhx   #40
+                sthx   PVAL3H
+
+                ldhx   #80
+                sthx   PVAL5H
+
+                mov   #0,PCTL2           ; Reload every PWM cycle, fastest PWM frequency
+                mov   #$23,PCTL1         ; interrupt, load parameters, PWM on
+                bset  1,PCTL1            ; force reload on PWM parameters
+                mov   #%00111111,pwmout
+                rts
+***********************************************************
+
+INT_PWM6        pshh
+                lda      PCTL1
+                bclr     4,PCTL1
+
+                ldhx     PTR_SINUS
+                lda      0,X            ; indexed H:X with offset
+                sta      PVAL1L
+
+                lda     64,X
+                sta     PVAL3L
+
+                lda     128,X
+                sta     PVAL5L
+
+                bset    1,PCTL1
+
+                inc     PTR_SINUS+2
+                bne     ptr_ok
+                lda     PTR_SINUS+1
+                inca
+                cmp     #192
+                blo     save_a
+                clra
+save_a          sta     PTR_SINUS+1
+ptr_ok
+****************************************
+                dec     TIMER
+                bne     Timer_Okay
+                mov     #$FF,LOOPTIMING
+                mov     #$24,TIMER
+Timer_Okay
+*****************************************
+                lda PORTB
+                eor #%00001000
+                sta PORTB
+
+                pulh
+                rti
+
+**************************************************************
+* Vectors - Timer Interrupt Service Routine.                 *
+**************************************************************
+   org  VectorStart
+
+ dw  dummy_isr    ; SCI Transmit Vector
+ dw  dummy_isr    ; SCI Receive Vector
+ dw  dummy_isr    ; SCI Error Vector
+ dw  dummy_isr    ; SPI Transmit Vector
+ dw  dummy_isr    ; SPI Receive Vector
+ dw  dummy_isr    ; ADC Conversion Complete
+ dw  dummy_isr    ; TIM2 Overflow Vector
+ dw  dummy_isr    ; TIM2 Channel 1 Vector
+ dw  dummy_isr    ; TIM2 Channel 0 Vector
+ dw  dummy_isr    ; TIM1 Overflow Vector
+ dw  dummy_isr    ; TIM1 Channel 3 Vector  PE7
+ dw  dummy_isr    ; TIM1 Channel 2 Vector
+ dw  dummy_isr    ; TIM1 Channel 1 Vector
+ dw  dummy_isr    ; TIM1 Channel 0 Vector
+ dw  INT_PWM6     ; PWMMC Vector
+ dw  dummy_isr    ; Fault 4 Vector
+ dw  dummy_isr    ; Fault 3 Vector
+ dw  dummy_isr    ; Fault 2 Vector
+ dw  dummy_isr    ; Fault 1 Vector
+ dw  dummy_isr    ; PLL Vector
+ dw  dummy_isr    ; ~IRQ1 Vector
+ dw  dummy_isr    ; SWI Vector
+ dw  main_init    ; Reset Vector
+
+</pre>
+</div>
+</div>
+
+<div id="win33" class="winmitte" >
+<div class="titlebar">PWM six outputs 3phase with delaytime</div>
+<div class="content">
+<pre>
+under construction
+</pre>
+</div>
+</div>
+
+<div id="win34" class="winmitte" >
+<div class="titlebar">PWM 3phase analog controls frequency out</div>
+<div class="content">
+<pre>
+under construction
+</pre>
+</div>
+</div>
+
+<div id="win35" class="winmitte" >
+<div class="titlebar">PWM H-bridge control</div>
+<div class="content">
+<pre>
+under construction
+</pre>
+</div>
+</div>
+
+<div id="win4" class="winmitte" >
+<div class="titlebar">Read analog channel</div>
+<div class="content">
+<pre>
+$include 'mr_regs.inc'
+
+                ORG     $8000
+
+START           mov     #$91,CONFIG     ; disable COP
+                mov     #$FF,DDRA       ;PORTA all outputs
+                mov     #0,DDRB
+                mov     #$FF,DDRE       ;PORTE all outputs
+
+                mov     #$70,ADCLK     ; 8 Bit Modus
+
+LOOP            lda     #0
+                sta     ADSCR
+
+                ldhx    #$1000
+next_delay      aix     #-1
+                cphx    #$0
+                bne     next_delay
+
+                ldhx    ADRH
+                stx     PORTA
+
+                lda     PORTE
+                eor     #$FF
+                sta     PORTE
+
+                JMP     LOOP
+
+                ORG     $FFFE
+                dw      START      ; Reset vector
+</pre>
+</div>
+</div>
+
+<div id="win41" class="winmitte" >
+<div class="titlebar">Read analog and send byte over RS232</div>
+<div class="content">
+<pre>
+$include 'mr_regs.inc'
+
+                ORG     $8000
+
+START           mov     #$91,CONFIG     ; disable COP
+                mov     #$55,PORTA
+                mov     #$FF,DDRA
+                mov     #0,DDRB
+                mov     #$FF,DDRE
+
+                mov     #$70,ADCLK     ; 8 Bit Modus
+
+                mov     #$02,SCBR       ;  Baudrate 9600
+                mov     #$40,SCC1
+                mov     #$0C,SCC2       ; RX and TX enabled
+                                        ; only TX is in use
+LOOP            lda     #0
+                sta     ADSCR
+
+                ldhx    #$1000
+next_delay      aix     #-1
+                cphx    #$0
+                bne     next_delay
+
+                ldhx    ADRH
+                stx     PORTA
+
+                lda     SCS1  ; read first status register
+                stx     SCDR            ; send byte
+
+                lda     PORTE
+                eor     #$FF
+                sta     PORTE
+
+                JMP     LOOP
+
+                ORG     $FFFE
+                dw      START           ; Reset vector
+</pre>
+</div>
+</div>
+
+<div id="win5" class="winmitte" >
+<div class="titlebar">5 RS232 see byte on PORTB</div>
+<div class="content">
+<pre>
+RomStart     EQU  $8000         ; Valid Rom for MR32
+VectorStart  EQU  $FFD2
+
+$Include 'mr_regs.inc'
+
+                ORG RomStart
+START:          mov #$91,CONFIG        ; EDGE=1, INDEP=1, COPD=1 (cop disabled)
+                rsp                    ; reset stack pointer
+
+;               mov     #1,SCBR        ; 19200 Baud
+                mov     #2,SCBR        ; 9600 Baud
+                mov     #$40,SCC1      ; set BIT5 to enable the SCI
+                mov     #$0C,SCC2      ; receiver and transmitter enabled
+
+LOOP            jsr    CHECK_RS232
+                jmp    LOOP
+
+;================================================
+CHECK_RS232     brclr  5,SCS1,EXIT_RS232
+                mov   #$FF,DDRB         ; set PORTB all outputs
+                lda   SCDR
+                sta   PORTB             ; view RS232 BYTE on PORTB
+                sta   SCDR              ; send received Byte
+EXIT_RS232      rts
+
+                ORG $FFFE
+                dw  START
+</pre>
+</div>
+</div>
+
+<div id="win51" class="winmitte" >
+<div class="titlebar">RS232 send a text</div>
+<div class="content">
+<pre>
+RAMStart     EQU  $0060
+RomStart     EQU  $8000         ; Valid Rom for MR32
+
+$Include 'mr_regs.inc'
+
+                ORG     RAMStart
+TEMP   ds  1
+
+                ORG     RomStart
+START:          mov     #$91,CONFIG        ; EDGE=1, INDEP=1, COPD=1 (cop disabled)
+                rsp                    ; reset stack pointer
+
+;               mov     #1,SCBR        ; 19200 Baud
+                mov     #2,SCBR        ; 9600 Baud
+                mov     #$40,SCC1      ; set BIT5 to enable the SCI
+                mov     #$0C,SCC2      ; receiver and transmitter enabled
+
+LOOP            jsr    CHECK_RS232
+                jmp    LOOP
+
+CHECK_RS232     brclr  5,SCS1,EXIT_RS232
+                mov   #$FF,DDRB         ; set PORTB all outputs
+                lda   SCDR
+                cmp   #'T'
+                beq   SEND_TEXT
+                sta   PORTB             ; view RS232 BYTE on PORTB
+                sta   SCDR              ; send received Byte
+EXIT_RS232      rts
+
+SEND_TEXT       ldhx    #TEXT1
+NEXT_BYTE       mov     X+,TEMP       ; Variable TEMP
+                lda     TEMP
+                beq     EXIT_SEND
+                sta     SCDR
+WAIT            brclr   7,SCS1,WAIT
+                bra     NEXT_BYTE
+EXIT_SEND       rts
+
+TEXT1  db  $0D,$0A
+       db  'Hello from serial interface'
+       db  $0D,$0A,$00
+
+               ORG $FFFE
+               dw  START
+</pre>
+</div>
+</div>
+
+<div id="win52" class="winmitte" >
+<div class="titlebar">RS232 send analog as hex</div>
+<div class="content">
+<pre>
+under construction
+
+</pre>
+</div>
+</div>
+
+<div id="win53" class="winmitte" >
+<div class="titlebar">RS232 send analog as ASCII</div>
+<div class="content">
+<pre>
+under construction
+
+</pre>
+</div>
+</div>
+
+<div id="win54" class="winmitte" >
+<div class="titlebar">Read SINE-TABLE and send byte over RS232</div>
+<div class="content">
+<pre>
+$include        'mr_regs.inc'
+
+                org $80
+PTR1            ds 2
+
+                ORG    $8000
+
+Sintab          DB     128,177,217,245,255,245,217,177,128
+                DB     79,39,11,1,11,39,79
+
+Start           mov     #$91,Config
+                rsp
+                mov     #0,PORTA
+                mov     #$FF,DDRA
+                ldhx    #Sintab
+                sthx    PTR1
+
+                mov     #$02,SCBR       ;  Baudrate 9600
+                mov     #$40,SCC1
+                mov     #$0C,SCC2       ; RX and TX enabled
+                                        ; only TX is in use
+Loop            ldhx    PTR1
+                mov     X+,PortA
+                cphx    #Sintab+16
+                blo     save_ptr1
+                ldhx    #SINTAB
+save_ptr1       sthx    PTR1
+
+                lda     PORTA
+                ldx     SCS1  ; read first status register
+                sta     SCDR            ; send byte
+
+                jsr     DELAY
+
+                jmp     LOOP
+
+DELAY           ldhx    #$F000
+next_delay      aix     #-1
+                cphx    #0
+                bne     next_delay
+                rts
+
+                org     $FFFE
+                dw      Start
+</pre>
+</div>
+</div>
+
+<div id="win6" class="winmitte" >
+<div class="titlebar">LCD control 4 Bit databus</div>
+<div class="content">
+<pre>
+$Include 'mr_regs.inc'
+
+                org  $8000
+
+START           mov     #$91,CONFIG     ; EDGE=1, INDEP=1, COPD=1 (cop disabled)
+                rsp
+                mov     #$00,PORTB
+                mov     #$3F,DDRB
+
+                lda     #$03
+                jsr     LcdInstr1
+                lda     #$03
+                jsr     LcdInstr1
+                lda     #$03
+                jsr     LcdInstr1
+                                     ;                  x  x  x  DL N  F  x  x
+                lda     #%00101000   ; 28 Function Set: 0  0  1  0  1  0  0  0
+                jsr     LcdInstr2    ; DL: 0=4-Bit-Interface  1=8-Bit-Interface
+
+                lda     #%00001100   ;0C
+                jsr     LcdInstr2
+                                       ;               x  x  x  x  x  x  ID S
+                lda     #%00000110     ;06 Entry Mode: 0  0  0  0  0  1  1  0
+                jsr     LcdInstr2      ; ID : 0=Adress decrement 1=Adress Increment
+
+                lda    #$80            ; set cursor to home position
+                jsr     LcdInstr2
+
+                lda     #'O'           ; write OKAY to LCD
+                jsr     WriteLcdData
+                lda     #'K'
+                jsr     WriteLcdData
+                lda     #'A'
+                jsr     WriteLcdData
+                lda     #'Y'
+                jsr     WriteLcdData
+
+LOOP            jmp     LOOP
+
+******************** LCD UTIL ***************************
+LcdInstr2       psha
+                lsra
+                lsra
+                lsra
+                lsra
+                sta     PORTB
+                bclr    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                pula
+LcdInstr1       and     #$0F
+                sta     PORTB
+                bclr    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                jsr     Delay
+                rts
+;               ----
+WriteLcdData    psha
+                lsra
+                lsra
+                lsra
+                lsra
+                sta     PORTB
+                bset    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                pula
+                and     #$0F
+                sta     PORTB
+                bset    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                jsr     Delay
+                rts
+
+Delay           ldhx    #$2000
+next_x          aix     #-1
+                cphx    #0
+                bne     next_x
+                rts
+
+                ORG    $FFFE
+                dw     START
+</pre>
+</div>
+</div>
+
+<div id="win61" class="winmitte" >
+<div class="titlebar">LCD analog value on PB7 to LCD binary to ASCII conversion</div>
+<div class="content">
+<pre>
+$Include 'mr_regs.inc'
+
+                org $60
+ADC_WERT        DS      1
+LCDBUF1         DS      1
+LCDBUF2         DS      1
+LCDBUF3         DS      1
+
+                 org    $8000
+
+START           mov    #$91,CONFIG     ; EDGE=1, INDEP=1, COPD=1 (cop disabled)
+                rsp                    ; reset stack pointer
+                mov    #0,PORTB
+                mov    #$3F,DDRB
+
+                lda     #$03
+                jsr     LcdInstr1
+                lda     #$03
+                jsr     LcdInstr1
+                lda     #$03
+                jsr     LcdInstr1
+                                     ;                  x  x  x  DL N  F  x  x
+                lda     #%00101000   ; 28 Function Set: 0  0  1  0  1  0  0  0
+                jsr     LcdInstr2    ; DL: 0=4-Bit-Interface  1=8-Bit-Interface
+
+                lda     #%00001100   ;0C
+                jsr     LcdInstr2
+                                       ;               x  x  x  x  x  x  ID S
+                lda     #%00000110     ;06 Entry Mode: 0  0  0  0  0  1  1  0
+                jsr     LcdInstr2      ; ID : 0=Adress decrement 1=Adress Increment
+
+                lda    #$80            ; Set cursor to HOME
+                jsr     LcdInstr2
+                lda     #'L'
+                jsr     WriteLcdData
+                lda     #'C'
+                jsr     WriteLcdData
+                lda     #'D'
+                jsr     WriteLcdData
+
+                mov     #$70,ADCLK   ; 8 Bit conversion
+
+LOOP            lda     #7
+                sta     ADSCR
+                jsr     Delay
+                ldhx    ADRH
+                stx     ADC_WERT
+                jsr     BINASCII
+                jsr     LCDOUT
+
+                jmp     LOOP
+
+BINASCII        mov     #$30,LCDBUF1
+                mov     #$30,LCDBUF2
+                mov     #$30,LCDBUF3
+                lda     ADC_WERT
+CHECK_100       cmp     #100
+                blo     CHECK_10
+                sub     #100
+                inc     LCDBUF1
+                bra     CHECK_100
+CHECK_10        cmp     #10
+                blo     CHECK_1
+                sub     #10
+                inc     LCDBUF2
+                bra     CHECK_10
+CHECK_1         add     LCDBUF3
+                sta     LCDBUF3
+                rts
+
+LCDOUT          lda     #$85      ; set cursor first line position 5
+                jsr     LcdInstr2
+                lda     LCDBUF1
+                jsr     WriteLcdData
+                lda     LCDBUF2
+                jsr     WriteLcdData
+                lda     LCDBUF3
+                jsr     WriteLcdData
+                rts
+
+******************** LCD UTIL ***************************
+LcdInstr2       psha
+                lsra
+                lsra
+                lsra
+                lsra
+                sta     PORTB
+                bclr    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                pula
+LcdInstr1       and     #$0F
+                sta     PORTB
+                bclr    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                jsr     Delay
+                rts
+;               ----
+WriteLcdData    psha            ; save A -> stack
+                lsra
+                lsra
+                lsra
+                lsra
+                sta     PORTB
+                bset    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                pula            ; load A from stack
+                and     #$0F
+                sta     PORTB
+                bset    5,PORTB
+                bset    4,PORTB
+                bclr    4,PORTB
+                jsr     Delay
+                rts
+
+Delay           ldhx    #$2000
+next_x          aix     #-1
+                cphx    #0
+                bne     next_x
+                rts
+
+                ORG    $FFFE
+                dw     START
+</pre>
+</div>
+</div>
+
+<div id="win7" class="winmitte" >
+<div class="titlebar">7 Chipcard read</div>
+<div class="content">
+<pre>
+under construction
+
+</pre>
+</div>
+</div>
+
+<div id="win8" class="winmitte" >
+<div class="titlebar">8 Stepper Control</div>
+<div class="content">
+<pre>
+under construction
+
+</pre>
+</div>
+</div>
+
+<div id="win9" class="winmitte" >
+<div class="titlebar">9 Infrared RC5 code out</div>
+<div class="content">
+<pre>
+under construction
+
+</pre>
+</div>
+</div>
+
+<div id="winmitterog" class="winlinks" >
+<div class="titlebar2">Choose a program: the source is listed right &gt;&gt; </div>
+<div class="content2">
+<a href="#" onclick="ChangeWin(0)">MR_REGS.INC</A>
+<br><a href="#" onclick="ChangeWin(1)">1 decimal counter output PORTB</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(11)">flashing lights left PB0 to PB7</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(12)">flashing lights right PB7 to PB0</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(13)">flashing lights runs from left to right and back</A>
+<br>
+<br><a href="#" onclick="ChangeWin(2)" >2 TIMER CONTROL COMPARE</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(21)">TIMER_A OUTPUT 1KHZ</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(22)">TIMER_B OUTPUT 1KHZ</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(23)">TIMER_B INTERRUPT 1KHZ</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(23)">TIMER_B INTERRUPT 1KHZ 3KHZ</A>
+<br>
+<br><a href="#" onclick="ChangeWin(3)">3 PWM single output</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(31)">PWM six outputs</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(32)">PWM six outputs to drive ac motor</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(33)">PWM six outputs 3phase with delaytime</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(34)">PWM 3phase analog controls frequency out</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(35)">PWM H-bridge control for DC-motor</A>
+<br>
+<br><a href="#" onclick="ChangeWin(4)">4 ANALOG</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(41)">ADC to serial</A>
+<br>
+<br><a href="#" onclick="ChangeWin(5)">5 RS232 see byte on PORTB</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(51)">RS232 send a text</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(52)">RS232 send analog as hex</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(53)">RS232 send analog as ASCII</A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(54)">RS232 SINE to serial</A>
+<br>
+<br><a href="#" onclick="ChangeWin(6)">6 LCD 4BIT-control </A>
+<br>&nbsp;&nbsp;<a href="#" onclick="ChangeWin(61)">read analog and view at LCD</A>
+<br>
+<br><a href="#" onclick="ChangeWin(7)">7 Chipcard read and write</A>
+<br><a href="#" onclick="ChangeWin(8)">8 Stepper Control</A>
+<br><a href="#" onclick="ChangeWin(9)">9 Infrared RC5 code out</A>
+
+<br>
+<br>if you are successful, send an email
+<br>if one program can be useful for you write
+<br>any problem or suggestion ?
+<a href=mailto:orgler@tin.it>orgler@tin.it</A>
+</div>
+</div>
+
+</BODY>
+</HTML>

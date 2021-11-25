@@ -1,0 +1,770 @@
+<HTML>
+<HEAD>
+<TITLE>microcontroller 68HC908JK3</TITLE>
+<META NAME="description" CONTENT="An easy way to work with a sophisticated CPU named 68HC908JK3">
+<META NAME="keywords" CONTENT="68HC908JK3, CPU08, 68HC08">
+</HEAD>
+<BODY BGCOLOR="#C0C0FF">
+
+<CENTER><B><FONT SIZE=+3>CPU 68HC908JK3 </FONT>
+<BR>
+<FONT SIZE=+2>Controller with 4 K Flash</FONT></B></CENTER>
+<BR>
+
+<B><i><a name="index"><h3>CPU with 32K Flash<a href="68hc08.htm"> The board Octopus with 68HC908MR32</a></h3></a></i>
+</b>
+<CENTER>
+
+<HR SIZE=1 WIDTH="80%">
+
+<br>
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD>
+<IMG SRC="immhc08/cpu08a.jpg"ALT="click to enlarge">
+</TD>
+<TD><b>The 68HC908JK3 on a test board</b>
+<br>with the connector for programming
+<br>
+<br>
+<br>4K Flash program memory
+</TD>
+</TR>
+</TABLE>
+
+<br>
+<br>
+<br>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD>
+<IMG SRC="immhc08/cpu08b.jpg"ALT="click to enlarge">
+</TD>
+<TD><b>A useful board to work with the 68HC908JK3</b>
+<br>
+<br>
+<a href="sw908jk3.htm">Software examples tested with this board</a>
+
+<br>
+<br>
+<br>
+</TD>
+</TR>
+</TABLE>
+
+<br>
+<br>
+<br>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD>
+<IMG SRC="immhc08/squid08.jpg"ALT="click to enlarge">
+</TD>
+<TD><b>SQUID-interface to program the controller</b>
+<br>
+</TD>
+</TR>
+</TABLE>
+
+<br>
+<br>
+<br>
+
+<HR SIZE=1 WIDTH="80%">
+<CENTER> E X A M P E L S </center>
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD>
+<pre>
+*** Orgler electronic BLINK.ASM ****
+RomStart       EQU  $F000    ;Valid for all JL3, JK3, JK1
+
+PORTB   EQU $0001
+PORTD   EQU $0003
+
+DDRB    EQU $0005
+DDRD    EQU $0007
+CONFIG1 EQU $001F    ; System configuration register
+
+                  org RomStart
+MainInit          mov    #$01,CONFIG1    ; disable COP
+*---------------------------------------------
+                  mov    #%10100000,PORTD
+                  lda    #%11101000
+                  sta    DDRD
+                  mov    #%11111110,DDRB
+***********************************************
+LOOP              ldhx    #0
+next_aix          aix     #1
+                  cphx    #$C000
+                  bne     next_aix
+
+                  lda     PORTD
+                  eor     #$FF
+                  sta     PORTD
+
+                  lda     PORTB
+                  eor     #$FE
+                  sta     PORTB
+
+                  jmp    LOOP
+
+***********************************************
+* Vectors -
+***********************************************
+                  ORG $FFFE
+                  dw  MainInit     ; Reset Vector
+
+</pre>
+</TD>
+</TR>
+</TABLE>
+
+<HR SIZE=5 WIDTH="80%">
+<HR SIZE=5 WIDTH="80%">
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD>
+<b><h3><center>
+Every seconds a led on PORTD BIT3 blinks for 200 msec
+</center></b></h3>
+<pre>
+*** Orgler electronic CLOCK.ASM ****
+
+RAMStart       EQU  $0080
+RomStart       EQU  $F000            ;Valid for all JL3, JK3, JK1
+VectorStart    EQU  $FFDE
+
+$Include 'jl3regs.inc'             ;For the 68HC908JL3, 68HC908JK3, 68HC908JK1
+
+        org RAMStart
+SECOND          ds 1
+TIMEBASE        ds 1
+TIMECOUNT       ds 1
+LOOPCOUNT       ds 1
+
+           org RomStart
+**************************************************************
+* T_ISR - Timer Interrupt Service Routine.                   *
+*    Crystal 9,8304 MHz /4 = Busfreq => 2.457.600            *
+*   1/x->406,901 nsec                                        *
+*  1 second 2.457.600 cycles                                 *
+*  10msec  = 24576 cycles or 96 x 256                        *
+**************************************************************
+T_ISR:          pshh
+                lda    TSC0
+                and    #$7f
+                sta    TSC0                ; Clear O.C. Flag
+*               -------------              ; 256 Clockcycles = 104 µsec
+                ldhx    TCH0H
+                aix     #64
+                sthx    TCH0H
+*               ------------
+                lda     TIMECOUNT
+                inca
+                cmp     #48
+                blo     TIME_OK
+                mov     #$FF,TIMEBASE    ; loop time 5 msec
+                clra
+TIME_OK         sta     TIMECOUNT
+                pulh
+                rti
+
+**************************************************************
+* Init_Timer - Turns on timer 1 channel 0                    *
+**************************************************************
+Init_Timer:     mov   #$32,TSC      ; Timer A - Cleared + Stopped.
+                                    ; prescaler  :4
+                mov   #$0,TCH0H     ;
+                mov   #$0,TCH0L     ;
+
+                mov   #$54,TSC0     ; Timer A Channel 0 (PTD4) Toggle on output compare
+                mov   #$02,TSC      ; Start the timer -> prescaler: 4
+                rts
+*********************************************************************
+*********************************************************************
+MainInit          rsp
+                  ldhx     #$80             ; Start for clearing RAM
+NextRamClear      clr     0,X
+                  incx
+                  cmpx    #$FB              ; Clear RAM from $00-$FB
+                  bne     NextRamClear
+*----------------------------------------------------------------
+                  bset   3,DDRD
+*--------------------------------------------
+                  jsr    Init_Timer
+                  cli
+**********************************************************************
+**********************************************************************
+LOOP              sta     COPCTL
+                  brclr   7,TIMEBASE,LOOP
+                  bclr    7,TIMEBASE
+*--------------------------------------
+                 lda    LOOPCOUNT
+                 inca
+                 cmp    #200           ; 200 * 5 = 1 second
+                 blo    Save_LoopCount
+*                 ---
+                 lda    SECOND
+                 inca
+                 cmp    #60
+                 blo    SaveSecond
+                 clra
+SaveSecond       sta    SECOND
+*                ----
+                 clra
+Save_LoopCount   sta    LOOPCOUNT
+                 cmp    #40
+                 blo    LED_ON
+                 bclr   3,PORTD
+                 bra    LED_OK
+
+LED_ON           bset   3,PORTD
+LED_OK
+*               ----------------------------
+                jmp     LOOP
+**************************************************************
+
+**************************************************************
+* Vectors - Timer Interrupt Service Routine.                 *
+**************************************************************
+              org  VectorStart-1
+dummy_isr       rti           ; return
+
+               org  VectorStart
+
+        dw  dummy_isr    ; ADC Conversion Complete Vector
+        dw  dummy_isr    ; Keyboard Vector
+        dw  dummy_isr    ; (No Vector Assigned $FFE2-$FFE3)
+        dw  dummy_isr    ; (No Vector Assigned $FFE4-$FFE5)
+        dw  dummy_isr    ; (No Vector Assigned $FFE6-$FFE7)
+        dw  dummy_isr    ; (No Vector Assigned $FFE8-$FFE9)
+        dw  dummy_isr    ; (No Vector Assigned $FFEA-$FFEB)
+        dw  dummy_isr    ; (No Vector Assigned $FFEC-$FFED)
+        dw  dummy_isr    ; (No Vector Assigned $FFEE-$FFEF)
+        dw  dummy_isr    ; (No Vector Assigned $FFF0-$FFF1)
+        dw  dummy_isr    ; TIM1 Overflow Vector
+        dw  dummy_isr    ; TIM1 Channel 1 Vector
+        dw  T_ISR         ; TIM1 Channel 0 Vector
+        dw  dummy_isr    ; (No Vector Assigned $FFF8-$FFF9)
+        dw  dummy_isr    ; ~IRQ1
+        dw  dummy_isr    ; SWI Vector
+        dw  MainInit     ; Reset Vector
+</pre>
+
+</TD>
+</TR>
+</TABLE>
+
+<HR SIZE=5 WIDTH="80%">
+<HR SIZE=5 WIDTH="80%">
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<TR>
+<TD>
+<b><h3><center>
+The same program with serial communication over the RS232
+</center>
+<br>The 68HC908JK3 isn't equipped with SCI-interface. We are using a emulated SCI using PORTB BIT0
+<br>We scan this pin in the timer-interrupt ( TISR.INC) every 104 µsec
+<br>A status machine saves bit for bit in a variable
+<br>The PC sends 'B' 0x00 (two bytes) the controller answers with 64 Bytes starting with RAMSTART-address
+<br>Baudrate 2400 BAUD
+</b></h3>
+
+<pre>
+*** Orgler electronic CLOCKSCI.ASM ****
+
+RAMStart       EQU  $0080
+RomStart       EQU  $F000            ;Valid for all JL3, JK3, JK
+VectorStart    EQU  $FFDE
+
+$Include 'jl3regs.inc'             ;For the 68HC908JL3, 68HC908JK3, 68HC908JK1
+$include 'rampage.inc'
+
+           org RomStart
+$include 'tisr.inc'
+*********************************************************************
+MainInit          rsp
+                  ldhx     #$80             ; Start for clearing RAM
+NextRamClear      clr     0,X
+                  incx
+                  cmpx    #$FB              ; Clear RAM from $00-$FB
+                  bne     NextRamClear
+*----------------------------------------------------------------
+                  mov    #0,PORTD
+                  lda    #%11101000
+                  sta    DDRD
+*--------------------------------------------
+                  jsr    EMUL_SCI_INIT
+                  jsr    Init_Timer
+                  cli
+**********************************************************************
+**********************************************************************
+LOOP              sta     COPCTL
+                  brclr   7,TIMEBASE,LOOP
+                  bclr    7,TIMEBASE
+*--------------------------------------
+                 lda    LOOPCOUNT
+                 inca
+                 cmp    #200           ; 200 * 5 = 1 second
+                 blo    Save_LoopCount
+*                 ---
+                 lda    SECOND
+                 inca
+                 cmp    #60
+                 blo    SaveSecond
+                 clra
+SaveSecond       sta    SECOND
+*                ----
+
+                 clra
+Save_LoopCount   sta    LOOPCOUNT
+                 cmp    #40
+                 blo    LED_ON
+                 bclr   3,PORTD
+                 bra    LED_OK
+
+LED_ON           bset   3,PORTD
+LED_OK
+*               ----------------------------
+                jmp     LOOP
+**************************************************************
+$include 'emulsci.inc'
+$include 'vectors.inc'
+
+</pre>
+
+<b> File TISR.INC </b>
+<pre>
+**************************************************************
+* T_ISR - Timer Interrupt Service Routine.                   *
+*    Crystal 9,8304 MHz /4 = Busfreq => 2.457.600            *
+*   1/x->406,901 nsec                                        *
+*  1 second 2.457.600 cycles                                 *
+*  10msec  = 24576 cycles or 96 x 256
+**************************************************************
+T_ISR:          pshh
+                lda    TSC0
+                and    #$7f
+                sta    TSC0                ; Clear O.C. Flag
+*               -------------              ; 256 Clockcycles = 104 µsec
+                ldhx    TCH0H
+                aix     #64
+                sthx    TCH0H
+*               ------------
+                ldhx   funcEmulSci
+                lda    PORTB
+                eor    #BIT0
+                and    #BIT0
+                jsr    0,X
+
+                lda     TIMECOUNT
+                inca
+                cmp     #48
+                blo     TIME_OK
+                mov     #$FF,TIMEBASE    ; loop time 5 msec
+                clra
+TIME_OK         sta     TIMECOUNT
+
+                pulh
+                rti
+**************************************************************
+* Init_Timer - Turns on timer 1 channel 0                    *
+**************************************************************
+Init_Timer:     mov   #$32,TSC      ; Timer A - Cleared + Stopped.
+                                    ; prescaler  :4
+                mov   #$0,TCH0H     ;
+                mov   #$0,TCH0L     ;
+
+                mov   #$54,TSC0     ; Timer A Channel 0 (PTD4) Toggle on output compare
+                mov   #$02,TSC      ; Start the timer -> prescaler: 4
+                rts
+
+</pre>
+
+<b> File EMULSCI.INC </b>
+<pre>
+***************************************************
+EMUL_SCI_INIT   ldhx   #WAIT_START_BIT
+                sthx   funcEmulSci
+                ldhx   #EMULRXBUF
+                sthx   ptrEmulSci
+                jsr    SetPinToInport
+                rts
+****************************************************
+* 8 N 1 = 1 Startbit 8 Databits 1 Stopbit
+****************************************************
+WAIT_START_BIT  beq    exit_0
+                ldhx   #START1_OKAY
+                sthx   funcEmulSci
+                lda    #2
+                sta    countx
+                clr    RSBYTE
+                lda    #8
+                sta    bitcount
+exit_0          rts
+*---------------------------------
+set_error       inc    error
+                jmp    EMUL_SCI_INIT
+
+START1_OKAY     beq    set_error
+                dec    countx
+                bne    exit_1
+                ldhx   #BIT_CHECK
+                sthx   funcEmulSci
+                lda    #4
+                sta    countx
+exit_1          rts
+*-----------------------------------
+BIT_CHECK       dec    countx
+                bne    exit_2
+                clc
+                tsta
+                beq    ShiftRsbyte
+                sec
+ShiftRsbyte     ror    RSBYTE
+                lda    #4
+                sta    countx
+                dec    bitcount
+                beq    StopBitInit
+exit_2          rts
+
+StopBitInit     lda   #4
+                sta   countx
+                ldhx  #STOP_BIT
+                sthx  funcEmulSci
+                rts
+
+STOP_BIT        dec  countx
+                bne  exit_2
+                tsta
+                bne     set_error
+*  -----
+                lda     RSBYTE
+                coma
+                ldhx    ptrEmulSci
+                sta     ,X
+                incx
+                sthx   ptrEmulSci
+                cphx   #EMULRXBUF+2
+                bhs    EMUL_EVALUATE
+*  ------
+GoWaitStartBit  ldhx   #WAIT_START_BIT
+                sthx   funcEmulSci
+                rts
+****************************************************************
+EMUL_EVALUATE   lda   EMULRXBUF      ;RAM or Ports ?
+                 cmpa  #'A'
+                 bne   EmulEvaluate2
+*  ---------
+                 cphx #EMULRXBUF+5
+                 blo GoWaitStartBit
+
+                 ldhx #EMUL_SET_A
+                 sthx funcEmulSci
+                 rts
+
+EmulEvaluate2   ldhx   #RAM_PORT
+                sthx   funcEmulSci
+                rts
+**************************************************************
+EMUL_SET_A      lda  EMULRXBUF      ;'A'
+                add  EMULRXBUF+1    ; address high
+                add  EMULRXBUF+2    ; address low
+                add  EMULRXBUF+3    ; value
+                cmpa EMULRXBUF+4    ; checksum
+                bne  EMUL_A_EXIT
+
+                ldhx  EMULRXBUF+1          ; 1+2 adresse
+                lda   EMULRXBUF+3          ; value
+                sta   0,X
+
+EMUL_A_EXIT     jmp   EMUL_SCI_INIT      ; rts included
+**************************************************************
+RAM_PORT        lda    EMULRXBUF
+                cmpa   #'B'
+                beq    SEND_RAM
+                cmpa   #'D'
+                beq    SEND_PORT
+                jmp    EMUL_SCI_INIT           ; rts included
+****************************************************************
+SCI_ERROR       inc    SCI_ERROR_COUNT
+                jmp    EMUL_SCI_INIT
+****************************************************************
+SEND_PORT       ldhx    #0
+                bra     saveptrSCI
+SEND_RAM        ldhx    #RAMStart
+                sthx    ptrEmulSci
+
+                lda    EMULRXBUF+1      ;8-Bit-Adresse
+                add    ptrEmulSci+1
+                sta    ptrEmulSci+1
+                lda    ptrEmulSci
+                adc    #0
+                sta    ptrEmulSci
+                ldhx   ptrEmulSci
+
+saveptrSCI      sthx   ptrEmulSci             ;pointer to tx-address
+
+              lda    #64                     ;number of bytes = 64
+TxInitGo      sta    iTxBytes
+              ldhx   #EMUL_TX_INIT
+              sthx   funcEmulSci
+              rts
+********************************************************************
+EMUL_TX_INIT   ldhx  #TX_DELAY
+               sthx  funcEmulSci
+               lda   #50             ;50 x 104 =   5 msec
+               sta   txcount
+               rts
+*=============================================
+TX_DELAY       dec   txcount
+               beq   *+3
+               rts
+               jsr   SetPinToOutport
+               ldhx  #TX_START_BIT
+               sthx  funcEmulSci
+               lda   #4
+               sta   txcount
+               rts
+*============================================
+TX_START_BIT   dec   txcount
+               beq   *+3
+               rts
+               lda   #4
+               sta   txcount
+*  ---------------
+               bsr    SetOutPortZero
+
+               ldhx    ptrEmulSci
+               mov     X+,ShiftByte
+               sthx    ptrEmulSci
+               dec     iTxBytes
+
+               clr      SerCounter     ; Counter auf Null
+*  ---------------
+               ldhx #TX_ROUTINE
+               sthx funcEmulSci
+               rts
+*=====================================
+TX_ROUTINE     dec txcount
+               beq *+3
+               rts
+               lda #4
+               sta txcount
+
+               lsr   ShiftByte          ;shift rigth
+               bcs   BitIsOne
+
+BitIsNull      bsr   SetOutPortZero
+               bra   EndShift
+
+BitIsOne        bsr SetOutPortOne
+
+EndShift        inc    SerCounter
+                lda    SerCounter
+                cmpa   #8              ;8 Bits sent
+                bne    Exit_TX
+*  ---------------------
+                ldhx   #TX_STOP_BIT    ;send with 1 StopBit
+                sthx   funcEmulSci
+Exit_TX         rts
+*------------------------------------------------------
+TX_STOP_BIT     dec   txcount
+                beq   *+3
+                rts
+                lda   #4
+                sta   txcount
+
+                bsr   SetOutPortOne
+*  ------------------
+                lda   iTxBytes
+                beq   SerialDone
+*  ---
+                ldhx  #TX_START_BIT
+                sthx  funcEmulSci
+*  --------------------
+ExitSerial      rts
+SerialDone      jmp   EMUL_SCI_INIT  ;rts included
+
+SetOutPortOne     bset  0,PORTB
+                rts
+SetOutPortZero     bclr  0,PORTB
+                rts
+SetPinToInport  bclr  0,DDRB
+                rts
+
+SetPinToOutport bset  0,DDRB
+                rts
+
+</pre>
+
+<b>FILE: rampage.inc</b>
+<pre>
+     org RAMStart
+SECOND          ds 1
+
+TIMEBASE        ds 1
+TIMECOUNT       ds 1
+LOOPCOUNT       ds 1
+TIMER           ds 2
+
+************************
+TEMP            ds 2
+**********************************************
+*      Emulated Serial
+**********************************************
+EMUL_TX_BYTES    DS 1
+funcEmulSci      DS 2
+error            DS 1
+bitcount         DS 1
+status           DS 1
+countx           DS 1
+RSBYTE           DS 1
+EmulSciTimeout   DS 1
+ptrEmulSci       DS 2
+SerCounter       DS 1
+ShiftByte        DS 1
+iTxBytes         DS 1
+txcount          DS 1
+SCI_ERROR_COUNT  DS 1
+EMULRXBUF        DS 8
+***************************************
+***************************************
+</pre>
+<b>FILE: vectors.inc</b>
+<pre>
+**************************************************************
+* Vectors - Timer Interrupt Service Routine.                 *
+**************************************************************
+              org  VectorStart-1
+dummy_isr       rti           ; return
+
+               org  VectorStart
+
+        dw  dummy_isr    ; ADC Conversion Complete Vector
+        dw  dummy_isr    ; Keyboard Vector
+        dw  dummy_isr    ; (No Vector Assigned $FFE2-$FFE3)
+        dw  dummy_isr    ; (No Vector Assigned $FFE4-$FFE5)
+        dw  dummy_isr    ; (No Vector Assigned $FFE6-$FFE7)
+        dw  dummy_isr    ; (No Vector Assigned $FFE8-$FFE9)
+        dw  dummy_isr    ; (No Vector Assigned $FFEA-$FFEB)
+        dw  dummy_isr    ; (No Vector Assigned $FFEC-$FFED)
+        dw  dummy_isr    ; (No Vector Assigned $FFEE-$FFEF)
+        dw  dummy_isr    ; (No Vector Assigned $FFF0-$FFF1)
+        dw  dummy_isr    ; TIM1 Overflow Vector
+        dw  dummy_isr    ; TIM1 Channel 1 Vector
+        dw  T_ISR         ; TIM1 Channel 0 Vector
+        dw  dummy_isr    ; (No Vector Assigned $FFF8-$FFF9)
+        dw  dummy_isr    ; ~IRQ1
+        dw  dummy_isr    ; SWI Vector
+        dw  MainInit     ; Reset Vector
+
+</pre>
+
+<b>FILE: jl3regs.inc</b>
+<pre>
+; 68HC908JL3, 68HC908JK3, 68HC908JK1 Equates
+
+PTA    EQU $0000    ; Ports and data direction
+PORTA  EQU $0000
+PTB    EQU $0001
+PORTB  EQU $0001
+PTD    EQU $0003
+PORTD  EQU $0003
+
+DDRA   EQU $0004
+DDRB   EQU $0005
+DDRD   EQU $0007
+
+PDCR   EQU $000A
+PTAUE EQU $000D
+
+INTKBSR  EQU $001A  ; IRQ & Keyboard
+KBSCR    EQU $001A
+INTKBIER EQU $001B
+KBIER    EQU $001B
+
+INTSCR   EQU $001D
+
+CONFIG1 EQU $001F    ; System configuration register
+CONFIG2 EQU $001E    ; System configuration register
+
+TSC   EQU $0020     ; Timer
+TCNTH EQU $0021
+TCNTL EQU $0022
+TMODH EQU $0023
+TMODL EQU $0024
+TSC0  EQU $0025
+TCH0H EQU $0026
+TCH0L EQU $0027
+TSC1  EQU $0028
+TCH1H EQU $0029
+TCH1L EQU $002A
+
+ADSCR EQU $003C     ; ADC Converter
+ADR   EQU $003D
+ADCLK EQU $003E
+
+BSR  EQU $FE00     ; SIM Module
+RSR  EQU $FE01
+BFCR EQU $FE03
+
+FLCR  EQU $FE08     ; Flash control
+FLSPR EQU $FE09
+FLTCR EQU $FE0A
+
+BRKH  EQU $FE0C     ; Break control
+BRKL  EQU $FE0D
+BSCR  EQU $FE0E
+
+INT1  EQU $FE04     ; Interrupt Status
+INT2  EQU $FE05
+INT3  EQU $FE06
+
+COPCTL EQU $FFFF    ; COP control register
+
+BIT0    EQU   $01
+BIT1    EQU   $02
+BIT2    EQU   $04
+BIT3    EQU   $08
+BIT4    EQU   $10
+BIT5    EQU   $20
+BIT6    EQU   $40
+BIT7    EQU   $80
+
+BIT0_INVERS   EQU   $FE
+BIT1_INVERS   EQU   $FD
+BIT2_INVERS   EQU   $FB
+BIT3_INVERS   EQU   $F7
+BIT4_INVERS   EQU   $EF
+BIT5_INVERS   EQU   $DF
+BIT6_INVERS   EQU   $BF
+BIT7_INVERS   EQU   $7F
+
+</pre>
+
+</TD>
+</TR>
+</TABLE>
+
+<br>
+<br>
+<br>
+
+<HR SIZE=1 WIDTH="80%">
+<HR SIZE=1 WIDTH="80%">
+
+<TABLE BORDER=0 CELLSPACING=0 CELLPADDING=0 WIDTH="80%" >
+<br>
+<br>
+ <A HREF="mailto:orgler@tin.it">orgler@tin.it</A>
+</TABLE>
+
+</CENTER>
+</BODY>
+</HTML>
