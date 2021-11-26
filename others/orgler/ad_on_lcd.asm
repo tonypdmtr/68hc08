@@ -1,10 +1,13 @@
                     #Uses     mr_regs.inc
 
+SIG_A               pin       PORTB,4
+SIG_B               pin
+
 ;*******************************************************************************
                     #RAM      $60
 ;*******************************************************************************
 
-adc_wert            rmb       1
+adc_val             rmb       1
 lcdbuf              rmb       3
 
 ;*******************************************************************************
@@ -13,7 +16,6 @@ lcdbuf              rmb       3
 
 Start               proc
                     mov       #$91,CONFIG         ;EDGE=1, INDEP=1, COPD=1 (cop disabled)
-                    rsp                           ;reset stack pointer
                     clr       PORTB
                     mov       #$3F,DDRB
 
@@ -47,12 +49,12 @@ Start               proc
                     lda       #'D'
                     bsr       WriteLcdData
 
-                    mov       #$70,ADCLK          ;8 Bit conversion
+                    mov       #$70,ADCLK          ;8-bit conversion
 
 Loop@@              mov       #7,ADSCR
                     bsr       Delay
                     ldhx      ADRH
-                    stx       adc_wert
+                    stx       adc_val
                     bsr       BINASCII
                     bsr       LCDOUT
                     bra       Loop@@
@@ -64,7 +66,7 @@ BINASCII            proc
                     mov       #'0',lcdbuf+1
                     mov       #'0',lcdbuf+2
           ;--------------------------------------
-                    lda       adc_wert
+                    lda       adc_val
 _100@@              cmpa      #100
                     blo       _10@@
                     sub       #100
@@ -102,23 +104,25 @@ LCDOUT              proc
 LcdInstr2           proc
                     psha
                     nsa
-                    and       #$0F
-                    sta       PORTB
+                    bsr       ?Write
                     pula
-                    bclr      5,PORTB
-                    bset      4,PORTB
-                    bclr      4,PORTB
 ;                   bra       LcdInstr1
 
 ;*******************************************************************************
 
 LcdInstr1           proc
+                    bsr       ?Write
+                    bra       Delay
+
+;*******************************************************************************
+
+?Write              proc
                     and       #$0F
                     sta       PORTB
-                    bclr      5,PORTB
-                    bset      4,PORTB
-                    bclr      4,PORTB
-                    bra       Delay
+                    bclr      SIG_B
+                    bset      SIG_A
+                    bclr      SIG_A
+                    rts
 
 ;*******************************************************************************
 
@@ -129,25 +133,26 @@ WriteLcdData        proc
                     sta       PORTB
                     pula
 
-                    bset      5,PORTB
-                    bset      4,PORTB
-                    bclr      4,PORTB
+                    bset      SIG_B
+                    bset      SIG_A
+                    bclr      SIG_A
 
                     and       #$0F
                     sta       PORTB
-                    bset      5,PORTB
-                    bset      4,PORTB
-                    bclr      4,PORTB
-                    bsr       Delay
-                    rts
+                    bset      SIG_B
+                    bset      SIG_A
+                    bclr      SIG_A
+;                   bra       Delay
 
 ;*******************************************************************************
 
 Delay               proc
+                    pshhx
                     ldhx      #8192
 Loop@@              aix       #-1
                     cphx      #0
                     bne       Loop@@
+                    pulhx
                     rts
 
 ;*******************************************************************************
