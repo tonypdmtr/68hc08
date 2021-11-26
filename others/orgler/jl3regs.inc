@@ -1,77 +1,79 @@
 ; 68HC908JL3, 68HC908JK3, 68HC908JK1 Equates
 
-PTA    EQU $0000    ; Ports and data direction
-PORTA  EQU $0000
-PTB    EQU $0001
-PORTB  EQU $0001
-PTD    EQU $0003
-PORTD  EQU $0003
+PTA                 equ       $0000               ; Ports and data direction
+PORTA               equ       $0000
+PTB                 equ       $0001
+PORTB               equ       $0001
+PTD                 equ       $0003
+PORTD               equ       $0003
 
-DDRA   EQU $0004
-DDRB   EQU $0005
-DDRD   EQU $0007
+DDR                 equ       4                   ; offset to respective DDR register
 
-PDCR   EQU $000A
-PTAUE EQU $000D
+DDRA                equ       PORTA+DDR
+DDRB                equ       PORTB+DDR
+DDRD                equ       PORTD+DDR
 
-INTKBSR  EQU $001A  ; IRQ & Keyboard
-KBSCR    EQU $001A
-INTKBIER EQU $001B
-KBIER    EQU $001B
+PDCR                equ       $000A
+PTAUE               equ       $000D
 
-INTSCR   EQU $001D
+INTKBSR             equ       $001A               ; IRQ & Keyboard
+KBSCR               equ       $001A
+INTKBIER            equ       $001B
+KBIER               equ       $001B
 
-CONFIG1 EQU $001F    ; System configuration register
-CONFIG2 EQU $001E    ; System configuration register
+INTSCR              equ       $001D
 
-TSC   EQU $0020     ; Timer
-TCNTH EQU $0021
-TCNTL EQU $0022
-TMODH EQU $0023
-TMODL EQU $0024
-TSC0  EQU $0025
-TCH0H EQU $0026
-TCH0L EQU $0027
-TSC1  EQU $0028
-TCH1H EQU $0029
-TCH1L EQU $002A
+CONFIG1             equ       $001F               ; System configuration register
+CONFIG2             equ       $001E               ; System configuration register
 
-ADSCR EQU $003C     ; ADC Converter
-ADR   EQU $003D
-ADCLK EQU $003E
+TSC                 equ       $0020               ; Timer
+TCNTH               equ       $0021
+TCNTL               equ       $0022
+TMODH               equ       $0023
+TMODL               equ       $0024
+TSC0                equ       $0025
+TCH0H               equ       $0026
+TCH0L               equ       $0027
+TSC1                equ       $0028
+TCH1H               equ       $0029
+TCH1L               equ       $002A
 
-BSR  EQU $FE00     ; SIM Module
-RSR  EQU $FE01
-BFCR EQU $FE03
+ADSCR               equ       $003C               ; ADC Converter
+ADR                 equ       $003D
+ADCLK               equ       $003E
 
-FLCR  EQU $FE08     ; Flash control
-FLSPR EQU $FE09
-FLTCR EQU $FE0A
+BSR                 equ       $FE00               ; SIM Module
+RSR                 equ       $FE01
+BFCR                equ       $FE03
 
-BRKH  EQU $FE0C     ; Break control
-BRKL  EQU $FE0D
-BSCR  EQU $FE0E
+FLCR                equ       $FE08               ; Flash control
+FLSPR               equ       $FE09
+FLTCR               equ       $FE0A
 
-INT1  EQU $FE04     ; Interrupt Status
-INT2  EQU $FE05
-INT3  EQU $FE06
+BRKH                equ       $FE0C               ; Break control
+BRKL                equ       $FE0D
+BSCR                equ       $FE0E
 
-COPCTL EQU $FFFF    ; COP control register
+INT1                equ       $FE04               ; Interrupt Status
+INT2                equ       $FE05
+INT3                equ       $FE06
 
-BIT0    EQU   $01
-BIT1    EQU   $02
-BIT2    EQU   $04
-BIT3    EQU   $08
-BIT4    EQU   $10
-BIT5    EQU   $20
-BIT6    EQU   $40
-BIT7    EQU   $80
+COPCTL              equ       $FFFF               ; COP control register
 
-BIT0_INVERS   EQU   $FE
-BIT1_INVERS   EQU   $FD
-BIT2_INVERS   EQU   $FB
-BIT3_INVERS   EQU   $F7
-BIT4_INVERS   EQU   $EF
-BIT5_INVERS   EQU   $DF
-BIT6_INVERS   EQU   $BF
-BIT7_INVERS   EQU   $7F
+BIT0                equ       $01
+BIT1                equ       $02
+BIT2                equ       $04
+BIT3                equ       $08
+BIT4                equ       $10
+BIT5                equ       $20
+BIT6                equ       $40
+BIT7                equ       $80
+
+BIT0_INVERS         equ       $FE
+BIT1_INVERS         equ       $FD
+BIT2_INVERS         equ       $FB
+BIT3_INVERS         equ       $F7
+BIT4_INVERS         equ       $EF
+BIT5_INVERS         equ       $DF
+BIT6_INVERS         equ       $BF
+BIT7_INVERS         equ       $7F

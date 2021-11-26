@@ -27,24 +27,24 @@ NextRamClear      clr     0,X
 **********************************************************************
 **********************************************************************
 LOOP              sta     COPCTL
-                  brclr   7,TIMEBASE,LOOP
-                  bclr    7,TIMEBASE
+                  brclr   7,timebase,LOOP
+                  bclr    7,timebase
 *--------------------------------------
-                 lda    LOOPCOUNT
+                 lda    loopcount
                  inca
                  cmp    #200           ; 200 * 5 = 1 second
                  blo    Save_LoopCount
 *                 ---
-                 lda    SECOND
+                 lda    second
                  inca
                  cmp    #60
                  blo    SaveSecond
                  clra
-SaveSecond       sta    SECOND
+SaveSecond       sta    second
 *                ----
 
                  clra
-Save_LoopCount   sta    LOOPCOUNT
+Save_LoopCount   sta    loopcount
                  cmp    #40
                  blo    LED_ON
                  bclr   3,PORTD
