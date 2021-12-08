@@ -1383,14 +1383,26 @@ PushV               macro     variable[ SizeOf(var)][ 'newname']
                     mset      0,~text.2.{:text-2}~ ;;after removing quotes
                     mdel      :nn                 ;;parm no longer needed
           #endif
+          #ifb ~2~
+                    #temp     1
+            #ifnum ~1,~
+                    #temp
+            #endif
+            #ifb ~1,~
+                    #temp
+            #endif
+            #ifz :temp
+                    #Warning  Zero size \@~1~\@
+            #endif
+          #endif
           #ifnb ~#~                               ;;immediate mode
                     mreq      1,2:Constant SizeOf(Constant)
             #if ~2~ < 0
                     merror    Negative size (~1~): ~2~
             #endif
-                    #ifnb ~text~
+            #ifnb ~text~
                     mset      0,~text~,~2~
-                    #endif
+            #endif
                     #temp
                     mdo
             #ifz ~#1~>{:mloop-1*8}&$FF
@@ -1434,19 +1446,19 @@ PushV               macro     variable[ SizeOf(var)][ 'newname']
                     mset      0,~text~,~2~
                     #endif
           #if ~2~ = 1                             ;;single-byte variable case
-          #ifb ~1.1.1~ = .                        ;;but not for pointers
-            #ifparm ~'~,1~'.1.3~ = ,sp            ;;for SP and SPX only
-              #iftos ~1,~                         ;;if at TOS, special case
+            #ifb ~1.1.1~ = .                      ;;but not for pointers
+              #ifparm ~'~,1~'.1.3~ = ,sp          ;;for SP and SPX only
+                #iftos ~1,~                       ;;if at TOS, special case
                     pula                          ;;A = TOS value
                     psha                          ;;put it back the way it was
                     psha      ~text~
                     mexit
+                #endif
               #endif
-            #endif
                     lda       ~1~
                     psha      ~text~
                     mexit
-          #endif
+            #endif
           #endif
                     #push                         ;;save current X offset etc.
           #ifb ~,1~ = ,x                          ;;only if not X-indexed
@@ -1477,6 +1489,18 @@ PullV               macro     Variable[ SizeOf(Variable)]
                     mset      #' '
                     mreq      1:Variable[ SizeOf(Variable)]
                     @@_not_#_ ~1~
+          #ifb ~2~
+                    #temp     1
+            #ifnum ~1,~
+                    #temp
+            #endif
+            #ifb ~1,~
+                    #temp
+            #endif
+            #ifz :temp
+                    #Warning  Zero size \@~1~\@
+            #endif
+          #endif
           #ifnz ::~1,~
                     mdef      2,{::~1,~}
           #endif
@@ -1486,16 +1510,16 @@ PullV               macro     Variable[ SizeOf(Variable)]
           #endif
                     @@Msg     ~0~ ~1~ ({~2~*8}-bit)
           #if ~2~ = 1                             ;;single-byte variable case
-          #ifb ~1.1.1~ = .                        ;;but not for pointers
-            #ifparm ~'~,1~'.1.3~ = ,sp            ;;for SP and SPX only
-              #iftos ~1,~                         ;;if at TOS, special case
+            #ifb ~1.1.1~ = .                      ;;but not for pointers
+              #ifparm ~'~,1~'.1.3~ = ,sp          ;;for SP and SPX only
+                #iftos ~1,~                       ;;if at TOS, special case
                     mstop     ~0~ to same stack location!
+                #endif
               #endif
-            #endif
                     pula
                     sta       ~1~
                     mexit
-          #endif
+            #endif
           #endif
                     #push                         ;;save current X offset etc.
           #ifb ~,1~ = ,x                          ;;only if not X-indexed

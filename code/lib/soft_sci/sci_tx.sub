@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Software SCI TX (transmitter)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : Copyright (c) 2022 by Tony Papadimitriou <tonyp@acm.org>
 ;* Segments  : To be placed in user defined segment (MMU compatible)
 ;* Subsystems: None -- Fully software driven (bit-banged)
 ;*******************************************************************************

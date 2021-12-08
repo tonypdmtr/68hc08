@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Multiply a long (32-bit) number by the Greek PI (3.141592)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2022 by Tony Papadimitriou <tonyp@acm.org>
 ;* Note(s)   : Use: #Include pi.sub
 ;*           : Requires: stkmth32.sub
 ;* History   : 10.01.22 v1.00 Original
