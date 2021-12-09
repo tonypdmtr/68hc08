@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Generic I2C routines: I2C_Start, I2C_GetChar, I2C_PutChar, I2C_Stop
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : Copyright (c) 2022 by Tony Papadimitriou <tonyp@acm.org>
 ;* Note(s)   : Normal sequence is: I2C_Start, I2C_PutChar ..., I2C_Stop
 ;* History   : 14.08.01 v1.00 Original (taken from 2005.08.01 os8/i2c.mod)
 ;*           : 14.08.12       Complete rewrite for greater protocol conformance [-3 bytes]

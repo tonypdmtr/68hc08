@@ -3,7 +3,7 @@
 ;* Programmer: Tony Papadimitriou <tonyp@acm.org>
 ;* Purpose   : Sample macro definitions for ASM8 (Win32 & Linux versions, only)
 ;* Language  : Motorola/Freescale/NXP HC08/9S08 Assembly Language (aspisys.com/ASM8)
-;* Status    : FREEWARE Copyright (c) 2021 by Tony Papadimitriou <tonyp@acm.org>
+;* Status    : FREEWARE Copyright (c) 2022 by Tony Papadimitriou <tonyp@acm.org>
 ;* Original  : http://www.aspisys.com/code/hc08/macros.html
 ;* Note(s)   : Use: #Include macros.inc
 ;*           : All macros are written so that they are compatible with all
@@ -161,6 +161,9 @@
 ;*           : 21.10.06 v2.34 Removed practically useless _FindStr_ macro (Find String)
 ;*           : 21.10.25 v2.35 Added DEPRECATED hint in ExpPin and PIN macros
 ;*           : 21.11.01 v2.36 COP macro will do nothing if NO_COP is defined
+;*           : 21.11.26 v2.37 Prepend `sema` if missing in fLock[Attempt]/fUnlock
+;*           : 21.12.01 v2.38 Simplified yet improved LCDFCS macro definition
+;*           : 21.12.08 v2.39 BugFix: Off-by-one error in LCDFCS simplification
 ;*******************************************************************************
 
                     #Exit     _MACROS_
@@ -2146,6 +2149,9 @@ fLock               macro     sema
           #ifndef _MTOS_
                     mexit
           #endif
+          #ifb ~1.1.4~ == sema
+                    mset      1,sema~1~           ;;prepend sema if missing
+          #endif
           #if _MTOS_ < 124
                     psha
                     lda       #~#1~
@@ -2162,6 +2168,9 @@ fLock               macro     sema
 fLockAttempt        macro     sema
           #ifndef _MTOS_
                     mexit
+          #endif
+          #ifb ~1.1.4~ == sema
+                    mset      1,sema~1~           ;;prepend sema if missing
           #endif
           #if _MTOS_ < 124
                     psha
@@ -2180,6 +2189,9 @@ fUnlock             macro
           #ifndef _MTOS_
                     mexit
           #endif
+          #ifb ~1.1.4~ == sema
+                    mset      1,sema~1~           ;;prepend sema if missing
+          #endif
           #if _MTOS_ < 124
                     psha
                     lda       #~#1~
@@ -2196,13 +2208,13 @@ fUnlock             macro
 ; Create Lock/Unlock calls for each defined semaphore when using keyword #SAVE#
 
 sema                macro     Sema1[,Sema2]*
-#ifparm ~1~ = #SAVE#
+          #ifparm ~1~ = #SAVE#
                     mdo
                     mset      2,~text','{:mloop}~
-          #ifb ~2~
+            #ifb ~2~
                     mexit
-          #endif
-          #ifdef sema~2~
+            #endif
+            #ifdef sema~2~
                     #Message  Defined Lock~2~ & Unlock~2~ calls
 Lock~2~             proc
                     psha
@@ -2219,10 +2231,10 @@ Unlock~2~           proc
                     tap
                     pula
                     rtc
-          #endif
+            #endif
                     mloop
                     mexit
-#endif
+          #endif
                     mdo
                     mswap     1,:mloop
           #ifdef sema~1~
@@ -2281,26 +2293,15 @@ StrPas              macro     'string text'
 ; Define a string for the current LCD and warn if the string is too long to fit
 
 lcdfcs              macro
-                    mreq      1:At least one parameter is required
-                    #temp
-                    mdo
-                    mswap     1,:mloop            ;;put it in 1 for easier access
-          #ifstr ~1~
-                    mset      1,~1.2.{:1-2}~
-                    mset      1,~1~               ;;needed to expand possible expressions
-                    #temp     :temp+:1            ;;string
-                    mstr      1
-          #else ifnb ~1~
-                    #temp     :temp+1             ;;constant expression assumed
-          #endif
-                    mswap     1,:mloop            ;;return to actual parm spot
-                    mloop     :n
                     mset      #
-          #if :temp > LCD_COLS
-                    #Warning  String too long ({:temp}) for {LCD_ROWS}x{LCD_COLS} LCD
-          #endif
+                    mreq      1:At least one parameter is required
+                    #temp     :pc
                     fcs       ~1~
-                    mexit     :temp               ;;return the total length
+                    #temp     :pc-:temp-1         ;;-1 for not counting ASCIZ terminator
+          #if :temp > LCD_COLS
+                    #Warning  String too long ({:temp}) for {LCD_COLS}x{LCD_ROWS} LCD
+          #endif
+                    mexit     :temp               ;;return total string length
                     endm
 
 ;*******************************************************************************
