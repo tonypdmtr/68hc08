@@ -1,6 +1,6 @@
 ################################################################################
 # [Borland/Embarcadero v5.43] Makefile for TBOOT (Tiny Bootloader)
-# Copyright (c) 2021 by Tony G. Papadimitriou <tonyp@acm.org>
+# Copyright (c) 2022 by Tony G. Papadimitriou <tonyp@acm.org>
 ################################################################################
 
 HELP:
