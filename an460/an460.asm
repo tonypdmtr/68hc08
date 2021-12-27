@@ -2029,14 +2029,14 @@ ELOP                sta       EON,x               ;EON RAM CLEAR
 ; Display strings.
 ;*******************************************************************************
 
-ALARMS              fcc       ' Alarm -OFF '
-PIST                fcc       ' PI code -'
-TAPST               fcc       ' TP - 0 TA - 0 '
-PINST1              fcc       ' PIN no. -'
-PINST2              fcc       ' th at --.-- '
-MJDST               fcc       ' MJ day -'
-SLPST               fcc       ' Sleep 0 min. '
-MSDST               fcc       ' M/S S DI 0 '
+ALARMS              fcc       '  Alarm - OFF   '
+PIST                fcc       ' PI code -      '
+TAPST               fcc       ' TP - 0 TA - 0  '
+PINST1              fcc       ' PIN no. -      '
+PINST2              fcc       '   th at --.--  '
+MJDST               fcc       ' MJ day -       '
+SLPST               fcc       ' Sleep   0 min. '
+MSDST               fcc       ' M/S S     DI 0 '
 
 ;*******************************************************************************
 ; MJD day and month strings.
@@ -2051,21 +2051,21 @@ MNAME               fcc       'JanFebMarAprMayJunJulAugSepOctNovDec'
 ;*******************************************************************************
 
 PTYT                fcc       'No program type '  ;0
-                    fcc       'News            '  ;1
+                    fcc       '      News      '  ;1
                     fcc       'Current affairs '  ;2
-                    fcc       'Information     '  ;3
-                    fcc       'Sport           '  ;4
-                    fcc       'Education       '  ;5
-                    fcc       'Drama           '  ;6
-                    fcc       'Culture         '  ;7
-                    fcc       'Science         '  ;8
-                    fcc       'Varied          '  ;9
-                    fcc       'Pop music       '  ;10
-                    fcc       'Rock music      '  ;11
-                    fcc       'Easy listening  '  ;12
-                    fcc       'Light classics  '  ;13
+                    fcc       '  Information   '  ;3
+                    fcc       '     Sport      '  ;4
+                    fcc       '   Education    '  ;5
+                    fcc       '     Drama      '  ;6
+                    fcc       '    Culture     '  ;7
+                    fcc       '    Science     '  ;8
+                    fcc       '    Varied      '  ;9
+                    fcc       '   Pop music    '  ;10
+                    fcc       '   Rock music   '  ;11
+                    fcc       ' Easy listening '  ;12
+                    fcc       ' Light classics '  ;13
                     fcc       'Serious classics'  ;14
-                    fcc       'Other music     '  ;15
+                    fcc       '   Other music  '  ;15
 
 ;*******************************************************************************
 ; VFD character set.
@@ -2080,38 +2080,38 @@ PTYT                fcc       'No program type '  ;0
 ; " has been entered as '
 ;*******************************************************************************
 
-VTAB                fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7E,$7E,$7E     ;all
-                    fcb       $7E,$7B,$7A,$7E     ;! " # #
-                    fcb       $7E,$7E,$7E,$7A     ;$ % & ' $%&
-                    fcb       $7E,$7E,$7E,$7E     ;( ) * + all
+VTAB                fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7E,$7E,$7E     ;                   all
+                    fcb       $7E,$7B,$7A,$7E     ;! " #              #
+                    fcb       $7E,$7E,$7E,$7A     ;$ % & '            $%&
+                    fcb       $7E,$7E,$7E,$7E     ;( ) * +            all
                     fcb       $3F,$7D,$3E,$7D     ;, - . /
                     fcb       $00,$01,$02,$03     ;0 1 2 3
                     fcb       $04,$05,$06,$07     ;4 5 6 7
-                    fcb       $08,$09,$7D,$7E     ;8 9 : ;;
-                    fcb       $7E,$7E,$7E,$7C     ;< = > ? <=>
-                    fcb       $7E,$0A,$0B,$0C     ;@ A B C @
+                    fcb       $08,$09,$7D,$7E     ;8 9 : ;            ;
+                    fcb       $7E,$7E,$7E,$7C     ;< = > ?            <=>
+                    fcb       $7E,$0A,$0B,$0C     ;@ A B C            @
                     fcb       $0D,$0E,$0F,$10     ;D E F G
                     fcb       $11,$12,$13,$14     ;H I J K
                     fcb       $15,$16,$17,$18     ;L M N O
                     fcb       $19,$1A,$1B,$1C     ;P Q R S
                     fcb       $1D,$1E,$1F,$20     ;T U V W
-                    fcb       $21,$22,$23,$7E     ;X Y Z [ [
-                    fcb       $7E,$7E,$7E,$7D     ;\ ] ^ -\]^
+                    fcb       $21,$22,$23,$7E     ;X Y Z [             [
+                    fcb       $7E,$7E,$7E,$7D     ;\ ] ^ -            \]^
                     fcb       $7A,$24,$25,$26     ;' a b c
                     fcb       $27,$28,$29,$2A     ;d e f g
                     fcb       $2B,$2C,$2D,$2E     ;h i j k
                     fcb       $2F,$30,$31,$32     ;l m n o
                     fcb       $33,$34,$35,$36     ;p q r s
                     fcb       $37,$38,$39,$3A     ;t u v w
-                    fcb       $3B,$3C,$3D,$7E     ;x y z { {
-                    fcb       $7E,$7E,$7E,$7E     ;| } ~ all
+                    fcb       $3B,$3C,$3D,$7E     ;x y z {            {
+                    fcb       $7E,$7E,$7E,$7E     ;| } ~              all
 
 ;*******************************************************************************
 ; MC68HC05E0 functions.
