@@ -26,6 +26,10 @@ ND                  equ       9                   ;No. BCD DIGITS
 
 LCD_BUSY            pin       PORTD,3             ;LCD MODULE BUSY FLAG
 LCD_CLK             pin       PORTD,4             ;LCD CLOCK
+SWITCH              pin       PORTE,3             ;Switch output
+ALARM_SWITCH        pin       PORTE,1             ;Alarm switch input
+ALARM_BUZZER        pin       PORTE,2             ;Alarm sound (buzzer?)
+IO_LINE             pin       PORTD,5             ;I/O line
 
 ;*******************************************************************************
                     #RAM      $0030
@@ -219,28 +223,28 @@ Scan@@              brclr     4,STAT4,_3@@        ;ALARM ARMED ?
                     bne       _3@@                ;SAME ?
                     lda       SEC                 ;ONLY ALLOW WAKE-UP IN FIRST SECOND
                     bne       _3@@                ;TO PREVENT SWITCH-OFF LOCKOUT
-                    bset      3,PORTE             ;YES, SWITCH ON
-                    brset     1,PORTE,_2@@        ;ALARM ENABLED (SWITCH) ?
-                    bclr      2,PORTE             ;YES, SOUND ALARM
+                    bset      SWITCH              ;YES, SWITCH ON
+                    brset     ALARM_SWITCH,_2@@   ;ALARM ENABLED (SWITCH) ?
+                    bclr      ALARM_BUZZER        ;YES, SOUND ALARM
 _2@@                brset     0,PORTE,_3@@        ;SLEEP TIMER AT ALARM TIME ?
                     jsr       INSLP               ;YES, START SLEEP TIMER
 _3@@                brclr     1,STAT4,_4@@        ;SLEEP TIMER RUNNING ?
                     lda       SLEPT               ;YES
                     bne       _4@@                ;TIME TO FINISH ?
                     bclr      1,STAT4             ;YES, CLEAR FLAG
-                    bclr      3,PORTE             ;AND SWITCH OFF
+                    bclr      SWITCH              ;AND SWITCH OFF
 _4@@                bsr       KBD                 ;READ KEYBOARD
                     jsr       KEYP                ;EXECUTE KEY
                     lda       STAT3
                     and       #$0C
                     cmpa      #$0C                ;TA AND TP BOTH HIGH ?
                     beq       _5@@
-                    brset     5,PORTD,_6@@        ;NO, I/O LINE ALREADY HIGH ?
-                    bset      5,PORTD             ;NO, MAKE IT HIGH
+                    brset     IO_LINE,_6@@        ;NO, I/O LINE ALREADY HIGH ?
+                    bset      IO_LINE             ;NO, MAKE IT HIGH
                     bra       _6@@
 
-_5@@                brclr     5,PORTD,_6@@        ;TA=TP=1, I/O LINE ALREADY LOW ?
-                    bclr      5,PORTD             ;NO, MAKE IT LOW
+_5@@                brclr     IO_LINE,_6@@        ;TA=TP=1, I/O LINE ALREADY LOW ?
+                    bclr      IO_LINE             ;NO, MAKE IT LOW
 _6@@                brclr     6,STAT3,Cont@@      ;UPDATE DATE ?
                     bsr       MJDAT               ;YES, CONVERT FROM MJD
 Cont@@              bra       Idle@@
@@ -384,7 +388,7 @@ LAST                @?        $90,RDS             ;RDS DISPLAYS
 ;*******************************************************************************
 
 ALARM               proc
-                    brclr     2,PORTE,CancelAlarm ;ALARM RINGING ?
+                    brclr     ALARM_BUZZER,CancelAlarm ;ALARM RINGING ?
                     brclr     3,STAT4,On@@        ;NO, ALARM DISPLAY ON ?
                     brclr     4,STAT4,Off@@       ;YES, ALARM ON ?
                     bclr      4,STAT4             ;YES, SWITCH OFF
@@ -406,7 +410,7 @@ UdCnt@@             bclr      5,STAT4             ;CANCEL SET-UP
 ;*******************************************************************************
 
 ONOFF               proc
-                    brclr     2,PORTE,CancelAlarm ;ALARM RINGING ?
+                    brclr     ALARM_BUZZER,CancelAlarm ;ALARM RINGING ?
                     brclr     3,STAT4,NOTALR      ;NO, ALARM DISPLAY ?
                     brclr     4,STAT4,NOTALR      ;YES, ALARM ARMED ?
                     brset     5,STAT4,InSetup@@   ;YES, ALREADY SET-UP MODE ?
@@ -431,17 +435,17 @@ Mins@@              bclr      6,STAT4             ;YES, MAKE IT MINUTES
 NOTALR              proc
                     jsr       CLTR                ;CLEAR DISPLAY TRANSIENTS
                     bclr      1,STAT4             ;CANCEL SLEEP TIMER
-                    brset     3,PORTE,On@@        ;ON ?
-SODM                bset      3,PORTE             ;NO, SWITCH ON
+                    brset     SWITCH,On@@         ;ON ?
+SODM                bset      SWITCH              ;NO, SWITCH ON
                     rts
 
-On@@                bclr      3,PORTE             ;YES, SWITCH OFF
+On@@                bclr      SWITCH              ;YES, SWITCH OFF
                     rts
 
 ;*******************************************************************************
 
 CancelAlarm         proc
-                    bset      2,PORTE             ;CANCEL ALARM
+                    bset      ALARM_BUZZER        ;CANCEL ALARM
                     rts
 
 ;*******************************************************************************
@@ -449,7 +453,7 @@ CancelAlarm         proc
 ;*******************************************************************************
 
 SLEEP               proc
-                    brclr     2,PORTE,CancelAlarm ;ALARM RINGING ?
+                    brclr     ALARM_BUZZER,CancelAlarm ;ALARM RINGING ?
                     brclr     5,STAT4,_1@@        ;NO, ALARM SET-UP ?
                     bra       PDEC                ;YES
 
@@ -481,9 +485,9 @@ SLPTOK              lda       #25
 ;*******************************************************************************
 
 RDS                 proc
-                    brclr     2,PORTE,CancelAlarm ;ALARM RINGING ?
+                    brclr     ALARM_BUZZER,CancelAlarm ;ALARM RINGING ?
                     brset     5,STAT4,PINC        ;NO, ALARM SET-UP ?
-                    brclr     3,PORTE,_2@@        ;NO, STANDBY ?
+                    brclr     SWITCH,_2@@         ;NO, STANDBY ?
                     brset     7,STAT4,_1@@        ;ALREADY RDS ?
                     brclr     2,STAT2,_3@@        ;ALREADY RT DISPLAY ?
 _1@@                bset      7,STAT4             ;SET RDS DISPLAY FLAG
@@ -1207,7 +1211,7 @@ _1@@                jsr       WAIT
                     jsr       WAIT
                     lda       #$80                ;ADDRESS DISPLAY RAM
                     jsr       CLOCK               ;LATCH IT
-                    brset     3,PORTE,_2@@        ;STANDBY ?
+                    brset     SWITCH,_2@@         ;STANDBY ?
                     brset     2,STAT4,_11@@       ;YES, SLEEP DISPLAY ?
                     brset     3,STAT4,_13@@       ;NO, ALARM DISPLAY ?
                     jsr       STBYD               ;NO, NORMAL STANDBY DISPLAY
