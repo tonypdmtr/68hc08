@@ -21,6 +21,13 @@ PORTDSF             equ       $12                 ;PORTD SPECIAL FUNCTIONS
 ND                  equ       9                   ;No. BCD DIGITS
 
 ;*******************************************************************************
+; PIN definitions
+;*******************************************************************************
+
+LCD_BUSY            pin       PORTD,3             ;LCD MODULE BUSY FLAG
+LCD_CLK             pin       PORTD,4             ;LCD CLOCK
+
+;*******************************************************************************
                     #RAM      $0030
 ;*******************************************************************************
 
@@ -1396,15 +1403,16 @@ CLTR                bclr      0,STAT4             ;CLEAR DISPLAY TRANSIENT FLAG
 ; PTY display.
 ;*******************************************************************************
 
-PTYD                ldx       PTY                 ;PTY
+PTYD                proc
+                    ldx       PTY
                     cpx       #16
-                    blo       XOK2
+                    blo       _1@@
                     clrx
-XOK2                lda       #16
+_1@@                lda       #::PTYT             ;size of table entry (WAS: #16)
                     mul
                     sta       W8
                     clr       W7
-LCD3                ldx       W8
+Loop@@              ldx       W8
                     lda       PTYT,x
                     ldx       W7
                     sta       DISP,x              ;WAS MOD2
@@ -1412,45 +1420,52 @@ LCD3                ldx       W8
                     inc       W7
                     lda       W7
                     cmpa      #16
-                    blo       LCD3
+                    blo       Loop@@
                     rts
 
 ;*******************************************************************************
-; RDS display.
+; RDS display
 ;*******************************************************************************
 
-NXTC                ldx       DISP2
+NXTC                proc
+                    ldx       DISP2
                     lda       RT-1,x              ;RT
                     cmpa      #$20
                     bne       NOTSP               ;SPACE ?
                     brclr     5,STAT2,FSP         ;YES, FIRST ONE ?
                     inc       DISP1               ;NO, SKIP THIS ONE
                     inc       DISP2
-RTDS                lda       DISP2
-SKP1                cmpa      #69
-                    bhi       LCD4                ;END OF RT BUFFER
+;                   bra       RTDS
+
+;*******************************************************************************
+
+RTDS                proc
+                    lda       DISP2
+                    cmpa      #69
+                    bhi       Done@@              ;END OF RT BUFFER
                     bra       NXTC                ;NO, GET NEXT CHARACTER
 
 FSP                 bset      5,STAT2             ;FIRST SPACE, SET FLAG
-                    bra       CONT
+                    bra       Cont@@
 
 NOTSP               bclr      5,STAT2             ;NOT A SPACE, CLEAR FLAG
-CONT                sta       W8                  ;SAVE NEW CHARACTER
+Cont@@              sta       W8                  ;SAVE NEW CHARACTER
                     clrx
-ILP1                lda       DISP+1,x            ;MOVE
+Loop@@              lda       DISP+1,x            ;MOVE
                     sta       DISP,x              ;REST
                     incx                          ;LEFT
                     cpx       #15                 ;ONE
-                    bne       ILP1                ;PLACE
+                    bne       Loop@@              ;PLACE
                     lda       W8
                     sta       DISP+15             ;ADD NEW CHAR. (WAS MOD2)
-LCD4                rts
+Done@@              rts
 
 ;*******************************************************************************
-; Standby display.
+; Standby display
 ;*******************************************************************************
 
-STBYD               brset     4,STAT4,ALRMA       ;ALARM ARMED ?
+STBYD               proc
+                    brset     4,STAT4,ALRMA       ;ALARM ARMED ?
                     lda       DOW                 ;NO, GET DAY OF WEEK
                     lsla
                     add       DOW
@@ -1469,17 +1484,17 @@ STBYD               brset     4,STAT4,ALRMA       ;ALARM ARMED ?
                     add       #$30
                     sta       DISP+5
                     lda       DOM
-                    beq       ADD20               ;IF ZERO USE A SPACE
+                    beq       _1@@                ;IF ZERO USE A SPACE
                     add       #$10                ;IF NOT MAKE ASCII
-ADD20               add       #$20
+_1@@                add       #$20
                     sta       DISP+4
                     ldx       MNTH+1              ;MONTH, LSD
                     lda       MNTH                ;MONTH, MSD
-                    beq       MTHZ
+                    beq       _2@@
                     txa
                     add       #10
                     tax
-MTHZ                stx       W8
+_2@@                stx       W8
                     txa
                     lsla
                     add       W8
@@ -1493,10 +1508,11 @@ MTHZ                stx       W8
                     bra       STIME
 
 ;*******************************************************************************
-; Standby (alarm armed) display.
+; Standby (alarm armed) display
 ;*******************************************************************************
 
-ALRMA               lda       AOUR                ;GET ALARM HOURS
+ALRMA               proc
+                    lda       AOUR                ;GET ALARM HOURS
                     jsr       CBCD
                     stx       DISP
                     sta       DISP+1
@@ -1505,11 +1521,11 @@ ALRMA               lda       AOUR                ;GET ALARM HOURS
                     stx       DISP+2
                     sta       DISP+3
                     clrx
-ALOP2               lda       ALARMS+1,x
+_1@@                lda       ALARMS+1,x
                     sta       DISP+4,x
                     incx
                     cpx       #6
-                    bls       ALOP2
+                    bls       _1@@
 STIME               lda       OUR                 ;GET TIME
                     jsr       CBCD
                     cpx       #$30                ;LEADING ZERO ?
@@ -1528,17 +1544,18 @@ DTF                 sta       DISP+13
                     rts
 
 ;*******************************************************************************
-; PI display.
+; PI display
 ;*******************************************************************************
 
-DIPI                clrx
-DLOP                lda       PIST,x
+DIPI                proc
+                    clrx
+Loop@@              lda       PIST,x
                     sta       DISP,x
                     incx
                     cpx       #15
-                    bls       DLOP
+                    bls       Loop@@
                     lda       PI
-                    beq       PINV
+                    beq       Done@@
                     jsr       SPLIT
                     stx       DISP+11
                     sta       DISP+12
@@ -1546,71 +1563,74 @@ DLOP                lda       PIST,x
                     jsr       SPLIT
                     stx       DISP+13
                     sta       DISP+14
-PINV                rts
+Done@@              rts
 
 ;*******************************************************************************
-; Alarm display.
+; Alarm display
 ;*******************************************************************************
 
-ALRMD               clrx                          ;YES
-ALOP                lda       ALARMS,x
+ALRMD               proc
+                    clrx                          ;YES
+_1@@                lda       ALARMS,x
                     sta       DISP,x
                     incx
                     cpx       #15
-                    bls       ALOP
-                    brclr     4,STAT4,ALOF2       ;ALARM ARMED ?
+                    bls       _1@@
+                    brclr     4,STAT4,Done@@      ;ALARM ARMED ?
                     lda       #$3A                ;YES
                     sta       DISP+12
                     lda       AOUR                ;GET ALARM HOURS
                     jsr       CBCD
                     cpx       #$30                ;LEADING ZERO ?
-                    bne       TN3
+                    bne       _2@@
                     ldx       #$20                ;YES, MAKE IT A SPACE
-TN3                 stx       DISP+10
+_2@@                stx       DISP+10
                     sta       DISP+11
                     lda       AMIN
                     jsr       CBCD
                     stx       DISP+13
                     sta       DISP+14
-                    brclr     5,STAT4,ALOF2       ;SET-UP ?
-                    brclr     2,TH8,ALOF2
+                    brclr     5,STAT4,Done@@      ;SET-UP ?
+                    brclr     2,TH8,Done@@
                     lda       #$20
-                    brset     6,STAT4,FH          ;HOURS ?
+                    brset     6,STAT4,_3@@        ;HOURS ?
                     sta       DISP+13             ;NO, FLASH MINUTES
                     sta       DISP+14
-                    bra       ALOF2
+                    bra       Done@@
 
-FH                  sta       DISP+10             ;YES, FLASH HOURS
+_3@@                sta       DISP+10             ;YES, FLASH HOURS
                     sta       DISP+11
-ALOF2               rts
+Done@@              rts
 
 ;*******************************************************************************
-; TA & TP flags display.
+; TA & TP flags display
 ;*******************************************************************************
 
-DITAP               clrx
-BLOP                lda       TAPST,x
+DITAP               proc
+                    clrx
+Loop@@              lda       TAPST,x
                     sta       DISP,x
                     incx
                     cpx       #15
-                    bls       BLOP
+                    bls       Loop@@
                     lda       #$31
-                    brclr     3,STAT3,TPLOW       ;TP FLAG HIGH ?
+                    brclr     3,STAT3,_1@@        ;TP FLAG HIGH ?
                     sta       DISP+6              ;YES, DISPLAY A 1
-TPLOW               brclr     2,STAT3,TALOW       ;TA FLAG HIGH ?
+_1@@                brclr     2,STAT3,Done@@      ;TA FLAG HIGH ?
                     sta       DISP+14             ;YES, DISPLAY A 1
-TALOW               rts
+Done@@              rts
 
 ;*******************************************************************************
-; PIN displays.
+; PIN displays
 ;*******************************************************************************
 
-DPIN1               clrx
-PLOP                lda       PINST1,x
+DPIN1               proc
+                    clrx
+Loop@@              lda       PINST1,x
                     sta       DISP,x
                     incx
                     cpx       #15
-                    bls       PLOP
+                    bls       Loop@@
                     lda       PIN
                     beq       PINNV
                     jsr       SPLIT
@@ -1630,9 +1650,7 @@ INCX
                     bls       PLOP2
                     lda       PIN                 ;DATE
                     beq       PINNV
-                    lsra
-                    lsra
-                    lsra
+                    lsra:3
                     jsr       CBCD
                     cpx       #$30
                     bne       DTN0
@@ -1677,12 +1695,13 @@ NOTRD               lda       PIN                 ;HOURS
                     rts
 
 ;*******************************************************************************
-; MJD display.
+; MJD display
 ;*******************************************************************************
 
-DMJD                bsr       SMJD
+DMJD                proc
+                    bsr       SMJD
                     lda       MJD
-                    beq       MJDNV
+                    beq       Done@@
                     add       #$30
                     sta       DISP+10
                     lda       MJD+1
@@ -1697,21 +1716,25 @@ DMJD                bsr       SMJD
                     lda       MJD+4
                     add       #$30
                     sta       DISP+14
-MJDNV               rts
+Done@@              rts
 
-SMJD                clrx
-MLOP                lda       MJDST,x
+;*******************************************************************************
+
+SMJD                proc
+                    clrx
+Loop@@              lda       MJDST,x
                     sta       DISP,x
                     incx
                     cpx       #15
-                    bls       MLOP
+                    bls       Loop@@
                     rts
 
 ;*******************************************************************************
-; EON display.
+; EON display
 ;*******************************************************************************
 
-DEON                bsr       SMJD                ;CLEAR FREQUENCY CHARACTERS
+DEON                proc
+                    bsr       SMJD                ;CLEAR FREQUENCY CHARACTERS
                     lda       RTDIS
                     sub       #8
                     ldx       #16
@@ -1738,14 +1761,14 @@ DEON                bsr       SMJD                ;CLEAR FREQUENCY CHARACTERS
                     sta       DISP+7
                     lda       EON+13,x
                     cmpa      #205                ;FILLER ?
-                    bne       NFIL
+                    bne       _1@@
                     incx
                     lda       EON+13,x            ;YES, TRY AGAIN
-NFIL                cmpa      #250                ;MEDIUM/LONG ?
+_1@@                cmpa      #250                ;MEDIUM/LONG ?
                     beq       MLWF
                     cmpa      #204                ;NO, FREQUENCY OK ?
-                    bhi       FNOK2
-FOK2                ldx       #10                 ;VHF
+                    bhi       Done@@
+                    ldx       #10                 ;VHF
                     mul
                     add       #$2E                ;CALCULATE FREQUENCY (BINARY)
                     sta       W1
@@ -1753,18 +1776,18 @@ FOK2                ldx       #10                 ;VHF
                     adc       #$22
                     sta       W2
                     jsr       DCON2               ;CONVERT TO DECIMAL
-TYPE3               lda       Q+4                 ;DISPLAY VHF EON FREQUENCY
-                    bne       NZ1
+                    lda       Q+4                 ;DISPLAY VHF EON FREQUENCY
+                    bne       _2@@
                     lda       #$F0
-NZ1                 add       #$30
+_2@@                add       #$30
                     sta       DISP+10
                     tax
                     lda       Q+5
-                    bne       NZ2
+                    bne       _3@@
                     cpx       #$20
-                    bne       NZ2
+                    bne       _3@@
                     lda       #$F0
-NZ2                 add       #$30
+_3@@                add       #$30
                     sta       DISP+11
                     lda       Q+6
                     add       #$30
@@ -1777,9 +1800,12 @@ NZ2                 add       #$30
                     lda       Q+8
                     add       #$30
                     sta       DISP+15
-FNOK2               rts
+Done@@              rts
 
-MLWF                incx                          ;DISPLAY M/L EON FREQUENCY
+;*******************************************************************************
+
+MLWF                proc
+                    incx                          ;DISPLAY M/L EON FREQUENCY
                     lda       EON+13,x
                     cmpa      #15
                     bls       LONG
@@ -1897,29 +1923,34 @@ AOK                 rts
 ; Check to see if LCD module is busy.
 ;*******************************************************************************
 
-CLOCK               sta       PORTC
-                    bset      4,PORTD
-                    bclr      4,PORTD             ;CLOCK IT
+CLOCK               proc
+                    sta       PORTC
+                    bset      LCD_CLK
+                    bclr      LCD_CLK             ;CLOCK IT
                     rts
 
-WAIT                bclr      2,PORTD
-                    bset      3,PORTD             ;READ LCD MODULE BUSY FLAG
-                    bclr      4,PORTD
+;*******************************************************************************
+
+WAIT                proc
+                    bclr      2,PORTD
+                    bset      LCD_BUSY            ;READ LCD MODULE BUSY FLAG
+                    bclr      LCD_CLK
                     clr       PORTCD              ;INPUT ON PORTC
-WLOOP               bset      4,PORTD             ;CLOCK HIGH
+Loop@@              bset      LCD_CLK             ;CLOCK HIGH
                     lda       PORTC               ;READ MODULE
-                    bclr      4,PORTD             ;CLOCK LOW
+                    bclr      LCD_CLK             ;CLOCK LOW
                     sta       W7
-                    brset     7,W7,WLOOP          ;BUSY ?
+                    brset     7,W7,Loop@@         ;BUSY ?
                     com       PORTCD              ;OUTPUT ON PORTC
-                    bclr      3,PORTD
+                    bclr      LCD_BUSY
                     rts
 
 ;*******************************************************************************
 ; Hex->BCD conversion (& decimal adjust).
 ;*******************************************************************************
 
-CBCD                bsr       UPX
+CBCD                proc
+                    bsr       UPX
                     bsr       ADJI                ;DECIMAL ADJUST
 BCD                 sta       W7                  ;SAVE
                     add       #$16                ;ADD $16 (BCD 10)
@@ -1929,16 +1960,25 @@ BCD                 sta       W7                  ;SAVE
                     lda       W7                  ;YES, RESTORE A
                     bra       SPLIT
 
-ADJU                bhcc      ADJI                ;OVERFLOW ?
+;*******************************************************************************
+
+ADJU                proc
+                    bhcc      ADJI                ;OVERFLOW ?
                     add       #6                  ;YES
                     rts
 
-ADJI                add       #6                  ;NO, BUT IS LS DIGIT
+;*******************************************************************************
+
+ADJI                proc
+                    add       #6                  ;NO, BUT IS LS DIGIT
                     bhcs      ARTS                ;BIGGER THAN 9 ?
                     sub       #6                  ;NO, RESTORE
 ARTS                rts
 
-UPX                 tax
+;*******************************************************************************
+
+UPX                 proc
+                    tax
                     lsrx:4                        ;MSB IN X
                     and       #$0F                ;LSB IN A
                     rts
@@ -2010,22 +2050,22 @@ MNAME               fcc       'JanFebMarAprMayJunJulAugSepOctNovDec'
 ; Programme Type (PTY) Codes.
 ;*******************************************************************************
 
-PTYT                fcc       'no program type '  ;0
-                    fcc       ' News '            ;1
+PTYT                fcc       'No program type '  ;0
+                    fcc       'News            '  ;1
                     fcc       'Current affairs '  ;2
-                    fcc       ' Information '     ;3
-                    fcc       ' Sport '           ;4
-                    fcc       ' Education '       ;5
-                    fcc       ' Drama '           ;6
-                    fcc       ' Culture '         ;7
-                    fcc       ' Science '         ;8
-                    fcc       ' Varied '          ;9
-                    fcc       ' Pop music '       ;10
-                    fcc       ' Rock music '      ;11
-                    fcc       ' Easy listening '  ;12
-                    fcc       ' Light classics '  ;13
+                    fcc       'Information     '  ;3
+                    fcc       'Sport           '  ;4
+                    fcc       'Education       '  ;5
+                    fcc       'Drama           '  ;6
+                    fcc       'Culture         '  ;7
+                    fcc       'Science         '  ;8
+                    fcc       'Varied          '  ;9
+                    fcc       'Pop music       '  ;10
+                    fcc       'Rock music      '  ;11
+                    fcc       'Easy listening  '  ;12
+                    fcc       'Light classics  '  ;13
                     fcc       'Serious classics'  ;14
-                    fcc       ' Other music '     ;15
+                    fcc       'Other music     '  ;15
 
 ;*******************************************************************************
 ; VFD character set.
