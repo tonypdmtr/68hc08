@@ -164,21 +164,19 @@ Start               proc
                     lda       #63                 ;TIMER A PRE-SCALER: /64
                     sta       TAP                 ;64Hz IDLE LOOP
                     clr       PORTA
-                    lda       #$FF                ;E0BUG DISPLAY/KEYBOARD I/O
-                    sta       DDRA                ;NOT USED IN RDS APPLICATION
+                    mov       #$FF,DDRA           ;E0BUG DISPLAY/KEYBOARD I/O (NOT USED IN RDS APPLICATION)
                     clr       PORTB               ;0, 1: SERIAL CLOCK AND DATA
-                    lda       #$CB                ;2: RDS DATA IN, 3: VFD SELECT
-                    sta       DDRB                ;4, 5: KEYBOARD IN, 6, 7: KEYBOARD OUT
+                    mov       #$CB,DDRB           ;2: RDS DATA IN, 3: VFD SELECT
+                                                  ;4, 5: KEYBOARD IN, 6, 7: KEYBOARD OUT
                     clr       PORTC
-                    lda       #$FF                ;ALL OUT, LCD DATA BUS
-                    sta       DDRC
+                    mov       #$FF,DDRC           ;ALL OUT, LCD DATA BUS
                     lda       #$3C                ;BITS 2, 3 & 4 OUT, LCD
                     clr       PORTD               ;2: RS, 3: R/W, 4: CLOCK, 5: LED (TA=TP=1)
                     sta       DDRD                ;0, 1, 6 & 7 USED DURING DEBUG
-                    lda       #$0C                ;BIT0: INPUT, ENABLE SLEEP TIMER AT ALARM TIME
-                    sta       PORTE               ;BIT1: INPUT, ENABLE ALARM OUTPUT
-;                   lda       #$0C                ;BIT2: ALARM OUTPUT (ACTIVE LOW)
-                    sta       DDRE                ;BIT3: RADIO ON OUTPUT (ACTIVE HIGH)
+                    mov       #$0C,PORTE          ;BIT0: INPUT, ENABLE SLEEP TIMER AT ALARM TIME
+                                                  ;BIT1: INPUT, ENABLE ALARM OUTPUT
+                    mov       #$0C,DDRE           ;BIT2: ALARM OUTPUT (ACTIVE LOW)
+                                                  ;BIT3: RADIO ON OUTPUT (ACTIVE HIGH)
           ;-------------------------------------- ;Initialise LCD
                     lda       #$30
                     jsr       CLOCK               ;INITIALISE LCD
@@ -273,20 +271,15 @@ Cont@@              bra       Idle@@
 ;*******************************************************************************
 
 MJDAT               proc
-                    lda       bmjd+2
-                    sta       year+2
-                    lda       bmjd+1
-                    sta       year+1
-                    lda       bmjd
-                    sta       year
-                    ldx       #r                  ;CLEAR
-                    stx       num1
+                    mov       bmjd+2,year+2
+                    mov       bmjd+1,year+1
+                    mov       bmjd,year
+                    mov       #r,num1             ;CLEAR
                     jsr       CLRAS               ;R
                     inc       r+ND-1              ;R <- 1
                     ldx       #mjd
                     jsr       CLRAS               ;CLEAR mjd
-                    lda       #17                 ;17 BITS TO CONVERT
-                    sta       w6
+                    mov       #17,w6              ;17 BITS TO CONVERT
 LooP@@              lsr       year                ;MOVE OUT
                     ror       year+1
                     ror       year+2              ;FIRST (LS) BIT
@@ -294,8 +287,7 @@ LooP@@              lsr       year                ;MOVE OUT
                     ldx       #mjd                ;ONE, ADD
                     stx       num2                ;CURRENT VALUE
                     jsr       ADD                 ;OF R
-Cont@@              ldx       #r                  ;ADD R
-                    stx       num2                ;TO
+Cont@@              mov       #r,num2             ;ADD R TO
                     jsr       ADD                 ;ITSELF
                     dbnz      w6,LooP@@           ;ALL DONE ?
                     bclr      UPDATE_DATE         ;MJD UPDATED
@@ -315,8 +307,7 @@ _1@@                lsla                          ;SELECT ROW
                     lda       PORTB               ;READ KEYBOARD
                     bit       #$30                ;ANY INPUT LINE HIGH ?
                     bne       _2@@
-                    decx                          ;NO, TRY NEXT COLUMN
-                    bne       _1@@                ;LAST COLUMN ?
+                    dbnzx     _1@@                ;NO, TRY NEXT COLUMN. LAST COLUMN ?
                     clr       key                 ;YES, NO KEY PRESSED
                     bra       Exit@@
 
@@ -429,8 +420,7 @@ ONOFF               proc
                     brset     ALARM_SETUP,InSetup@@         ;YES, ALREADY SET-UP MODE ?
                     bset      ALARM_SETUP                   ;NO, ENTER SET-UP MODE
                     bset      ALARM_HOURS_SETUP             ;WITH HOURS
-Loop@@              lda       #80
-                    sta       dist
+Loop@@              mov       #80,dist
                     bset      DISPLAY_TRANSIENT             ;SET DISPLAY TRANSIENT FLAG
                     rts
 
@@ -515,10 +505,8 @@ _2@@                rts
 
 _3@@                jsr       CLTR                ;CLEAR DISPLAY TRANSIENTS
                     bset      RT_DISPLAY          ;SET RT DISPLAY FLAG
-                    lda       #9
-                    sta       disp1
-                    lda       #1
-                    sta       disp2
+                    mov       #9,disp1
+                    mov       #1,disp2
                     rts
 
 ;*******************************************************************************
@@ -559,8 +547,7 @@ PDEC                proc
                     dec       alarm_mins
                     bra       _3@@
 
-_1@@                lda       #59
-                    sta       alarm_mins
+_1@@                mov       #59,alarm_mins
                     bra       _3@@
 
 _2@@                tst       alarm_hours
@@ -571,8 +558,7 @@ _3@@                lda       #80                 ;10 SECOND TIMEOUT
                     bset      DISPLAY_TRANSIENT   ;SET DISPLAY TRANSIENT FLAG
                     rts
 
-_4@@                lda       #23
-                    sta       alarm_hours
+_4@@                mov       #23,alarm_hours
                     bra       _3@@
 
 ;*******************************************************************************
@@ -642,8 +628,8 @@ Done@@              rti
 ;*******************************************************************************
 
 IRQ_Handler         proc
-                    brset     SPI_MISO,*+3
-                    rol       dat+3
+                    brset     SPI_MISO,_@@
+_@@                 rol       dat+3
                     rol       dat+2
                     rol       dat+1
                     rol       dat
@@ -1115,17 +1101,16 @@ OUT1                bclr      VALID_GROUP         ;GROUP HANDLED, CLEAR FLAG
 
 PROC14              proc
                     cmpa      #$E0
-                    beq       GRP14A
-                    jmp       OUT2
+                    jne       _7@@
 
-GRP14A              clr       irq_tmp             ;LOOK FOR PI CODE IN TABLE
-LPIL                ldx       irq_tmp
+                    clr       irq_tmp             ;LOOK FOR PI CODE IN TABLE
+Loop@@              ldx       irq_tmp
                     lda       EON,x
                     cmpa      group+6
-                    bne       NOTH
+                    bne       _5@@
                     lda       EON+1,x
                     cmpa      group+7
-                    bne       NOTH
+                    bne       _5@@
 ;                   lda       group+3             ;TP (ON), NOT USED
 ;                   and       #$10
 ;                   ldx       irq_tmp
@@ -1133,7 +1118,7 @@ LPIL                ldx       irq_tmp
                     lda       group+3             ;PI CODE FOUND
                     and       #$0F
                     cmpa      #4                  ;PS ?
-                    bhs       NPS
+                    bhs       _1@@
                     lsla                          ;YES
                     add       irq_tmp
                     tax
@@ -1143,65 +1128,65 @@ LPIL                ldx       irq_tmp
                     sta       EON+3,x
                     bra       OUT1
 
-NPS                 cmpa      #4                  ;AF ?
-                    bne       TRYPIN
+_1@@                cmpa      #4                  ;AF ?
+                    bne       _4@@
                     lda       group+4             ;YES, METHOD A
                     cmpa      #250
-                    bne       NMLW                ;MEDIUM OR LONG WAVE ?
+                    bne       _2@@                ;MEDIUM OR LONG WAVE ?
                     lda       EON+12,x            ;YES
                     cmpa      #$FF                ;FIRST 2 BYTES ALREADY IN ?
-                    beq       OUT2                ;IF NOT, DO NOTHING
+                    beq       _7@@                ;IF NOT, DO NOTHING
                     lda       EON+14,x            ;YES
                     cmpa      #$FF                ;M/L FREQUENCY ALREADY IN ?
-                    bne       OUT2                ;IF SO, DO NOTHING
+                    bne       _7@@                ;IF SO, DO NOTHING
                     lda       #250                ;NO, STORE FIRST FREQUENCY AFTER
                     sta       EON+14,x            ;ARRIVAL OF INITIAL BYTES
                     lda       group+5
                     sta       EON+15,x
-                    bra       OUT2
+                    bra       _7@@
 
-NMLW                cmpa      #224                ;FM
-                    blo       TOOLS               ;LEGAL ? (No. OF FREQUENCIES)
+_2@@                cmpa      #224                ;FM
+                    blo       _3@@                ;LEGAL ? (No. OF FREQUENCIES)
                     cmpa      #249
-                    bhi       TOOLS
+                    bhi       _3@@
                     ldx       irq_tmp
                     sta       EON+12,x            ;YES, SAVE No. OF FREQUENCIES
                     lda       group+5
                     sta       EON+13,x            ;AND FIRST FREQUENCY
-TOOLS               bra       OUT2
+_3@@                bra       _7@@
 
-;TRYPTY             cmpa      #$0D
-;                   bne       TRYPIN
+;                   cmpa      #$0D
+;                   bne       _4@@
 ;                   lda       group+4             ;PTY (EON), NOT USED
 ;                   lsra:3
 ;                   ldx       irq_tmp
 ;                   sta       EON+10,x
-;                   bra       OUT2
-TRYPIN              cmpa      #$0E
-                    bne       OUT2
+;                   bra       _7@@
+_4@@                cmpa      #$0E
+                    bne       _7@@
                     ldx       irq_tmp             ;PIN
                     lda       group+4
                     sta       EON+10,x
                     lda       group+5
                     sta       EON+11,x
-                    bra       OUT2
+                    bra       _7@@
 
-NOTH                cmpa      #$FF                ;END OF PI LIST ?
-                    bne       NOTH1
+_5@@                cmpa      #$FF                ;END OF PI LIST ?
+                    bne       _6@@
                     lda       group+6             ;YES, ADD THIS PI CODE
                     sta       EON,x
                     lda       group+7             ;TO EON TABLE
                     sta       EON+1,x
-                    bra       OUT2
+                    bra       _7@@
 
-NOTH1               lda       irq_tmp             ;NOT END, TRY NEXT ENTRY
+_6@@                lda       irq_tmp             ;NOT END, TRY NEXT ENTRY
                     add       #16
                     sta       irq_tmp
                     cmpa      #$B0                ;END OF TABLE (11 ENTRIES) ?
-                    beq       OUT2
-                    jmp       LPIL
+                    beq       _7@@
+                    jmp       Loop@@
 
-OUT2                bclr      VALID_GROUP         ;GROUP HANDLED, CLEAR FLAG
+_7@@                bclr      VALID_GROUP         ;GROUP HANDLED, CLEAR FLAG
                     rti
 
 ;*******************************************************************************
