@@ -7,6 +7,7 @@
 ;* Original  : http://www.aspisys.com/code/hc08/leap.html
 ;* History   : 10.12.09 v1.00 Original
 ;*           : 13.11.27 v1.10 Allowed for use even in non-MMU mode
+;*           : 21.12.29       Added #Error if placed inside the PPAGE window
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -15,11 +16,19 @@
                     #ListOn
 #endif ;------------------------------------------------------------------------
 ?_OBJECT_?
+          #if ]]{:pc} <> 0
+            #if [[{:pc} >= :PAGE_START
+              #if ]]{:pc} <= :PAGE_END
+                    #Error    Place this library outside PPAGE window
+              #endif
+            #endif
+          #endif
 ;*******************************************************************************
 ; Purpose: Uses CALL to leap to any PPAGE (no return address remains on stack)
 ; Input  : 24-bit address stored in three bytes following the CALL instruction
 ; Output : None
-; Note(s): It is assumed that the #MMU mode is active
+; Note(s): It is assumed that the #MMU mode is active and this function is not
+;        : inside a PPAGE window (and certainly not a different one from the caller's)
 ; Use    :          call      LEAP
 ;        :          far       SomeFarCode
 
