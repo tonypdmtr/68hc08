@@ -347,6 +347,7 @@
 ;*           : 21.10.22       Added test case known to fail with buggy 32-bit math
 ;*           : 21.10.23 v8.58 BugFix: Failed to add CCR[C] in v8.55 32-bit optimization [+3 bytes]
 ;*           :                SPEED_SIZE activated optimization in relation to previous bug [-7 bytes]
+;*           : 21.12.18       Minor optimization for Carry propagation in ?_Mul32 proc [-1 byte]
 ;*******************************************************************************
 
 ;Synopsis (replace * with 16, 24, 32, 40, 48, 56, 64 for corresponding bit version):
@@ -1332,10 +1333,9 @@ ans@@               equ       1,4
                     tsx
                     adc       ans@@+1,spx
                     sta       ans@@+1,spx
-                    clra
-                    adc       ans@@,spx
-                    sta       ans@@,spx
-                    rts
+                    bcc       Done@@
+                    inc       ans@@,spx
+Done@@              rts
 
                     #temp     :cycles*2+:temp
   #endif
