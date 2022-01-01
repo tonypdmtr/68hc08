@@ -127,7 +127,6 @@ Vswi                equ       $0000FFFC
 Vreset              equ       $0000FFFE
 ;
 
-
 ;*** PTAD - Port A Data Register
 PTAD                equ       $00000000           ;*** PTAD - Port A Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -148,7 +147,6 @@ mPTAD_PTAD4         equ       %00010000
 mPTAD_PTAD5         equ       %00100000
 mPTAD_PTAD6         equ       %01000000
 mPTAD_PTAD7         equ       %10000000
-
 
 ;*** PTADD - Port A Data Direction Register
 PTADD               equ       $00000001           ;*** PTADD - Port A Data Direction Register
@@ -171,7 +169,6 @@ mPTADD_PTADD5       equ       %00100000
 mPTADD_PTADD6       equ       %01000000
 mPTADD_PTADD7       equ       %10000000
 
-
 ;*** PTBD - Port B Data Register
 PTBD                equ       $00000002           ;*** PTBD - Port B Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -192,7 +189,6 @@ mPTBD_PTBD4         equ       %00010000
 mPTBD_PTBD5         equ       %00100000
 mPTBD_PTBD6         equ       %01000000
 mPTBD_PTBD7         equ       %10000000
-
 
 ;*** PTBDD - Port B Data Direction Register
 PTBDD               equ       $00000003           ;*** PTBDD - Port B Data Direction Register
@@ -215,7 +211,6 @@ mPTBDD_PTBDD5       equ       %00100000
 mPTBDD_PTBDD6       equ       %01000000
 mPTBDD_PTBDD7       equ       %10000000
 
-
 ;*** PTCD - Port C Data Register
 PTCD                equ       $00000004           ;*** PTCD - Port C Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -229,7 +224,6 @@ mPTCD_PTCD5         equ       %00100000
 mPTCD_PTCD6         equ       %01000000
 mPTCD_PTCD7         equ       %10000000
 
-
 ;*** PTCDD - Port C Data Direction Register
 PTCDD               equ       $00000005           ;*** PTCDD - Port C Data Direction Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -242,7 +236,6 @@ mPTCDD_PTCDD4       equ       %00010000
 mPTCDD_PTCDD5       equ       %00100000
 mPTCDD_PTCDD6       equ       %01000000
 mPTCDD_PTCDD7       equ       %10000000
-
 
 ;*** PTDD - Port D Data Register
 PTDD                equ       $00000006           ;*** PTDD - Port D Data Register
@@ -265,7 +258,6 @@ mPTDD_PTDD5         equ       %00100000
 mPTDD_PTDD6         equ       %01000000
 mPTDD_PTDD7         equ       %10000000
 
-
 ;*** PTDDD - Port D Data Direction Register
 PTDDD               equ       $00000007           ;*** PTDDD - Port D Data Direction Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -286,7 +278,6 @@ mPTDDD_PTDDD4       equ       %00010000
 mPTDDD_PTDDD5       equ       %00100000
 mPTDDD_PTDDD6       equ       %01000000
 mPTDDD_PTDDD7       equ       %10000000
-
 
 ;*** TPM1SC - TPM1 Status and Control Register
 TPM1SC              equ       $00000008           ;*** TPM1SC - TPM1 Status and Control Register
@@ -309,30 +300,23 @@ mTPM1SC_CPWMS       equ       %00100000
 mTPM1SC_TOIE        equ       %01000000
 mTPM1SC_TOF         equ       %10000000
 
-
 ;*** TPM1CNT - TPM1 Timer Counter Register
 TPM1CNT             equ       $00000009           ;*** TPM1CNT - TPM1 Timer Counter Register
-
 
 ;*** TPM1CNTH - TPM1 Timer Counter Register High
 TPM1CNTH            equ       $00000009           ;*** TPM1CNTH - TPM1 Timer Counter Register High
 
-
 ;*** TPM1CNTL - TPM1 Timer Counter Register Low
 TPM1CNTL            equ       $0000000A           ;*** TPM1CNTL - TPM1 Timer Counter Register Low
-
 
 ;*** TPM1MOD - TPM1 Timer Counter Modulo Register
 TPM1MOD             equ       $0000000B           ;*** TPM1MOD - TPM1 Timer Counter Modulo Register
 
-
 ;*** TPM1MODH - TPM1 Timer Counter Modulo Register High
 TPM1MODH            equ       $0000000B           ;*** TPM1MODH - TPM1 Timer Counter Modulo Register High
 
-
 ;*** TPM1MODL - TPM1 Timer Counter Modulo Register Low
 TPM1MODL            equ       $0000000C           ;*** TPM1MODL - TPM1 Timer Counter Modulo Register Low
-
 
 ;*** TPM1C0SC - TPM1 Timer Channel 0 Status and Control Register
 TPM1C0SC            equ       $0000000D           ;*** TPM1C0SC - TPM1 Timer Channel 0 Status and Control Register
@@ -351,18 +335,14 @@ mTPM1C0SC_MS0B      equ       %00100000
 mTPM1C0SC_CH0IE     equ       %01000000
 mTPM1C0SC_CH0F      equ       %10000000
 
-
 ;*** TPM1C0V - TPM1 Timer Channel 0 Value Register
 TPM1C0V             equ       $0000000E           ;*** TPM1C0V - TPM1 Timer Channel 0 Value Register
-
 
 ;*** TPM1C0VH - TPM1 Timer Channel 0 Value Register High
 TPM1C0VH            equ       $0000000E           ;*** TPM1C0VH - TPM1 Timer Channel 0 Value Register High
 
-
 ;*** TPM1C0VL - TPM1 Timer Channel 0 Value Register Low
 TPM1C0VL            equ       $0000000F           ;*** TPM1C0VL - TPM1 Timer Channel 0 Value Register Low
-
 
 ;*** TPM2SC - TPM2 Status and Control Register
 TPM2SC              equ       $00000010           ;*** TPM2SC - TPM2 Status and Control Register
@@ -385,30 +365,23 @@ mTPM2SC_CPWMS       equ       %00100000
 mTPM2SC_TOIE        equ       %01000000
 mTPM2SC_TOF         equ       %10000000
 
-
 ;*** TPM2CNT - TPM2 Timer Counter Register
 TPM2CNT             equ       $00000011           ;*** TPM2CNT - TPM2 Timer Counter Register
-
 
 ;*** TPM2CNTH - TPM2 Timer Counter Register High
 TPM2CNTH            equ       $00000011           ;*** TPM2CNTH - TPM2 Timer Counter Register High
 
-
 ;*** TPM2CNTL - TPM2 Timer Counter Register Low
 TPM2CNTL            equ       $00000012           ;*** TPM2CNTL - TPM2 Timer Counter Register Low
-
 
 ;*** TPM2MOD - TPM2 Timer Counter Modulo Register
 TPM2MOD             equ       $00000013           ;*** TPM2MOD - TPM2 Timer Counter Modulo Register
 
-
 ;*** TPM2MODH - TPM2 Timer Counter Modulo Register High
 TPM2MODH            equ       $00000013           ;*** TPM2MODH - TPM2 Timer Counter Modulo Register High
 
-
 ;*** TPM2MODL - TPM2 Timer Counter Modulo Register Low
 TPM2MODL            equ       $00000014           ;*** TPM2MODL - TPM2 Timer Counter Modulo Register Low
-
 
 ;*** TPM2C0SC - TPM2 Timer Channel 0 Status and Control Register
 TPM2C0SC            equ       $00000015           ;*** TPM2C0SC - TPM2 Timer Channel 0 Status and Control Register
@@ -427,18 +400,14 @@ mTPM2C0SC_MS0B      equ       %00100000
 mTPM2C0SC_CH0IE     equ       %01000000
 mTPM2C0SC_CH0F      equ       %10000000
 
-
 ;*** TPM2C0V - TPM2 Timer Channel 0 Value Register
 TPM2C0V             equ       $00000016           ;*** TPM2C0V - TPM2 Timer Channel 0 Value Register
-
 
 ;*** TPM2C0VH - TPM2 Timer Channel 0 Value Register High
 TPM2C0VH            equ       $00000016           ;*** TPM2C0VH - TPM2 Timer Channel 0 Value Register High
 
-
 ;*** TPM2C0VL - TPM2 Timer Channel 0 Value Register Low
 TPM2C0VL            equ       $00000017           ;*** TPM2C0VL - TPM2 Timer Channel 0 Value Register Low
-
 
 ;*** TPM3SC - TPM3 Status and Control Register
 TPM3SC              equ       $00000018           ;*** TPM3SC - TPM3 Status and Control Register
@@ -461,30 +430,23 @@ mTPM3SC_CPWMS       equ       %00100000
 mTPM3SC_TOIE        equ       %01000000
 mTPM3SC_TOF         equ       %10000000
 
-
 ;*** TPM3CNT - TPM3 Timer Counter Register
 TPM3CNT             equ       $00000019           ;*** TPM3CNT - TPM3 Timer Counter Register
-
 
 ;*** TPM3CNTH - TPM3 Timer Counter Register High
 TPM3CNTH            equ       $00000019           ;*** TPM3CNTH - TPM3 Timer Counter Register High
 
-
 ;*** TPM3CNTL - TPM3 Timer Counter Register Low
 TPM3CNTL            equ       $0000001A           ;*** TPM3CNTL - TPM3 Timer Counter Register Low
-
 
 ;*** TPM3MOD - TPM3 Timer Counter Modulo Register
 TPM3MOD             equ       $0000001B           ;*** TPM3MOD - TPM3 Timer Counter Modulo Register
 
-
 ;*** TPM3MODH - TPM3 Timer Counter Modulo Register High
 TPM3MODH            equ       $0000001B           ;*** TPM3MODH - TPM3 Timer Counter Modulo Register High
 
-
 ;*** TPM3MODL - TPM3 Timer Counter Modulo Register Low
 TPM3MODL            equ       $0000001C           ;*** TPM3MODL - TPM3 Timer Counter Modulo Register Low
-
 
 ;*** TPM3C0SC - TPM3 Timer Channel 0 Status and Control Register
 TPM3C0SC            equ       $0000001D           ;*** TPM3C0SC - TPM3 Timer Channel 0 Status and Control Register
@@ -503,18 +465,14 @@ mTPM3C0SC_MS0B      equ       %00100000
 mTPM3C0SC_CH0IE     equ       %01000000
 mTPM3C0SC_CH0F      equ       %10000000
 
-
 ;*** TPM3C0V - TPM3 Timer Channel 0 Value Register
 TPM3C0V             equ       $0000001E           ;*** TPM3C0V - TPM3 Timer Channel 0 Value Register
-
 
 ;*** TPM3C0VH - TPM3 Timer Channel 0 Value Register High
 TPM3C0VH            equ       $0000001E           ;*** TPM3C0VH - TPM3 Timer Channel 0 Value Register High
 
-
 ;*** TPM3C0VL - TPM3 Timer Channel 0 Value Register Low
 TPM3C0VL            equ       $0000001F           ;*** TPM3C0VL - TPM3 Timer Channel 0 Value Register Low
-
 
 ;*** AES_CONTROL1 - AES 128 Control 1 Register
 AES_CONTROL1        equ       $00000020           ;*** AES_CONTROL1 - AES 128 Control 1 Register
@@ -537,7 +495,6 @@ mAES_CONTROL1_SELFTST equ       %00100000
 mAES_CONTROL1_START equ       %01000000
 mAES_CONTROL1_CLEAR equ       %10000000
 
-
 ;*** AES_CONTROL2 - AES 128 Control Register 2
 AES_CONTROL2        equ       $00000021           ;*** AES_CONTROL2 - AES 128 Control Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -553,70 +510,53 @@ mAES_CONTROL2_DATA_REG_TYPE_SELECT0 equ       %00100000
 mAES_CONTROL2_DATA_REG_TYPE_SELECT1 equ       %01000000
 mAES_CONTROL2_DATA_REG_TYPE_SELECT2 equ       %10000000
 
-
 ;*** ASM_Data_0 - AES 128 Data Register 0
 ASM_Data_0          equ       $00000022           ;*** ASM_Data_0 - AES 128 Data Register 0
-
 
 ;*** ASM_Data_1 - AES 128 Data Register 1
 ASM_Data_1          equ       $00000023           ;*** ASM_Data_1 - AES 128 Data Register 1
 
-
 ;*** ASM_Data_2 - AES 128 Data Register 2
 ASM_Data_2          equ       $00000024           ;*** ASM_Data_2 - AES 128 Data Register 2
-
 
 ;*** ASM_Data_3 - AES 128 Data Register 3
 ASM_Data_3          equ       $00000025           ;*** ASM_Data_3 - AES 128 Data Register 3
 
-
 ;*** ASM_Data_4 - AES 128 Data Register 4
 ASM_Data_4          equ       $00000026           ;*** ASM_Data_4 - AES 128 Data Register 4
-
 
 ;*** ASM_Data_5 - AES 128 Data Register 5
 ASM_Data_5          equ       $00000027           ;*** ASM_Data_5 - AES 128 Data Register 5
 
-
 ;*** ASM_Data_6 - AES 128 Data Register 6
 ASM_Data_6          equ       $00000028           ;*** ASM_Data_6 - AES 128 Data Register 6
-
 
 ;*** ASM_Data_7 - AES 128 Data Register 7
 ASM_Data_7          equ       $00000029           ;*** ASM_Data_7 - AES 128 Data Register 7
 
-
 ;*** ASM_Data_8 - AES 128 Data Register 8
 ASM_Data_8          equ       $0000002A           ;*** ASM_Data_8 - AES 128 Data Register 8
-
 
 ;*** ASM_Data_9 - AES 128 Data Register 9
 ASM_Data_9          equ       $0000002B           ;*** ASM_Data_9 - AES 128 Data Register 9
 
-
 ;*** ASM_Data_A - AES 128 Data Register A
 ASM_Data_A          equ       $0000002C           ;*** ASM_Data_A - AES 128 Data Register A
-
 
 ;*** ASM_Data_B - AES 128 Data Register B
 ASM_Data_B          equ       $0000002D           ;*** ASM_Data_B - AES 128 Data Register B
 
-
 ;*** ASM_Data_C - AES 128 Data Register C
 ASM_Data_C          equ       $0000002E           ;*** ASM_Data_C - AES 128 Data Register C
-
 
 ;*** ASM_Data_D - AES 128 Data Register D
 ASM_Data_D          equ       $0000002F           ;*** ASM_Data_D - AES 128 Data Register D
 
-
 ;*** ASM_Data_E - AES 128 Data Register E
 ASM_Data_E          equ       $00000030           ;*** ASM_Data_E - AES 128 Data Register E
 
-
 ;*** ASM_Data_F - AES 128 Data Register F
 ASM_Data_F          equ       $00000031           ;*** ASM_Data_F - AES 128 Data Register F
-
 
 ;*** KBI1SC - KBI1 Status and Control Register
 KBI1SC              equ       $00000032           ;*** KBI1SC - KBI1 Status and Control Register
@@ -630,7 +570,6 @@ mKBI1SC_KBIMOD      equ       %00000001
 mKBI1SC_KBIE        equ       %00000010
 mKBI1SC_KBACK       equ       %00000100
 mKBI1SC_KBF         equ       %00001000
-
 
 ;*** KBI1PE - KBI1 Pin Enable Register
 KBI1PE              equ       $00000033           ;*** KBI1PE - KBI1 Pin Enable Register
@@ -653,7 +592,6 @@ mKBI1PE_KBIPE5      equ       %00100000
 mKBI1PE_KBIPE6      equ       %01000000
 mKBI1PE_KBIPE7      equ       %10000000
 
-
 ;*** KBI1ES - KBI1 Edge Select Register
 KBI1ES              equ       $00000034           ;*** KBI1ES - KBI1 Edge Select Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -675,10 +613,8 @@ mKBI1ES_KBEDG5      equ       %00100000
 mKBI1ES_KBEDG6      equ       %01000000
 mKBI1ES_KBEDG7      equ       %10000000
 
-
 ;*** SCI1BD - SCI1 Baud Rate Register
 SCI1BD              equ       $00000038           ;*** SCI1BD - SCI1 Baud Rate Register
-
 
 ;*** SCI1BDH - SCI1 Baud Rate Register High
 SCI1BDH             equ       $00000038           ;*** SCI1BDH - SCI1 Baud Rate Register High
@@ -698,7 +634,6 @@ mSCI1BDH_SBR11      equ       %00001000
 mSCI1BDH_SBR12      equ       %00010000
 mSCI1BDH_RXEDGIE    equ       %01000000
 mSCI1BDH_LBKDIE     equ       %10000000
-
 
 ;*** SCI1BDL - SCI1 Baud Rate Register Low
 SCI1BDL             equ       $00000039           ;*** SCI1BDL - SCI1 Baud Rate Register Low
@@ -721,7 +656,6 @@ mSCI1BDL_SBR5       equ       %00100000
 mSCI1BDL_SBR6       equ       %01000000
 mSCI1BDL_SBR7       equ       %10000000
 
-
 ;*** SCI1C1 - SCI1 Control Register 1
 SCI1C1              equ       $0000003A           ;*** SCI1C1 - SCI1 Control Register 1
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -742,7 +676,6 @@ mSCI1C1_M           equ       %00010000
 mSCI1C1_RSRC        equ       %00100000
 mSCI1C1_SCISWAI     equ       %01000000
 mSCI1C1_LOOPS       equ       %10000000
-
 
 ;*** SCI1C2 - SCI1 Control Register 2
 SCI1C2              equ       $0000003B           ;*** SCI1C2 - SCI1 Control Register 2
@@ -765,7 +698,6 @@ mSCI1C2_RIE         equ       %00100000
 mSCI1C2_TCIE        equ       %01000000
 mSCI1C2_TIE         equ       %10000000
 
-
 ;*** SCI1S1 - SCI1 Status Register 1
 SCI1S1              equ       $0000003C           ;*** SCI1S1 - SCI1 Status Register 1
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -787,7 +719,6 @@ mSCI1S1_RDRF        equ       %00100000
 mSCI1S1_TC          equ       %01000000
 mSCI1S1_TDRE        equ       %10000000
 
-
 ;*** SCI1S2 - SCI1 Status Register 2
 SCI1S2              equ       $0000003D           ;*** SCI1S2 - SCI1 Status Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -806,7 +737,6 @@ mSCI1S2_RWUID       equ       %00001000
 mSCI1S2_RXINV       equ       %00010000
 mSCI1S2_RXEDGIF     equ       %01000000
 mSCI1S2_LBKDIF      equ       %10000000
-
 
 ;*** SCI1C3 - SCI1 Control Register 3
 SCI1C3              equ       $0000003E           ;*** SCI1C3 - SCI1 Control Register 3
@@ -829,7 +759,6 @@ mSCI1C3_TXDIR       equ       %00100000
 mSCI1C3_T8          equ       %01000000
 mSCI1C3_R8          equ       %10000000
 
-
 ;*** SCI1D - SCI1 Data Register
 SCI1D               equ       $0000003F           ;*** SCI1D - SCI1 Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -851,7 +780,6 @@ mSCI1D_R5_T5        equ       %00100000
 mSCI1D_R6_T6        equ       %01000000
 mSCI1D_R7_T7        equ       %10000000
 
-
 ;*** PHY_TXD_ADR_PNTR0 - Transmit Data Pointer Register 0
 PHY_TXD_ADR_PNTR0   equ       $00000040           ;*** PHY_TXD_ADR_PNTR0 - Transmit Data Pointer Register 0
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -859,10 +787,8 @@ PHY_TXD_ADR_PNTR0_TXD_ADR_PNTR equ       0                   ; Transmit Data Poi
 ; bit position masks
 mPHY_TXD_ADR_PNTR0_TXD_ADR_PNTR equ       %00011111
 
-
 ;*** PHY_TXD_ADR_PNTR1 - Transmit Data Pointer Register 1
 PHY_TXD_ADR_PNTR1   equ       $00000041           ;*** PHY_TXD_ADR_PNTR1 - Transmit Data Pointer Register 1
-
 
 ;*** PHY_RXD_ADR_PNTR0 - Receive Data Pointer Register 0
 PHY_RXD_ADR_PNTR0   equ       $00000042           ;*** PHY_RXD_ADR_PNTR0 - Receive Data Pointer Register 0
@@ -871,10 +797,8 @@ PHY_RXD_ADR_PNTR0_RXD_ADR_PNTR0 equ       0                   ; Receive Data Poi
 ; bit position masks
 mPHY_RXD_ADR_PNTR0_RXD_ADR_PNTR0 equ       %00011111
 
-
 ;*** PHY_RXD_ADR_PNTR1 - Receive Data Pointer Register 1
 PHY_RXD_ADR_PNTR1   equ       $00000043           ;*** PHY_RXD_ADR_PNTR1 - Receive Data Pointer Register 1
-
 
 ;*** PHY_CNTRL1 - Transceiver Control Register 1
 PHY_CNTRL1          equ       $00000044           ;*** PHY_CNTRL1 - Transceiver Control Register 1
@@ -897,7 +821,6 @@ mPHY_CNTRL1_CCABFRTX equ       %00100000
 mPHY_CNTRL1_SLOTTED equ       %01000000
 mPHY_CNTRL1_TMRTRIGEN equ       %10000000
 
-
 ;*** PHY_CNTRL2 - Transceiver Control Register 2
 PHY_CNTRL2          equ       $00000045           ;*** PHY_CNTRL2 - Transceiver Control Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -918,7 +841,6 @@ mPHY_CNTRL2_CCATYPE1 equ       %00010000
 mPHY_CNTRL2_PANCORDNTR equ       %00100000
 mPHY_CNTRL2_TC3TMOUT equ       %01000000
 mPHY_CNTRL2_TRCV_MSK equ       %10000000
-
 
 ;*** PHY_CNTRL3 - Transceiver Control Register 3
 PHY_CNTRL3          equ       $00000046           ;*** PHY_CNTRL3 - Transceiver Control Register 3
@@ -941,7 +863,6 @@ mPHY_CNTRL3_FILTERFAIL_MSK equ       %00100000
 mPHY_CNTRL3_LO1_UNLOCK_MSK equ       %01000000
 mPHY_CNTRL3_CRC_MSK equ       %10000000
 
-
 ;*** PHY_CNTRL4 - Transceiver Control Register 4
 PHY_CNTRL4          equ       $00000047           ;*** PHY_CNTRL4 - Transceiver Control Register 4
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -962,7 +883,6 @@ mPHY_CNTRL4_TMR1MSK equ       %00010000
 mPHY_CNTRL4_TMR2MSK equ       %00100000
 mPHY_CNTRL4_TMR3MSK equ       %01000000
 mPHY_CNTRL4_TMR4MSK equ       %10000000
-
 
 ;*** PHY_SRC_CNTRL - Transceiver Source Address Control Register
 PHY_SRC_CNTRL       equ       $00000048           ;*** PHY_SRC_CNTRL - Transceiver Source Address Control Register
@@ -985,22 +905,17 @@ mPHY_SRC_CNTRL_INDEX1 equ       %00100000
 mPHY_SRC_CNTRL_INDEX2 equ       %01000000
 mPHY_SRC_CNTRL_INDEX3 equ       %10000000
 
-
 ;*** PHY_SRC_ADDRS_SUM_DATA0 - Transceiver Source Address Sum Data Register 0
 PHY_SRC_ADDRS_SUM_DATA0 equ       $00000049           ;*** PHY_SRC_ADDRS_SUM_DATA0 - Transceiver Source Address Sum Data Register 0
-
 
 ;*** PHY_SRC_ADDRS_SUM_DATA1 - Transceiver Source Address Sum Data Register 1
 PHY_SRC_ADDRS_SUM_DATA1 equ       $0000004A           ;*** PHY_SRC_ADDRS_SUM_DATA1 - Transceiver Source Address Sum Data Register 1
 
-
 ;*** PHY_RX_WTR_MARK - Receiver Byte Count Watermark Threshold
 PHY_RX_WTR_MARK     equ       $0000004B           ;*** PHY_RX_WTR_MARK - Receiver Byte Count Watermark Threshold
 
-
 ;*** PHY_RX_BYTE_COUNT - Receiver Byte Count
 PHY_RX_BYTE_COUNT   equ       $0000004C           ;*** PHY_RX_BYTE_COUNT - Receiver Byte Count
-
 
 ;*** PHY_STATUS1 - Status Register 1
 PHY_STATUS1         equ       $0000004D           ;*** PHY_STATUS1 - Status Register 1
@@ -1023,7 +938,6 @@ mPHY_STATUS1_SRCADDR equ       %00100000
 mPHY_STATUS1_CCA    equ       %01000000
 mPHY_STATUS1_CRCVALID equ       %10000000
 
-
 ;*** PHY_STATUS2 - Status Register 2
 PHY_STATUS2         equ       $0000004E           ;*** PHY_STATUS2 - Status Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1045,94 +959,71 @@ mPHY_STATUS2_FILTERFAIL_IRQ equ       %00100000
 mPHY_STATUS2_LO1_UNLOCK_IRQ equ       %01000000
 mPHY_STATUS2_RX_FRM_PEND equ       %10000000
 
-
 ;*** PHY_CCAFNL - Clear Channel Assessment Final Value
 PHY_CCAFNL          equ       $00000050           ;*** PHY_CCAFNL - Clear Channel Assessment Final Value
-
 
 ;*** PHY_EVENT_TMR0 - Event Timer Register 0
 PHY_EVENT_TMR0      equ       $00000051           ;*** PHY_EVENT_TMR0 - Event Timer Register 0
 
-
 ;*** PHY_EVENT_TMR1 - Event Timer Register 1
 PHY_EVENT_TMR1      equ       $00000052           ;*** PHY_EVENT_TMR1 - Event Timer Register 1
-
 
 ;*** PHY_EVENT_TMR2 - Event Timer Register 2
 PHY_EVENT_TMR2      equ       $00000053           ;*** PHY_EVENT_TMR2 - Event Timer Register 2
 
-
 ;*** PHY_TIMESTAMP0 - Time Stamp Register 0
 PHY_TIMESTAMP0      equ       $00000054           ;*** PHY_TIMESTAMP0 - Time Stamp Register 0
-
 
 ;*** PHY_TIMESTAMP1 - Time Stamp Register 1
 PHY_TIMESTAMP1      equ       $00000055           ;*** PHY_TIMESTAMP1 - Time Stamp Register 1
 
-
 ;*** PHY_TIMESTAMP2 - Time Stamp Register 2
 PHY_TIMESTAMP2      equ       $00000056           ;*** PHY_TIMESTAMP2 - Time Stamp Register 2
-
 
 ;*** PHY_T3CMP0 - Event Timer Comparator 3 Register 0
 PHY_T3CMP0          equ       $00000057           ;*** PHY_T3CMP0 - Event Timer Comparator 3 Register 0
 
-
 ;*** PHY_T3CMP1 - Event Timer Comparator 3 Register 1
 PHY_T3CMP1          equ       $00000058           ;*** PHY_T3CMP1 - Event Timer Comparator 3 Register 1
-
 
 ;*** PHY_T3CMP2 - Event Timer Comparator 3 Register 2
 PHY_T3CMP2          equ       $00000059           ;*** PHY_T3CMP2 - Event Timer Comparator 3 Register 2
 
-
 ;*** PHY_TC2_PRIME0 - Time Comparator 2 Prime Register 0
 PHY_TC2_PRIME0      equ       $0000005A           ;*** PHY_TC2_PRIME0 - Time Comparator 2 Prime Register 0
-
 
 ;*** PHY_TC2_PRIME1 - Time Comparator 2 Prime Register 1
 PHY_TC2_PRIME1      equ       $0000005B           ;*** PHY_TC2_PRIME1 - Time Comparator 2 Prime Register 1
 
-
 ;*** PHY_MACSHORTADDRS0 - MAC Short Address Register 0
 PHY_MACSHORTADDRS0  equ       $0000005C           ;*** PHY_MACSHORTADDRS0 - MAC Short Address Register 0
-
 
 ;*** PHY_MACSHORTADDRS1 - MAC Short Address Register 1
 PHY_MACSHORTADDRS1  equ       $0000005D           ;*** PHY_MACSHORTADDRS1 - MAC Short Address Register 1
 
-
 ;*** PHY_MACPANID0 - MAC Pan ID Register 0
 PHY_MACPANID0       equ       $0000005E           ;*** PHY_MACPANID0 - MAC Pan ID Register 0
-
 
 ;*** PHY_MACPANID1 - MAC Pan ID Register 1
 PHY_MACPANID1       equ       $0000005F           ;*** PHY_MACPANID1 - MAC Pan ID Register 1
 
-
 ;*** CMTCG1 - Carrier Generator Data Register 1
 CMTCG1              equ       $00000060           ;*** CMTCG1 - Carrier Generator Data Register 1
-
 
 ;*** CMTCGH1 - CMT Carrier Generator Data Register 1 High Byte
 CMTCGH1             equ       $00000060           ;*** CMTCGH1 - CMT Carrier Generator Data Register 1 High Byte
 
-
 ;*** CMTCGL1 - CMT Carrier Generator Data Register 1 Low Byte
 CMTCGL1             equ       $00000061           ;*** CMTCGL1 - CMT Carrier Generator Data Register 1 Low Byte
-
 
 ;*** CMTCG2 - Carrier Generator Data Register 2
 CMTCG2              equ       $00000062           ;*** CMTCG2 - Carrier Generator Data Register 2
 
-
 ;*** CMTCGH2 - CMT Carrier Generator Data Register 2 High Byte
 CMTCGH2             equ       $00000062           ;*** CMTCGH2 - CMT Carrier Generator Data Register 2 High Byte
 
-
 ;*** CMTCGL2 - CMT Carrier Generator Data Register 2 Low Byte
 CMTCGL2             equ       $00000063           ;*** CMTCGL2 - CMT Carrier Generator Data Register 2 Low Byte
-
 
 ;*** CMTOC - CMT Output Control Register
 CMTOC               equ       $00000064           ;*** CMTOC - CMT Output Control Register
@@ -1146,7 +1037,6 @@ mCMTOC_CMTDIV2      equ       %00010000
 mCMTOC_IROPEN       equ       %00100000
 mCMTOC_CMTPOL       equ       %01000000
 mCMTOC_IROL         equ       %10000000
-
 
 ;*** CMTMSC - CMT Modulator Status and Control Register
 CMTMSC              equ       $00000065           ;*** CMTMSC - CMT Modulator Status and Control Register
@@ -1169,14 +1059,11 @@ mCMTMSC_CMTDIV0     equ       %00100000
 mCMTMSC_CMTDIV1     equ       %01000000
 mCMTMSC_EOCF        equ       %10000000
 
-
 ;*** CMTCMD12 - CMT Modulator Data Register 12
 CMTCMD12            equ       $00000066           ;*** CMTCMD12 - CMT Modulator Data Register 12
 
-
 ;*** CMTCMD1 - CMT Modulator Data Register 1
 CMTCMD1             equ       $00000066           ;*** CMTCMD1 - CMT Modulator Data Register 1
-
 
 ;*** CMTCMD2 - CMT Modulator Data Register 2
 CMTCMD2             equ       $00000067           ;*** CMTCMD2 - CMT Modulator Data Register 2
@@ -1199,14 +1086,11 @@ mCMTCMD2_MB5        equ       %00100000
 mCMTCMD2_MB6        equ       %01000000
 mCMTCMD2_MB7        equ       %10000000
 
-
 ;*** CMTCMD34 - CMT Modulator Data Register 34
 CMTCMD34            equ       $00000068           ;*** CMTCMD34 - CMT Modulator Data Register 34
 
-
 ;*** CMTCMD3 - CMT Modulator Data Register 3
 CMTCMD3             equ       $00000068           ;*** CMTCMD3 - CMT Modulator Data Register 3
-
 
 ;*** CMTCMD4 - CMT Modulator Data Register 4
 CMTCMD4             equ       $00000069           ;*** CMTCMD4 - CMT Modulator Data Register 4
@@ -1229,7 +1113,6 @@ mCMTCMD4_SB5        equ       %00100000
 mCMTCMD4_SB6        equ       %01000000
 mCMTCMD4_SB7        equ       %10000000
 
-
 ;*** IIC1A - IIC Address Register
 IIC1A               equ       $0000006A           ;*** IIC1A - IIC Address Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1248,7 +1131,6 @@ mIIC1A_AD4          equ       %00010000
 mIIC1A_AD5          equ       %00100000
 mIIC1A_AD6          equ       %01000000
 mIIC1A_AD7          equ       %10000000
-
 
 ;*** IIC1F - IIC Frequency Divider Register
 IIC1F               equ       $0000006B           ;*** IIC1F - IIC Frequency Divider Register
@@ -1271,7 +1153,6 @@ mIIC1F_ICR5         equ       %00100000
 mIIC1F_MULT0        equ       %01000000
 mIIC1F_MULT1        equ       %10000000
 
-
 ;*** IIC1C1 - IIC Control Register 1
 IIC1C1              equ       $0000006C           ;*** IIC1C1 - IIC Control Register 1
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1289,7 +1170,6 @@ mIIC1C1_MST         equ       %00100000
 mIIC1C1_IICIE       equ       %01000000
 mIIC1C1_IICEN       equ       %10000000
 
-
 ;*** IIC1C - IIC Control Register
 IIC1C               equ       $0000006C           ;*** IIC1C - IIC Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1306,7 +1186,6 @@ mIIC1C_TX           equ       %00010000
 mIIC1C_MST          equ       %00100000
 mIIC1C_IICIE        equ       %01000000
 mIIC1C_IICEN        equ       %10000000
-
 
 ;*** IIC1S - IIC Status Register
 IIC1S               equ       $0000006D           ;*** IIC1S - IIC Status Register
@@ -1326,7 +1205,6 @@ mIIC1S_ARBL         equ       %00010000
 mIIC1S_BUSY         equ       %00100000
 mIIC1S_IAAS         equ       %01000000
 mIIC1S_TCF          equ       %10000000
-
 
 ;*** IIC1D - IIC Data I/O Register
 IIC1D               equ       $0000006E           ;*** IIC1D - IIC Data I/O Register
@@ -1349,7 +1227,6 @@ mIIC1D_DATA5        equ       %00100000
 mIIC1D_DATA6        equ       %01000000
 mIIC1D_DATA7        equ       %10000000
 
-
 ;*** IIC1C2 - IIC Control Register 2
 IIC1C2              equ       $0000006F           ;*** IIC1C2 - IIC Control Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1364,7 +1241,6 @@ mIIC1C2_AD9         equ       %00000010
 mIIC1C2_AD10        equ       %00000100
 mIIC1C2_ADEXT       equ       %01000000
 mIIC1C2_GCAEN       equ       %10000000
-
 
 ;*** SPI1C1 - SPI1 Control Register 1
 SPI1C1              equ       $00000070           ;*** SPI1C1 - SPI1 Control Register 1
@@ -1387,7 +1263,6 @@ mSPI1C1_SPTIE       equ       %00100000
 mSPI1C1_SPE         equ       %01000000
 mSPI1C1_SPIE        equ       %10000000
 
-
 ;*** SPI1C2 - SPI1 Control Register 2
 SPI1C2              equ       $00000071           ;*** SPI1C2 - SPI1 Control Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1400,7 +1275,6 @@ mSPI1C2_SPC0        equ       %00000001
 mSPI1C2_SPISWAI     equ       %00000010
 mSPI1C2_BIDIROE     equ       %00001000
 mSPI1C2_MODFEN      equ       %00010000
-
 
 ;*** SPI1BR - SPI1 Baud Rate Register
 SPI1BR              equ       $00000072           ;*** SPI1BR - SPI1 Baud Rate Register
@@ -1419,7 +1293,6 @@ mSPI1BR_SPPR0       equ       %00010000
 mSPI1BR_SPPR1       equ       %00100000
 mSPI1BR_SPPR2       equ       %01000000
 
-
 ;*** SPI1S - SPI1 Status Register
 SPI1S               equ       $00000073           ;*** SPI1S - SPI1 Status Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1431,10 +1304,8 @@ mSPI1S_MODF         equ       %00010000
 mSPI1S_SPTEF        equ       %00100000
 mSPI1S_SPRF         equ       %10000000
 
-
 ;*** SPI1D - SPI1 Data Register
 SPI1D               equ       $00000075           ;*** SPI1D - SPI1 Data Register
-
 
 ;*** IRQSC - Interrupt request status and control register
 IRQSC               equ       $00000076           ;*** IRQSC - Interrupt request status and control register
@@ -1455,7 +1326,6 @@ mIRQSC_IRQPE        equ       %00010000
 mIRQSC_IRQEDG       equ       %00100000
 mIRQSC_IRQPDD       equ       %01000000
 
-
 ;*** PPAGE - Program Page Register
 PPAGE               equ       $00000078           ;*** PPAGE - Program Page Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1467,14 +1337,12 @@ mPPAGE_XA14         equ       %00000001
 mPPAGE_XA15         equ       %00000010
 mPPAGE_XA16         equ       %00000100
 
-
 ;*** LAP2 - Linear Address Pointer Register 2
 LAP2                equ       $00000079           ;*** LAP2 - Linear Address Pointer Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 LAP2_LA16           equ       0                   ; Linear address pointer, bit 16
 ; bit position masks
 mLAP2_LA16          equ       %00000001
-
 
 ;*** LAP1 - Linear Address Pointer Register 1
 LAP1                equ       $0000007A           ;*** LAP1 - Linear Address Pointer Register 1
@@ -1497,7 +1365,6 @@ mLAP1_LA13          equ       %00100000
 mLAP1_LA14          equ       %01000000
 mLAP1_LA15          equ       %10000000
 
-
 ;*** LAP0 - Linear Address Pointer Register 0
 LAP0                equ       $0000007B           ;*** LAP0 - Linear Address Pointer Register 0
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1518,7 +1385,6 @@ mLAP0_LA4           equ       %00010000
 mLAP0_LA5           equ       %00100000
 mLAP0_LA6           equ       %01000000
 mLAP0_LA7           equ       %10000000
-
 
 ;*** LWP - Linear Word Post Increment Register
 LWP                 equ       $0000007C           ;*** LWP - Linear Word Post Increment Register
@@ -1541,7 +1407,6 @@ mLWP_D5             equ       %00100000
 mLWP_D6             equ       %01000000
 mLWP_D7             equ       %10000000
 
-
 ;*** LBP - Linear Byte Post Increment Register
 LBP                 equ       $0000007D           ;*** LBP - Linear Byte Post Increment Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1562,7 +1427,6 @@ mLBP_D4             equ       %00010000
 mLBP_D5             equ       %00100000
 mLBP_D6             equ       %01000000
 mLBP_D7             equ       %10000000
-
 
 ;*** LB - Linear Byte Register
 LB                  equ       $0000007E           ;*** LB - Linear Byte Register
@@ -1585,7 +1449,6 @@ mLB_D5              equ       %00100000
 mLB_D6              equ       %01000000
 mLB_D7              equ       %10000000
 
-
 ;*** LAPAB - Linear Address Pointer Add Byte Register
 LAPAB               equ       $0000007F           ;*** LAPAB - Linear Address Pointer Add Byte Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1607,7 +1470,6 @@ mLAPAB_D5           equ       %00100000
 mLAPAB_D6           equ       %01000000
 mLAPAB_D7           equ       %10000000
 
-
 ;*** SRS - System Reset Status Register
 SRS                 equ       $00001800           ;*** SRS - System Reset Status Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1625,14 +1487,12 @@ mSRS_COP            equ       %00100000
 mSRS_PIN            equ       %01000000
 mSRS_POR            equ       %10000000
 
-
 ;*** SBDFR - System Background Debug Force Reset Register
 SBDFR               equ       $00001801           ;*** SBDFR - System Background Debug Force Reset Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 SBDFR_BDFR          equ       0                   ; Background Debug Force Reset
 ; bit position masks
 mSBDFR_BDFR         equ       %00000001
-
 
 ;*** SOPT1 - System Options Register 1
 SOPT1               equ       $00001802           ;*** SOPT1 - System Options Register 1
@@ -1649,7 +1509,6 @@ mSOPT1_STOPE        equ       %00100000
 mSOPT1_COPT         equ       %01000000
 mSOPT1_COPE         equ       %10000000
 
-
 ;*** SOPT2 - System Options Register 2
 SOPT2               equ       $00001803           ;*** SOPT2 - System Options Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1662,7 +1521,6 @@ mSOPT2_PID0         equ       %00000001
 mSOPT2_PID1         equ       %00000010
 mSOPT2_ADCCG        equ       %00010000
 mSOPT2_COPCLKS      equ       %10000000
-
 
 ;*** SCI1C4 - SCI1 Control Register 4
 SCI1C4              equ       $00001804           ;*** SCI1C4 - SCI1 Control Register 4
@@ -1679,10 +1537,8 @@ mSCI1C4_BRFA2       equ       %00000100
 mSCI1C4_BRFA3       equ       %00001000
 mSCI1C4_BRFA4       equ       %00010000
 
-
 ;*** SDID - System Device Identification Register
 SDID                equ       $00001806           ;*** SDID - System Device Identification Register
-
 
 ;*** SDIDH - System Device Identification Register High
 SDIDH               equ       $00001806           ;*** SDIDH - System Device Identification Register High
@@ -1696,7 +1552,6 @@ mSDIDH_ID8          equ       %00000001
 mSDIDH_ID9          equ       %00000010
 mSDIDH_ID10         equ       %00000100
 mSDIDH_ID11         equ       %00001000
-
 
 ;*** SDIDL - System Device Identification Register Low
 SDIDL               equ       $00001807           ;*** SDIDL - System Device Identification Register Low
@@ -1719,7 +1574,6 @@ mSDIDL_ID5          equ       %00100000
 mSDIDL_ID6          equ       %01000000
 mSDIDL_ID7          equ       %10000000
 
-
 ;*** SPMSC1 - System Power Management Status and Control 1 Register
 SPMSC1              equ       $00001808           ;*** SPMSC1 - System Power Management Status and Control 1 Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1737,7 +1591,6 @@ mSPMSC1_LVDIE       equ       %00100000
 mSPMSC1_LVDACK      equ       %01000000
 mSPMSC1_LVDF        equ       %10000000
 
-
 ;*** SPMSC2 - System Power Management Status and Control 2 Register
 SPMSC2              equ       $00001809           ;*** SPMSC2 - System Power Management Status and Control 2 Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1753,7 +1606,6 @@ mSPMSC2_LPWUI       equ       %00100000
 mSPMSC2_LPRS        equ       %01000000
 mSPMSC2_LPR         equ       %10000000
 
-
 ;*** SPMSC3 - System Power Management Status and Control 3 Register
 SPMSC3              equ       $0000180B           ;*** SPMSC3 - System Power Management Status and Control 3 Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1768,7 +1620,6 @@ mSPMSC3_LVWV        equ       %00010000
 mSPMSC3_LVDV        equ       %00100000
 mSPMSC3_LVWACK      equ       %01000000
 mSPMSC3_LVWF        equ       %10000000
-
 
 ;*** SOMC1 -
 SOMC1               equ       $0000180C           ;*** SOMC1 -
@@ -1788,7 +1639,6 @@ mSOMC1_XTAL0EN      equ       %00010000
 mSOMC1_RDIV0        equ       %00100000
 mSOMC1_RDIV1        equ       %01000000
 mSOMC1_RDIV2        equ       %10000000
-
 
 ;*** SOMC2 -
 SOMC2               equ       $0000180D           ;*** SOMC2 -
@@ -1811,7 +1661,6 @@ mSOMC2_XTAL1_TRIM5  equ       %00100000
 mSOMC2_XTAL1_TRIM6  equ       %01000000
 mSOMC2_XTAL1_TRIM7  equ       %10000000
 
-
 ;*** SCGC1 - System Clock Gating Control 1 Register
 SCGC1               equ       $0000180E           ;*** SCGC1 - System Clock Gating Control 1 Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1831,7 +1680,6 @@ mSCGC1_TPM2         equ       %00010000
 mSCGC1_TPM3         equ       %00100000
 mSCGC1_TPM4         equ       %01000000
 
-
 ;*** SCGC2 - System Clock Gating Control 2 Register
 SCGC2               equ       $0000180F           ;*** SCGC2 - System Clock Gating Control 2 Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1849,10 +1697,8 @@ mSCGC2_IRQ          equ       %00010000
 mSCGC2_FLS          equ       %00100000
 mSCGC2_DBG          equ       %01000000
 
-
 ;*** DBGCA - Debug Comparator A Register
 DBGCA               equ       $00001810           ;*** DBGCA - Debug Comparator A Register
-
 
 ;*** DBGCAH - Debug Comparator A High Register
 DBGCAH              equ       $00001810           ;*** DBGCAH - Debug Comparator A High Register
@@ -1875,7 +1721,6 @@ mDBGCAH_Bit13       equ       %00100000
 mDBGCAH_Bit14       equ       %01000000
 mDBGCAH_Bit15       equ       %10000000
 
-
 ;*** DBGCAL - Debug Comparator A Low Register
 DBGCAL              equ       $00001811           ;*** DBGCAL - Debug Comparator A Low Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1897,10 +1742,8 @@ mDBGCAL_Bit5        equ       %00100000
 mDBGCAL_Bit6        equ       %01000000
 mDBGCAL_Bit7        equ       %10000000
 
-
 ;*** DBGCB - Debug Comparator B Register
 DBGCB               equ       $00001812           ;*** DBGCB - Debug Comparator B Register
-
 
 ;*** DBGCBH - Debug Comparator B High Register
 DBGCBH              equ       $00001812           ;*** DBGCBH - Debug Comparator B High Register
@@ -1923,7 +1766,6 @@ mDBGCBH_Bit13       equ       %00100000
 mDBGCBH_Bit14       equ       %01000000
 mDBGCBH_Bit15       equ       %10000000
 
-
 ;*** DBGCBL - Debug Comparator B Low Register
 DBGCBL              equ       $00001813           ;*** DBGCBL - Debug Comparator B Low Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1945,10 +1787,8 @@ mDBGCBL_Bit5        equ       %00100000
 mDBGCBL_Bit6        equ       %01000000
 mDBGCBL_Bit7        equ       %10000000
 
-
 ;*** DBGCC - Debug Comparator C Register
 DBGCC               equ       $00001814           ;*** DBGCC - Debug Comparator C Register
-
 
 ;*** DBGCCH - Debug Comparator C High Register
 DBGCCH              equ       $00001814           ;*** DBGCCH - Debug Comparator C High Register
@@ -1971,7 +1811,6 @@ mDBGCCH_Bit13       equ       %00100000
 mDBGCCH_Bit14       equ       %01000000
 mDBGCCH_Bit15       equ       %10000000
 
-
 ;*** DBGCCL - Debug Comparator C Low Register
 DBGCCL              equ       $00001815           ;*** DBGCCL - Debug Comparator C Low Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1993,10 +1832,8 @@ mDBGCCL_Bit5        equ       %00100000
 mDBGCCL_Bit6        equ       %01000000
 mDBGCCL_Bit7        equ       %10000000
 
-
 ;*** DBGF - Debug FIFO Register
 DBGF                equ       $00001816           ;*** DBGF - Debug FIFO Register
-
 
 ;*** DBGFH - Debug FIFO High Register
 DBGFH               equ       $00001816           ;*** DBGFH - Debug FIFO High Register
@@ -2019,7 +1856,6 @@ mDBGFH_Bit13        equ       %00100000
 mDBGFH_Bit14        equ       %01000000
 mDBGFH_Bit15        equ       %10000000
 
-
 ;*** DBGFL - Debug FIFO Low Register
 DBGFL               equ       $00001817           ;*** DBGFL - Debug FIFO Low Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2041,7 +1877,6 @@ mDBGFL_Bit5         equ       %00100000
 mDBGFL_Bit6         equ       %01000000
 mDBGFL_Bit7         equ       %10000000
 
-
 ;*** DBGCAX - Debug Comparator A Extension Register
 DBGCAX              equ       $00001818           ;*** DBGCAX - Debug Comparator A Extension Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2054,7 +1889,6 @@ mDBGCAX_Bit16       equ       %00000001
 mDBGCAX_PAGSEL      equ       %00100000
 mDBGCAX_RWA         equ       %01000000
 mDBGCAX_RWAEN       equ       %10000000
-
 
 ;*** DBGCBX - Debug Comparator B Extension Register
 DBGCBX              equ       $00001819           ;*** DBGCBX - Debug Comparator B Extension Register
@@ -2069,7 +1903,6 @@ mDBGCBX_PAGSEL      equ       %00100000
 mDBGCBX_RWB         equ       %01000000
 mDBGCBX_RWBEN       equ       %10000000
 
-
 ;*** DBGCCX - Debug Comparator C Extension Register
 DBGCCX              equ       $0000181A           ;*** DBGCCX - Debug Comparator C Extension Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2083,7 +1916,6 @@ mDBGCCX_PAGSEL      equ       %00100000
 mDBGCCX_RWC         equ       %01000000
 mDBGCCX_RWCEN       equ       %10000000
 
-
 ;*** DBGFX - Debug FIFO Extended Information Register
 DBGFX               equ       $0000181B           ;*** DBGFX - Debug FIFO Extended Information Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2092,7 +1924,6 @@ DBGFX_PPACC         equ       7                   ; PPAGE Access Indicator Bit
 ; bit position masks
 mDBGFX_Bit16        equ       %00000001
 mDBGFX_PPACC        equ       %10000000
-
 
 ;*** DBGC - Debug Control Register
 DBGC                equ       $0000181C           ;*** DBGC - Debug Control Register
@@ -2108,7 +1939,6 @@ mDBGC_BRKEN         equ       %00010000
 mDBGC_TAG           equ       %00100000
 mDBGC_ARM           equ       %01000000
 mDBGC_DBGEN         equ       %10000000
-
 
 ;*** DBGT - Debug Trigger Register
 DBGT                equ       $0000181D           ;*** DBGT - Debug Trigger Register
@@ -2127,7 +1957,6 @@ mDBGT_TRG3          equ       %00001000
 mDBGT_BEGIN         equ       %01000000
 mDBGT_TRGSEL        equ       %10000000
 
-
 ;*** DBGS - Debug Status Register
 DBGS                equ       $0000181E           ;*** DBGS - Debug Status Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2140,7 +1969,6 @@ mDBGS_ARMF          equ       %00000001
 mDBGS_CF            equ       %00100000
 mDBGS_BF            equ       %01000000
 mDBGS_AF            equ       %10000000
-
 
 ;*** DBGCNT - Debug Count Status Register
 DBGCNT              equ       $0000181F           ;*** DBGCNT - Debug Count Status Register
@@ -2155,7 +1983,6 @@ mDBGCNT_CNT1        equ       %00000010
 mDBGCNT_CNT2        equ       %00000100
 mDBGCNT_CNT3        equ       %00001000
 
-
 ;*** FOPT - Flash Options Register
 FOPT                equ       $00001821           ;*** FOPT - Flash Options Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2169,14 +1996,12 @@ mFOPT_SEC1          equ       %00000010
 mFOPT_KEYEN0        equ       %01000000
 mFOPT_KEYEN1        equ       %10000000
 
-
 ;*** FCNFG - Flash Configuration Register
 FCNFG               equ       $00001823           ;*** FCNFG - Flash Configuration Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 FCNFG_KEYACC        equ       5                   ; Enable Security Key Writing
 ; bit position masks
 mFCNFG_KEYACC       equ       %00100000
-
 
 ;*** FPROT - Flash Protection Register
 FPROT               equ       $00001824           ;*** FPROT - Flash Protection Register
@@ -2199,7 +2024,6 @@ mFPROT_FPS4         equ       %00100000
 mFPROT_FPS5         equ       %01000000
 mFPROT_FPS6         equ       %10000000
 
-
 ;*** FSTAT - Flash Status Register
 FSTAT               equ       $00001825           ;*** FSTAT - Flash Status Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2214,7 +2038,6 @@ mFSTAT_FACCERR      equ       %00010000
 mFSTAT_FPVIOL       equ       %00100000
 mFSTAT_FCCF         equ       %01000000
 mFSTAT_FCBEF        equ       %10000000
-
 
 ;*** FCMD - Flash Command Register
 FCMD                equ       $00001826           ;*** FCMD - Flash Command Register
@@ -2234,7 +2057,6 @@ mFCMD_FCMD3         equ       %00001000
 mFCMD_FCMD4         equ       %00010000
 mFCMD_FCMD5         equ       %00100000
 mFCMD_FCMD6         equ       %01000000
-
 
 ;*** RTCSC - RTC Status and Control Register
 RTCSC               equ       $00001828           ;*** RTCSC - RTC Status and Control Register
@@ -2257,22 +2079,17 @@ mRTCSC_RTCLKS0      equ       %00100000
 mRTCSC_RTCLKS1      equ       %01000000
 mRTCSC_RTIF         equ       %10000000
 
-
 ;*** RTCCNTL - RTC Counter Register Low
 RTCCNTL             equ       $00001829           ;*** RTCCNTL - RTC Counter Register Low
-
 
 ;*** RTCMODL - RTC Modulo Register Low
 RTCMODL             equ       $0000182A           ;*** RTCMODL - RTC Modulo Register Low
 
-
 ;*** RTCCNTH - RTC Counter Register High
 RTCCNTH             equ       $0000182B           ;*** RTCCNTH - RTC Counter Register High
 
-
 ;*** RTCMODH - RTC Modulo Register High
 RTCMODH             equ       $0000182C           ;*** RTCMODH - RTC Modulo Register High
-
 
 ;*** PTAPE - Port A Pull Enable Register
 PTAPE               equ       $00001830           ;*** PTAPE - Port A Pull Enable Register
@@ -2295,7 +2112,6 @@ mPTAPE_PTAPE5       equ       %00100000
 mPTAPE_PTAPE6       equ       %01000000
 mPTAPE_PTAPE7       equ       %10000000
 
-
 ;*** PTASE - Port A Slew Rate Enable Register
 PTASE               equ       $00001831           ;*** PTASE - Port A Slew Rate Enable Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2316,7 +2132,6 @@ mPTASE_PTASE4       equ       %00010000
 mPTASE_PTASE5       equ       %00100000
 mPTASE_PTASE6       equ       %01000000
 mPTASE_PTASE7       equ       %10000000
-
 
 ;*** PTADS - Port A Drive Strength Selection Register
 PTADS               equ       $00001832           ;*** PTADS - Port A Drive Strength Selection Register
@@ -2339,7 +2154,6 @@ mPTADS_PTADS5       equ       %00100000
 mPTADS_PTADS6       equ       %01000000
 mPTADS_PTADS7       equ       %10000000
 
-
 ;*** PTBPE - Port B Pull Enable Register
 PTBPE               equ       $00001834           ;*** PTBPE - Port B Pull Enable Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2360,7 +2174,6 @@ mPTBPE_PTBPE4       equ       %00010000
 mPTBPE_PTBPE5       equ       %00100000
 mPTBPE_PTBPE6       equ       %01000000
 mPTBPE_PTBPE7       equ       %10000000
-
 
 ;*** PTBSE - Port B Slew Rate Enable Register
 PTBSE               equ       $00001835           ;*** PTBSE - Port B Slew Rate Enable Register
@@ -2383,7 +2196,6 @@ mPTBSE_PTBSE5       equ       %00100000
 mPTBSE_PTBSE6       equ       %01000000
 mPTBSE_PTBSE7       equ       %10000000
 
-
 ;*** PTBDS - Port B Drive Strength Selection Register
 PTBDS               equ       $00001836           ;*** PTBDS - Port B Drive Strength Selection Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2405,7 +2217,6 @@ mPTBDS_PTBDS5       equ       %00100000
 mPTBDS_PTBDS6       equ       %01000000
 mPTBDS_PTBDS7       equ       %10000000
 
-
 ;*** PTCPE - Port C Pull Enable Register
 PTCPE               equ       $00001838           ;*** PTCPE - Port C Pull Enable Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2418,7 +2229,6 @@ mPTCPE_PTCPE4       equ       %00010000
 mPTCPE_PTCPE5       equ       %00100000
 mPTCPE_PTCPE6       equ       %01000000
 mPTCPE_PTCPE7       equ       %10000000
-
 
 ;*** PTCSE - Port C Slew Rate Enable Register
 PTCSE               equ       $00001839           ;*** PTCSE - Port C Slew Rate Enable Register
@@ -2433,7 +2243,6 @@ mPTCSE_PTCSE5       equ       %00100000
 mPTCSE_PTCSE6       equ       %01000000
 mPTCSE_PTCSE7       equ       %10000000
 
-
 ;*** PTCDS - Port C Drive Strength Selection Register
 PTCDS               equ       $0000183A           ;*** PTCDS - Port C Drive Strength Selection Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2446,7 +2255,6 @@ mPTCDS_PTCDS4       equ       %00010000
 mPTCDS_PTCDS5       equ       %00100000
 mPTCDS_PTCDS6       equ       %01000000
 mPTCDS_PTCDS7       equ       %10000000
-
 
 ;*** PTDPE - Port D Pull Enable Register
 PTDPE               equ       $0000183C           ;*** PTDPE - Port D Pull Enable Register
@@ -2469,7 +2277,6 @@ mPTDPE_PTDPE5       equ       %00100000
 mPTDPE_PTDPE6       equ       %01000000
 mPTDPE_PTDPE7       equ       %10000000
 
-
 ;*** PTDSE - Port D Slew Rate Enable Register
 PTDSE               equ       $0000183D           ;*** PTDSE - Port D Slew Rate Enable Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2490,7 +2297,6 @@ mPTDSE_PTDSE4       equ       %00010000
 mPTDSE_PTDSE5       equ       %00100000
 mPTDSE_PTDSE6       equ       %01000000
 mPTDSE_PTDSE7       equ       %10000000
-
 
 ;*** PTDDS - Port D Drive Strength Selection Register
 PTDDS               equ       $0000183E           ;*** PTDDS - Port D Drive Strength Selection Register
@@ -2513,94 +2319,71 @@ mPTDDS_PTDDS5       equ       %00100000
 mPTDDS_PTDDS6       equ       %01000000
 mPTDDS_PTDDS7       equ       %10000000
 
-
 ;*** PHY_T1CMP0 - Event Timer Comparator 1 Register 0
 PHY_T1CMP0          equ       $00001840           ;*** PHY_T1CMP0 - Event Timer Comparator 1 Register 0
-
 
 ;*** PHY_T1CMP1 - Event Timer Comparator 1 Register 1
 PHY_T1CMP1          equ       $00001841           ;*** PHY_T1CMP1 - Event Timer Comparator 1 Register 1
 
-
 ;*** PHY_T1CMP2 - Event Timer Comparator 1 Register 2
 PHY_T1CMP2          equ       $00001842           ;*** PHY_T1CMP2 - Event Timer Comparator 1 Register 2
-
 
 ;*** PHY_T2CMP0 - Event Timer Comparator 2 Register 0
 PHY_T2CMP0          equ       $00001843           ;*** PHY_T2CMP0 - Event Timer Comparator 2 Register 0
 
-
 ;*** PHY_T2CMP1 - Event Timer Comparator 2 Register 1
 PHY_T2CMP1          equ       $00001844           ;*** PHY_T2CMP1 - Event Timer Comparator 2 Register 1
-
 
 ;*** PHY_T2CMP2 - Event Timer Comparator 2 Register 2
 PHY_T2CMP2          equ       $00001845           ;*** PHY_T2CMP2 - Event Timer Comparator 2 Register 2
 
-
 ;*** PHY_T4CMP0 - Event Timer Comparator 4 Register 0
 PHY_T4CMP0          equ       $00001846           ;*** PHY_T4CMP0 - Event Timer Comparator 4 Register 0
-
 
 ;*** PHY_T4CMP1 - Event Timer Comparator 4 Register 1
 PHY_T4CMP1          equ       $00001847           ;*** PHY_T4CMP1 - Event Timer Comparator 4 Register 1
 
-
 ;*** PHY_T4CMP2 - Event Timer Comparator 4 Register 2
 PHY_T4CMP2          equ       $00001848           ;*** PHY_T4CMP2 - Event Timer Comparator 4 Register 2
-
 
 ;*** PHY_LO1_FRAC0 - LO1 FracN Numerator Value Register 0
 PHY_LO1_FRAC0       equ       $00001849           ;*** PHY_LO1_FRAC0 - LO1 FracN Numerator Value Register 0
 
-
 ;*** PHY_LO1_FRAC1 - LO1 FracN Numerator Value Register 1
 PHY_LO1_FRAC1       equ       $0000184A           ;*** PHY_LO1_FRAC1 - LO1 FracN Numerator Value Register 1
-
 
 ;*** PHY_LO1_INT - LO1 Integer Register
 PHY_LO1_INT         equ       $0000184B           ;*** PHY_LO1_INT - LO1 Integer Register
 
-
 ;*** PHY_PA_PWR_CNTL - Power Amplifier (PA) Power Control Register
 PHY_PA_PWR_CNTL     equ       $0000184C           ;*** PHY_PA_PWR_CNTL - Power Amplifier (PA) Power Control Register
-
 
 ;*** PHY_MACLONGADDRS0 - MAC Long Address Register 0
 PHY_MACLONGADDRS0   equ       $0000184D           ;*** PHY_MACLONGADDRS0 - MAC Long Address Register 0
 
-
 ;*** PHY_MACLONGADDRS1 - MAC Long Address Register 1
 PHY_MACLONGADDRS1   equ       $0000184E           ;*** PHY_MACLONGADDRS1 - MAC Long Address Register 1
-
 
 ;*** PHY_MACLONGADDRS2 - MAC Long Address Register 2
 PHY_MACLONGADDRS2   equ       $0000184F           ;*** PHY_MACLONGADDRS2 - MAC Long Address Register 2
 
-
 ;*** PHY_MACLONGADDRS3 - MAC Long Address Register 3
 PHY_MACLONGADDRS3   equ       $00001850           ;*** PHY_MACLONGADDRS3 - MAC Long Address Register 3
-
 
 ;*** PHY_MACLONGADDRS4 - MAC Long Address Register 4
 PHY_MACLONGADDRS4   equ       $00001851           ;*** PHY_MACLONGADDRS4 - MAC Long Address Register 4
 
-
 ;*** PHY_MACLONGADDRS5 - MAC Long Address Register 5
 PHY_MACLONGADDRS5   equ       $00001852           ;*** PHY_MACLONGADDRS5 - MAC Long Address Register 5
-
 
 ;*** PHY_MACLONGADDRS6 - MAC Long Address Register 6
 PHY_MACLONGADDRS6   equ       $00001853           ;*** PHY_MACLONGADDRS6 - MAC Long Address Register 6
 
-
 ;*** PHY_MACLONGADDRS7 - MAC Long Address Register 7
 PHY_MACLONGADDRS7   equ       $00001854           ;*** PHY_MACLONGADDRS7 - MAC Long Address Register 7
 
-
 ;*** PHY_MAXFRAMELENGTH - Max Frame Length Register
 PHY_MAXFRAMELENGTH  equ       $00001855           ;*** PHY_MAXFRAMELENGTH - Max Frame Length Register
-
 
 ;*** PHY_RX_FRAME_FILTER - Receive Frame Filter
 PHY_RX_FRAME_FILTER equ       $00001856           ;*** PHY_RX_FRAME_FILTER - Receive Frame Filter
@@ -2617,7 +2400,6 @@ mPHY_RX_FRAME_FILTER_ACK_FT equ       %00000100
 mPHY_RX_FRAME_FILTER_CMD_FT equ       %00001000
 mPHY_RX_FRAME_FILTER_NS_FT equ       %00010000
 
-
 ;*** PHY_MACFRAMEVER -
 PHY_MACFRAMEVER     equ       $00001857           ;*** PHY_MACFRAMEVER -
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2633,14 +2415,11 @@ mPHY_MACFRAMEVER_TMR_PRESCALE0 equ       %00100000
 mPHY_MACFRAMEVER_TMR_PRESCALE1 equ       %01000000
 mPHY_MACFRAMEVER_TMR_PRESCALE2 equ       %10000000
 
-
 ;*** PHY_CCA_THRESHOLD - CCA Energy Threshold
 PHY_CCA_THRESHOLD   equ       $00001858           ;*** PHY_CCA_THRESHOLD - CCA Energy Threshold
 
-
 ;*** PHY_CCA_OFFSET_CMP - CCA Power Compensation
 PHY_CCA_OFFSET_CMP  equ       $00001859           ;*** PHY_CCA_OFFSET_CMP - CCA Power Compensation
-
 
 ;*** PHY_FSM - Finite State Machine Register
 PHY_FSM             equ       $0000185A           ;*** PHY_FSM - Finite State Machine Register
@@ -2649,14 +2428,11 @@ PHY_FSM_FSM         equ       0
 ; bit position masks
 mPHY_FSM_FSM        equ       %00111111
 
-
 ;*** PHY_INDIRECT_ACCESS_INDEX - Transceiver Indirect Access Index Register
 PHY_INDIRECT_ACCESS_INDEX equ       $0000185B           ;*** PHY_INDIRECT_ACCESS_INDEX - Transceiver Indirect Access Index Register
 
-
 ;*** PHY_INDIRECT_ACCESS_DATA - Transceiver Indirect Access Data Register
 PHY_INDIRECT_ACCESS_DATA equ       $0000185C           ;*** PHY_INDIRECT_ACCESS_DATA - Transceiver Indirect Access Data Register
-
 
 ;*** TPM4SC - TPM4 Status and Control Register
 TPM4SC              equ       $00001860           ;*** TPM4SC - TPM4 Status and Control Register
@@ -2679,30 +2455,23 @@ mTPM4SC_CPWMS       equ       %00100000
 mTPM4SC_TOIE        equ       %01000000
 mTPM4SC_TOF         equ       %10000000
 
-
 ;*** TPM4CNT - TPM4 Timer Counter Register
 TPM4CNT             equ       $00001861           ;*** TPM4CNT - TPM4 Timer Counter Register
-
 
 ;*** TPM4CNTH - TPM4 Timer Counter Register High
 TPM4CNTH            equ       $00001861           ;*** TPM4CNTH - TPM4 Timer Counter Register High
 
-
 ;*** TPM4CNTL - TPM4 Timer Counter Register Low
 TPM4CNTL            equ       $00001862           ;*** TPM4CNTL - TPM4 Timer Counter Register Low
-
 
 ;*** TPM4MOD - TPM4 Timer Counter Modulo Register
 TPM4MOD             equ       $00001863           ;*** TPM4MOD - TPM4 Timer Counter Modulo Register
 
-
 ;*** TPM4MODH - TPM4 Timer Counter Modulo Register High
 TPM4MODH            equ       $00001863           ;*** TPM4MODH - TPM4 Timer Counter Modulo Register High
 
-
 ;*** TPM4MODL - TPM4 Timer Counter Modulo Register Low
 TPM4MODL            equ       $00001864           ;*** TPM4MODL - TPM4 Timer Counter Modulo Register Low
-
 
 ;*** TPM4C0SC - TPM4 Timer Channel 0 Status and Control Register
 TPM4C0SC            equ       $00001865           ;*** TPM4C0SC - TPM4 Timer Channel 0 Status and Control Register
@@ -2721,18 +2490,14 @@ mTPM4C0SC_MS0B      equ       %00100000
 mTPM4C0SC_CH0IE     equ       %01000000
 mTPM4C0SC_CH0F      equ       %10000000
 
-
 ;*** TPM4C0V - TPM4 Timer Channel 0 Value Register
 TPM4C0V             equ       $00001866           ;*** TPM4C0V - TPM4 Timer Channel 0 Value Register
-
 
 ;*** TPM4C0VH - TPM4 Timer Channel 0 Value Register High
 TPM4C0VH            equ       $00001866           ;*** TPM4C0VH - TPM4 Timer Channel 0 Value Register High
 
-
 ;*** TPM4C0VL - TPM4 Timer Channel 0 Value Register Low
 TPM4C0VL            equ       $00001867           ;*** TPM4C0VL - TPM4 Timer Channel 0 Value Register Low
-
 
 ;*** ADCSC1 - Status and Control Register 1
 ADCSC1              equ       $00001870           ;*** ADCSC1 - Status and Control Register 1
@@ -2755,7 +2520,6 @@ mADCSC1_ADCO        equ       %00100000
 mADCSC1_AIEN        equ       %01000000
 mADCSC1_COCO        equ       %10000000
 
-
 ;*** ADCSC2 - Status and Control Register 2
 ADCSC2              equ       $00001871           ;*** ADCSC2 - Status and Control Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2769,10 +2533,8 @@ mADCSC2_ACFE        equ       %00100000
 mADCSC2_ADTRG       equ       %01000000
 mADCSC2_ADACT       equ       %10000000
 
-
 ;*** ADCR - Data Result Register
 ADCR                equ       $00001872           ;*** ADCR - Data Result Register
-
 
 ;*** ADCRH - Data Result High Register
 ADCRH               equ       $00001872           ;*** ADCRH - Data Result High Register
@@ -2786,7 +2548,6 @@ mADCRH_ADR8         equ       %00000001
 mADCRH_ADR9         equ       %00000010
 mADCRH_ADR10        equ       %00000100
 mADCRH_ADR11        equ       %00001000
-
 
 ;*** ADCRL - Data Result Low Register
 ADCRL               equ       $00001873           ;*** ADCRL - Data Result Low Register
@@ -2809,10 +2570,8 @@ mADCRL_ADR5         equ       %00100000
 mADCRL_ADR6         equ       %01000000
 mADCRL_ADR7         equ       %10000000
 
-
 ;*** ADCCV - Compare Value Register
 ADCCV               equ       $00001874           ;*** ADCCV - Compare Value Register
-
 
 ;*** ADCCVH - Compare Value High Register
 ADCCVH              equ       $00001874           ;*** ADCCVH - Compare Value High Register
@@ -2826,7 +2585,6 @@ mADCCVH_ADCV8       equ       %00000001
 mADCCVH_ADCV9       equ       %00000010
 mADCCVH_ADCV10      equ       %00000100
 mADCCVH_ADCV11      equ       %00001000
-
 
 ;*** ADCCVL - Compare Value Low Register
 ADCCVL              equ       $00001875           ;*** ADCCVL - Compare Value Low Register
@@ -2849,7 +2607,6 @@ mADCCVL_ADCV5       equ       %00100000
 mADCCVL_ADCV6       equ       %01000000
 mADCCVL_ADCV7       equ       %10000000
 
-
 ;*** ADCCFG - Configuration Register
 ADCCFG              equ       $00001876           ;*** ADCCFG - Configuration Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2870,7 +2627,6 @@ mADCCFG_ADLSMP      equ       %00010000
 mADCCFG_ADIV0       equ       %00100000
 mADCCFG_ADIV1       equ       %01000000
 mADCCFG_ADLPC       equ       %10000000
-
 
 ;*** APCTL1 - Pin Control 1 Register
 APCTL1              equ       $00001877           ;*** APCTL1 - Pin Control 1 Register
@@ -2893,7 +2649,6 @@ mAPCTL1_ADPC5       equ       %00100000
 mAPCTL1_ADPC6       equ       %01000000
 mAPCTL1_ADPC7       equ       %10000000
 
-
 ;*** NVBACKKEY0 - Backdoor Comparison Key 0
 NVBACKKEY0          equ       $0000FFB0           ;*** NVBACKKEY0 - Backdoor Comparison Key 0
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2914,7 +2669,6 @@ mNVBACKKEY0_KEY4    equ       %00010000
 mNVBACKKEY0_KEY5    equ       %00100000
 mNVBACKKEY0_KEY6    equ       %01000000
 mNVBACKKEY0_KEY7    equ       %10000000
-
 
 ;*** NVBACKKEY1 - Backdoor Comparison Key 1
 NVBACKKEY1          equ       $0000FFB1           ;*** NVBACKKEY1 - Backdoor Comparison Key 1
@@ -2937,7 +2691,6 @@ mNVBACKKEY1_KEY5    equ       %00100000
 mNVBACKKEY1_KEY6    equ       %01000000
 mNVBACKKEY1_KEY7    equ       %10000000
 
-
 ;*** NVBACKKEY2 - Backdoor Comparison Key 2
 NVBACKKEY2          equ       $0000FFB2           ;*** NVBACKKEY2 - Backdoor Comparison Key 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -2958,7 +2711,6 @@ mNVBACKKEY2_KEY4    equ       %00010000
 mNVBACKKEY2_KEY5    equ       %00100000
 mNVBACKKEY2_KEY6    equ       %01000000
 mNVBACKKEY2_KEY7    equ       %10000000
-
 
 ;*** NVBACKKEY3 - Backdoor Comparison Key 3
 NVBACKKEY3          equ       $0000FFB3           ;*** NVBACKKEY3 - Backdoor Comparison Key 3
@@ -2981,7 +2733,6 @@ mNVBACKKEY3_KEY5    equ       %00100000
 mNVBACKKEY3_KEY6    equ       %01000000
 mNVBACKKEY3_KEY7    equ       %10000000
 
-
 ;*** NVBACKKEY4 - Backdoor Comparison Key 4
 NVBACKKEY4          equ       $0000FFB4           ;*** NVBACKKEY4 - Backdoor Comparison Key 4
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -3002,7 +2753,6 @@ mNVBACKKEY4_KEY4    equ       %00010000
 mNVBACKKEY4_KEY5    equ       %00100000
 mNVBACKKEY4_KEY6    equ       %01000000
 mNVBACKKEY4_KEY7    equ       %10000000
-
 
 ;*** NVBACKKEY5 - Backdoor Comparison Key 5
 NVBACKKEY5          equ       $0000FFB5           ;*** NVBACKKEY5 - Backdoor Comparison Key 5
@@ -3025,7 +2775,6 @@ mNVBACKKEY5_KEY5    equ       %00100000
 mNVBACKKEY5_KEY6    equ       %01000000
 mNVBACKKEY5_KEY7    equ       %10000000
 
-
 ;*** NVBACKKEY6 - Backdoor Comparison Key 6
 NVBACKKEY6          equ       $0000FFB6           ;*** NVBACKKEY6 - Backdoor Comparison Key 6
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -3046,7 +2795,6 @@ mNVBACKKEY6_KEY4    equ       %00010000
 mNVBACKKEY6_KEY5    equ       %00100000
 mNVBACKKEY6_KEY6    equ       %01000000
 mNVBACKKEY6_KEY7    equ       %10000000
-
 
 ;*** NVBACKKEY7 - Backdoor Comparison Key 7
 NVBACKKEY7          equ       $0000FFB7           ;*** NVBACKKEY7 - Backdoor Comparison Key 7
@@ -3069,7 +2817,6 @@ mNVBACKKEY7_KEY5    equ       %00100000
 mNVBACKKEY7_KEY6    equ       %01000000
 mNVBACKKEY7_KEY7    equ       %10000000
 
-
 ;*** NVPROT - Non-volatile Flash Protection Register
 NVPROT              equ       $0000FFBD           ;*** NVPROT - Non-volatile Flash Protection Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -3091,7 +2838,6 @@ mNVPROT_FPS4        equ       %00100000
 mNVPROT_FPS5        equ       %01000000
 mNVPROT_FPS6        equ       %10000000
 
-
 ;*** NVOPT - Non-volatile Flash Options Register
 NVOPT               equ       $0000FFBF           ;*** NVOPT - Non-volatile Flash Options Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -3105,15 +2851,12 @@ mNVOPT_SEC1         equ       %00000010
 mNVOPT_KEYEN0       equ       %01000000
 mNVOPT_KEYEN1       equ       %10000000
 
-
-
 ; Flash commands
 mBlank              equ       $05
 mBurstProg          equ       $25
 mByteProg           equ       $20
 mMassErase          equ       $41
 mPageErase          equ       $40
-
 
 ;***********************************************
 ;**   D E P R E C I A T E D   S Y M B O L S   **
@@ -3123,8 +2866,6 @@ mPageErase          equ       $40
 ; ---------------------------------------------------------------------------
 ; The following symbols were removed, because they were invalid or irrelevant
 ; ---------------------------------------------------------------------------
-
-
 
 ; **** 26.10.2012
 

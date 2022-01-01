@@ -84,7 +84,6 @@ ROM_END             equ       $00003FF7
 ;
 ;
 
-
 ;*** PTAD - Port A Data Register
 PTAD                equ       $00000010           ;*** PTAD - Port A Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -102,7 +101,6 @@ mPTAD_PTAD3         equ       %00001000
 mPTAD_PTAD4         equ       %00010000
 mPTAD_PTAD5         equ       %00100000
 
-
 ;*** PTADD - Port A Data Direction Register
 PTADD               equ       $00000011           ;*** PTADD - Port A Data Direction Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -115,7 +113,6 @@ mPTADD_PTADD0       equ       %00000001
 mPTADD_PTADD1       equ       %00000010
 mPTADD_PTADD4       equ       %00010000
 mPTADD_PTADD5       equ       %00100000
-
 
 ;*** ACMPSC - ACMP Status and Control Register
 ACMPSC              equ       $00000013           ;*** ACMPSC - ACMP Status and Control Register
@@ -138,7 +135,6 @@ mACMPSC_ACF         equ       %00100000
 mACMPSC_ACBGS       equ       %01000000
 mACMPSC_ACME        equ       %10000000
 
-
 ;*** ICSC1 - ICS Control Register 1
 ICSC1               equ       $00000014           ;*** ICSC1 - ICS Control Register 1
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -147,7 +143,6 @@ ICSC1_CLKS          equ       6                   ; Clock Source Select
 ; bit position masks
 mICSC1_IREFSTEN     equ       %00000001
 mICSC1_CLKS         equ       %01000000
-
 
 ;*** ICSC2 - ICS Control Register 2
 ICSC2               equ       $00000015           ;*** ICSC2 - ICS Control Register 2
@@ -158,14 +153,12 @@ ICSC2_BDIV          equ       6                   ; Bus Frequency Divider
 mICSC2_LP           equ       %00001000
 mICSC2_BDIV         equ       %11000000
 
-
 ;*** ICSTRM - ICS Trim Register
 ICSTRM              equ       $00000016           ;*** ICSTRM - ICS Trim Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 ICSTRM_TRIM         equ       0                   ; ICS Trim Setting
 ; bit position masks
 mICSTRM_TRIM        equ       %11111111
-
 
 ;*** ICSSC - ICS Status and Control Register
 ICSSC               equ       $00000017           ;*** ICSSC - ICS Status and Control Register
@@ -175,7 +168,6 @@ ICSSC_CLKST         equ       2                   ; Clock Mode Status
 ; bit position masks
 mICSSC_FTRIM        equ       %00000001
 mICSSC_CLKST        equ       %00000100
-
 
 ;*** MTIMSC - MTIM Clock Configuration Register
 MTIMSC              equ       $00000018           ;*** MTIMSC - MTIM Clock Configuration Register
@@ -189,7 +181,6 @@ mMTIMSC_TSTP        equ       %00010000
 mMTIMSC_TRST        equ       %00100000
 mMTIMSC_TOIE        equ       %01000000
 mMTIMSC_TOF         equ       %10000000
-
 
 ;*** MTIMCLK - MTIM Clock Configuration Register
 MTIMCLK             equ       $00000019           ;*** MTIMCLK - MTIM Clock Configuration Register
@@ -208,14 +199,11 @@ mMTIMCLK_PS3        equ       %00001000
 mMTIMCLK_CLKS0      equ       %00010000
 mMTIMCLK_CLKS1      equ       %00100000
 
-
 ;*** MTIMCNT - MTIM Counter Register
 MTIMCNT             equ       $0000001A           ;*** MTIMCNT - MTIM Counter Register
 
-
 ;*** MTIMMOD - MTIM Modulo Register
 MTIMMOD             equ       $0000001B           ;*** MTIMMOD - MTIM Modulo Register
-
 
 ;*** KBISC - KBI Status and Control Register
 KBISC               equ       $0000001C           ;*** KBISC - KBI Status and Control Register
@@ -229,7 +217,6 @@ mKBISC_KBIMOD       equ       %00000001
 mKBISC_KBIE         equ       %00000010
 mKBISC_KBACK        equ       %00000100
 mKBISC_KBF          equ       %00001000
-
 
 ;*** KBIPE - KBI Pin Enable Register
 KBIPE               equ       $0000001D           ;*** KBIPE - KBI Pin Enable Register
@@ -246,7 +233,6 @@ mKBIPE_KBIPE2       equ       %00000100
 mKBIPE_KBIPE4       equ       %00010000
 mKBIPE_KBIPE5       equ       %00100000
 
-
 ;*** KBIES - KBI Edge Select Register
 KBIES               equ       $0000001E           ;*** KBIES - KBI Edge Select Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -261,7 +247,6 @@ mKBIES_KBEDG1       equ       %00000010
 mKBIES_KBEDG2       equ       %00000100
 mKBIES_KBEDG4       equ       %00010000
 mKBIES_KBEDG5       equ       %00100000
-
 
 ;*** PAGESEL - Page Select Register
 PAGESEL             equ       $0000001F           ;*** PAGESEL - Page Select Register
@@ -284,7 +269,6 @@ mPAGESEL_AD11       equ       %00100000
 mPAGESEL_AD12       equ       %01000000
 mPAGESEL_AD13       equ       %10000000
 
-
 ;*** SRS - System Reset Status Register
 SRS                 equ       $00000200           ;*** SRS - System Reset Status Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -302,7 +286,6 @@ mSRS_COP            equ       %00100000
 mSRS_PIN            equ       %01000000
 mSRS_POR            equ       %10000000
 
-
 ;*** SOPT - System Options Register
 SOPT                equ       $00000201           ;*** SOPT - System Options Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -317,7 +300,6 @@ mSOPT_BKGDPE        equ       %00000010
 mSOPT_STOPE         equ       %00100000
 mSOPT_COPT          equ       %01000000
 mSOPT_COPE          equ       %10000000
-
 
 ;*** SIP1 - System Interrupt Pending Register
 SIP1                equ       $00000202           ;*** SIP1 - System Interrupt Pending Register
@@ -334,10 +316,8 @@ mSIP1_MTIM          equ       %00000100
 mSIP1_ACMP          equ       %00001000
 mSIP1_KBI           equ       %00010000
 
-
 ;*** SDID - System Device Identification Register
 SDID                equ       $00000206           ;*** SDID - System Device Identification Register
-
 
 ;*** SDIDH - System Device Identification Register High
 SDIDH               equ       $00000206           ;*** SDIDH - System Device Identification Register High
@@ -360,7 +340,6 @@ mSDIDH_REV1         equ       %00100000
 mSDIDH_REV2         equ       %01000000
 mSDIDH_REV3         equ       %10000000
 
-
 ;*** SDIDL - System Device Identification Register Low
 SDIDL               equ       $00000207           ;*** SDIDL - System Device Identification Register Low
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -382,7 +361,6 @@ mSDIDL_ID5          equ       %00100000
 mSDIDL_ID6          equ       %01000000
 mSDIDL_ID7          equ       %10000000
 
-
 ;*** SRTISC - System Real-Time Interrupt Status and Control Register
 SRTISC              equ       $00000208           ;*** SRTISC - System Real-Time Interrupt Status and Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -401,7 +379,6 @@ mSRTISC_RTIE        equ       %00010000
 mSRTISC_RTICLKS     equ       %00100000
 mSRTISC_RTIACK      equ       %01000000
 mSRTISC_RTIF        equ       %10000000
-
 
 ;*** SPMSC1 - System Power Management Status and Control 1 Register
 SPMSC1              equ       $00000209           ;*** SPMSC1 - System Power Management Status and Control 1 Register
@@ -422,14 +399,12 @@ mSPMSC1_LVDIE       equ       %00100000
 mSPMSC1_LVDACK      equ       %01000000
 mSPMSC1_LVDF        equ       %10000000
 
-
 ;*** FOPT - Flash Options Register
 FOPT                equ       $00000210           ;*** FOPT - Flash Options Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 FOPT_SECD           equ       0                   ; Security State Code
 ; bit position masks
 mFOPT_SECD          equ       %00000001
-
 
 ;*** FLCR - Flash Control Register
 FLCR                equ       $00000211           ;*** FLCR - Flash Control Register
@@ -441,7 +416,6 @@ FLCR_HVEN           equ       3                   ; High Voltage Enable
 mFLCR_PGM           equ       %00000001
 mFLCR_MASS          equ       %00000100
 mFLCR_HVEN          equ       %00001000
-
 
 ;*** PTAPE - Port A Internal Pulling Device Enable Register
 PTAPE               equ       $00000220           ;*** PTAPE - Port A Internal Pulling Device Enable Register
@@ -458,7 +432,6 @@ mPTAPE_PTAPE2       equ       %00000100
 mPTAPE_PTAPE4       equ       %00010000
 mPTAPE_PTAPE5       equ       %00100000
 
-
 ;*** PTAPUD - Port A Pullup/Pulldown Control Register
 PTAPUD              equ       $00000221           ;*** PTAPUD - Port A Pullup/Pulldown Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -473,7 +446,6 @@ mPTAPUD_PTAPUD1     equ       %00000010
 mPTAPUD_PTAPUD2     equ       %00000100
 mPTAPUD_PTAPUD4     equ       %00010000
 mPTAPUD_PTAPUD5     equ       %00100000
-
 
 ;*** PTASE - Port A Output Slew Rate Control Enable Register
 PTASE               equ       $00000222           ;*** PTASE - Port A Output Slew Rate Control Enable Register
@@ -490,14 +462,12 @@ mPTASE_PTASE3       equ       %00001000
 mPTASE_PTASE4       equ       %00010000
 mPTASE_PTASE5       equ       %00100000
 
-
 ;*** NVICSTRM - Non-volatile ICS Trim Register
 NVICSTRM            equ       $00003FFA           ;*** NVICSTRM - Non-volatile ICS Trim Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 NVICSTRM_TRIM       equ       0                   ; ICS Trim Setting
 ; bit position masks
 mNVICSTRM_TRIM      equ       %11111111
-
 
 ;*** NVFTRIM - Non-volatile ICS Fine Trim
 NVFTRIM             equ       $00003FFB           ;*** NVFTRIM - Non-volatile ICS Fine Trim
@@ -506,15 +476,12 @@ NVFTRIM_FTRIM       equ       0                   ; ICS Fine Trim
 ; bit position masks
 mNVFTRIM_FTRIM      equ       %00000001
 
-
 ;*** NVOPT - Non-volatile Flash Options Register
 NVOPT               equ       $00003FFC           ;*** NVOPT - Non-volatile Flash Options Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 NVOPT_SECD          equ       0                   ; Security State Code
 ; bit position masks
 mNVOPT_SECD         equ       %00000001
-
-
 
 ;***********************************************
 ;**   D E P R E C I A T E D   S Y M B O L S   **
@@ -529,7 +496,6 @@ mNVOPT_SECD         equ       %00000001
 ; Follows changes from the database 2.87.051 version
 KBISC_KBMOD         equ       KBISC_KBIMOD
 mKBISC_KBMOD        equ       mKBISC_KBIMOD
-
 
 ; **** 14.06.2007 15:54:08
 

@@ -119,7 +119,6 @@ INT_SWI             equ       $0000FFFC
 INT_RESET           equ       $0000FFFE
 ;
 
-
 ;*** PTA - Port A Data Register
 PTA                 equ       $00000000           ;*** PTA - Port A Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -138,7 +137,6 @@ mPTA_PTA3           equ       %00001000
 mPTA_PTA4           equ       %00010000
 mPTA_PTA5           equ       %00100000
 mPTA_PTA6           equ       %01000000
-
 
 ;*** PTB - Port B Data Register
 PTB                 equ       $00000001           ;*** PTB - Port B Data Register
@@ -161,7 +159,6 @@ mPTB_PTB5           equ       %00100000
 mPTB_PTB6           equ       %01000000
 mPTB_PTB7           equ       %10000000
 
-
 ;*** PTC - Port C Data Register
 PTC                 equ       $00000002           ;*** PTC - Port C Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -177,7 +174,6 @@ mPTC_PTC2           equ       %00000100
 mPTC_PTC3           equ       %00001000
 mPTC_PTC4           equ       %00010000
 
-
 ;*** PTD - Port D Data Register
 PTD                 equ       $00000003           ;*** PTD - Port D Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -186,7 +182,6 @@ PTD_PTD1            equ       1                   ; Port D Data Bit 1
 ; bit position masks
 mPTD_PTD0           equ       %00000001
 mPTD_PTD1           equ       %00000010
-
 
 ;*** DDRA - Data Direction Register A
 DDRA                equ       $00000004           ;*** DDRA - Data Direction Register A
@@ -206,7 +201,6 @@ mDDRA_DDRA3         equ       %00001000
 mDDRA_DDRA4         equ       %00010000
 mDDRA_DDRA5         equ       %00100000
 mDDRA_DDRA6         equ       %01000000
-
 
 ;*** DDRB - Data Direction Register B
 DDRB                equ       $00000005           ;*** DDRB - Data Direction Register B
@@ -229,7 +223,6 @@ mDDRB_DDRB5         equ       %00100000
 mDDRB_DDRB6         equ       %01000000
 mDDRB_DDRB7         equ       %10000000
 
-
 ;*** DDRC - Data Direction Register C
 DDRC                equ       $00000006           ;*** DDRC - Data Direction Register C
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -247,7 +240,6 @@ mDDRC_DDRC3         equ       %00001000
 mDDRC_DDRC4         equ       %00010000
 mDDRC_MCLKEN        equ       %10000000
 
-
 ;*** DDRD - Data Direction Register D
 DDRD                equ       $00000007           ;*** DDRD - Data Direction Register D
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -257,7 +249,6 @@ DDRD_DDRD1          equ       1                   ; Data Direction Register D Bi
 mDDRD_DDRD0         equ       %00000001
 mDDRD_DDRD1         equ       %00000010
 
-
 ;*** PTE - Port E Data Register
 PTE                 equ       $00000008           ;*** PTE - Port E Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -266,7 +257,6 @@ PTE_PTE1            equ       1                   ; Port E Data Bit 1
 ; bit position masks
 mPTE_PTE0           equ       %00000001
 mPTE_PTE1           equ       %00000010
-
 
 ;*** CONFIG3 - Configuration Register 3
 CONFIG3             equ       $00000009           ;*** CONFIG3 - Configuration Register 3
@@ -287,7 +277,6 @@ mCONFIG3_SPISRE     equ       %00010000
 mCONFIG3_ESCISRE    equ       %00100000
 mCONFIG3_RNGSEL     equ       %01000000
 
-
 ;*** DDRE - Data Direction Register E
 DDRE                equ       $0000000A           ;*** DDRE - Data Direction Register E
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -296,7 +285,6 @@ DDRE_DDRE1          equ       1                   ; Data Direction Register E Bi
 ; bit position masks
 mDDRE_DDRE0         equ       %00000001
 mDDRE_DDRE1         equ       %00000010
-
 
 ;*** BEMF - BEMF Register
 BEMF                equ       $0000000B           ;*** BEMF - BEMF Register
@@ -319,7 +307,6 @@ mBEMF_BEMF5         equ       %00100000
 mBEMF_BEMF6         equ       %01000000
 mBEMF_BEMF7         equ       %10000000
 
-
 ;*** KBIPR - Keyboard Interrupt Polarity Register
 KBIPR               equ       $0000000C           ;*** KBIPR - Keyboard Interrupt Polarity Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -334,7 +321,6 @@ mKBIPR_KBIP1        equ       %00000010
 mKBIPR_KBIP2        equ       %00000100
 mKBIPR_KBIP3        equ       %00001000
 mKBIPR_KBIP4        equ       %00010000
-
 
 ;*** SPCR - SPI Control Register
 SPCR                equ       $0000000D           ;*** SPCR - SPI Control Register
@@ -354,7 +340,6 @@ mSPCR_CPHA          equ       %00001000
 mSPCR_CPOL          equ       %00010000
 mSPCR_SPMSTR        equ       %00100000
 mSPCR_SPRIE         equ       %10000000
-
 
 ;*** SPSCR - SPI Status and Control Register
 SPSCR               equ       $0000000E           ;*** SPSCR - SPI Status and Control Register
@@ -377,7 +362,6 @@ mSPSCR_OVRF         equ       %00100000
 mSPSCR_ERRIE        equ       %01000000
 mSPSCR_SPRF         equ       %10000000
 
-
 ;*** SPDR - SPI Data Register
 SPDR                equ       $0000000F           ;*** SPDR - SPI Data Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -398,7 +382,6 @@ mSPDR_R4_T4         equ       %00010000
 mSPDR_R5_T5         equ       %00100000
 mSPDR_R6_T6         equ       %01000000
 mSPDR_R7_T7         equ       %10000000
-
 
 ;*** SCC1 - ESCI Control Register 1
 SCC1                equ       $00000010           ;*** SCC1 - ESCI Control Register 1
@@ -421,7 +404,6 @@ mSCC1_TXINV         equ       %00100000
 mSCC1_ENSCI         equ       %01000000
 mSCC1_LOOPS         equ       %10000000
 
-
 ;*** SCC2 - ESCI Control Register 2
 SCC2                equ       $00000011           ;*** SCC2 - ESCI Control Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -443,7 +425,6 @@ mSCC2_SCRIE         equ       %00100000
 mSCC2_TCIE          equ       %01000000
 mSCC2_SCTIE         equ       %10000000
 
-
 ;*** SCC3 - ESCI Control Register 3
 SCC3                equ       $00000012           ;*** SCC3 - ESCI Control Register 3
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -460,7 +441,6 @@ mSCC3_NEIE          equ       %00000100
 mSCC3_ORIE          equ       %00001000
 mSCC3_T8            equ       %01000000
 mSCC3_R8            equ       %10000000
-
 
 ;*** SCS1 - SCI Status Register 1
 SCS1                equ       $00000013           ;*** SCS1 - SCI Status Register 1
@@ -483,7 +463,6 @@ mSCS1_SCRF          equ       %00100000
 mSCS1_TC            equ       %01000000
 mSCS1_SCTE          equ       %10000000
 
-
 ;*** SCS2 - SCI Status Register 2
 SCS2                equ       $00000014           ;*** SCS2 - SCI Status Register 2
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -492,7 +471,6 @@ SCS2_BKF            equ       1                   ; Break Flag Bit
 ; bit position masks
 mSCS2_RPF           equ       %00000001
 mSCS2_BKF           equ       %00000010
-
 
 ;*** SCDR - SCI Data Register
 SCDR                equ       $00000015           ;*** SCDR - SCI Data Register
@@ -515,7 +493,6 @@ mSCDR_R5_T5         equ       %00100000
 mSCDR_R6_T6         equ       %01000000
 mSCDR_R7_T7         equ       %10000000
 
-
 ;*** SCBR - SCI Baud Rate Register
 SCBR                equ       $00000016           ;*** SCBR - SCI Baud Rate Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -534,7 +511,6 @@ mSCBR_SCP0          equ       %00010000
 mSCBR_SCP1          equ       %00100000
 mSCBR_LINR          equ       %01000000
 mSCBR_LINT          equ       %10000000
-
 
 ;*** SCPSC - ESCI Prescale Register
 SCPSC               equ       $00000017           ;*** SCPSC - ESCI Prescale Register
@@ -557,7 +533,6 @@ mSCPSC_PDS0         equ       %00100000
 mSCPSC_PDS1         equ       %01000000
 mSCPSC_PDS2         equ       %10000000
 
-
 ;*** SCIACTL - ESCI Arbiter Control Register
 SCIACTL             equ       $00000018           ;*** SCIACTL - ESCI Arbiter Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -578,7 +553,6 @@ mSCIACTL_ACLK       equ       %00010000
 mSCIACTL_AM0        equ       %00100000
 mSCIACTL_ALOST      equ       %01000000
 mSCIACTL_AM1        equ       %10000000
-
 
 ;*** SCIADAT - ESCI Arbiter Data Register
 SCIADAT             equ       $00000019           ;*** SCIADAT - ESCI Arbiter Data Register
@@ -601,7 +575,6 @@ mSCIADAT_ARD5       equ       %00100000
 mSCIADAT_ARD6       equ       %01000000
 mSCIADAT_ARD7       equ       %10000000
 
-
 ;*** KBSCR - Keyboard Status and Control Register
 KBSCR               equ       $0000001A           ;*** KBSCR - Keyboard Status and Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -614,7 +587,6 @@ mKBSCR_MODEK        equ       %00000001
 mKBSCR_IMASKK       equ       %00000010
 mKBSCR_ACKK         equ       %00000100
 mKBSCR_KEYF         equ       %00001000
-
 
 ;*** KBIER - Keyboard Interrupt Enable Register
 KBIER               equ       $0000001B           ;*** KBIER - Keyboard Interrupt Enable Register
@@ -630,7 +602,6 @@ mKBIER_KBIE1        equ       %00000010
 mKBIER_KBIE2        equ       %00000100
 mKBIER_KBIE3        equ       %00001000
 mKBIER_KBIE4        equ       %00010000
-
 
 ;*** TBCR - Timebase Control Register
 TBCR                equ       $0000001C           ;*** TBCR - Timebase Control Register
@@ -651,7 +622,6 @@ mTBCR_TBR1          equ       %00100000
 mTBCR_TBR2          equ       %01000000
 mTBCR_TBIF          equ       %10000000
 
-
 ;*** INTSCR - IRQ Status and Control Register
 INTSCR              equ       $0000001D           ;*** INTSCR - IRQ Status and Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -664,7 +634,6 @@ mINTSCR_MODE        equ       %00000001
 mINTSCR_IMASK       equ       %00000010
 mINTSCR_ACK         equ       %00000100
 mINTSCR_IRQF        equ       %00001000
-
 
 ;*** CONFIG2 - Configuration Register
 CONFIG2             equ       $0000001E           ;*** CONFIG2 - Configuration Register
@@ -684,7 +653,6 @@ mCONFIG2_EXTCLKEN   equ       %00001000
 mCONFIG2_EXTSLOW    equ       %00010000
 mCONFIG2_EXTXTALEN  equ       %00100000
 mCONFIG2_ESCIBDSRC  equ       %01000000
-
 
 ;*** CONFIG1 - Configuration Register
 CONFIG1             equ       $0000001F           ;*** CONFIG1 - Configuration Register
@@ -707,7 +675,6 @@ mCONFIG1_LVIRSTD    equ       %00100000
 mCONFIG1_LVISTOP    equ       %01000000
 mCONFIG1_COPRS      equ       %10000000
 
-
 ;*** TASC - TIMA Status/Control Register
 TASC                equ       $00000020           ;*** TASC - TIMA Status/Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -727,30 +694,23 @@ mTASC_TSTOP         equ       %00100000
 mTASC_TOIE          equ       %01000000
 mTASC_TOF           equ       %10000000
 
-
 ;*** TACNT - TIMA Counter Register
 TACNT               equ       $00000021           ;*** TACNT - TIMA Counter Register
-
 
 ;*** TACNTH - TIMA Counter Register High
 TACNTH              equ       $00000021           ;*** TACNTH - TIMA Counter Register High
 
-
 ;*** TACNTL - TIMA Counter Register Low
 TACNTL              equ       $00000022           ;*** TACNTL - TIMA Counter Register Low
-
 
 ;*** TAMOD - TIMA Counter Modulo Register
 TAMOD               equ       $00000023           ;*** TAMOD - TIMA Counter Modulo Register
 
-
 ;*** TAMODH - TIMA Counter Modulo Register
 TAMODH              equ       $00000023           ;*** TAMODH - TIMA Counter Modulo Register
 
-
 ;*** TAMODL - TIMA Counter Modulo Register
 TAMODL              equ       $00000024           ;*** TAMODL - TIMA Counter Modulo Register
-
 
 ;*** TASC0 - TIMA Channel 0 Status/Control Register
 TASC0               equ       $00000025           ;*** TASC0 - TIMA Channel 0 Status/Control Register
@@ -773,18 +733,14 @@ mTASC0_MS0B         equ       %00100000
 mTASC0_CH0IE        equ       %01000000
 mTASC0_CH0F         equ       %10000000
 
-
 ;*** TACH0 - TIMA Channel 0 Register
 TACH0               equ       $00000026           ;*** TACH0 - TIMA Channel 0 Register
-
 
 ;*** TACH0H - TIMA Channel 0 Register High
 TACH0H              equ       $00000026           ;*** TACH0H - TIMA Channel 0 Register High
 
-
 ;*** TACH0L - TIMA Channel 0 Register Low
 TACH0L              equ       $00000027           ;*** TACH0L - TIMA Channel 0 Register Low
-
 
 ;*** TASC1 - TIMA Channel 1 Status/Control Register
 TASC1               equ       $00000028           ;*** TASC1 - TIMA Channel 1 Status/Control Register
@@ -805,18 +761,14 @@ mTASC1_MS1A         equ       %00010000
 mTASC1_CH1IE        equ       %01000000
 mTASC1_CH1F         equ       %10000000
 
-
 ;*** TACH1 - TIMA Channel 1 Register
 TACH1               equ       $00000029           ;*** TACH1 - TIMA Channel 1 Register
-
 
 ;*** TACH1H - TIMA Channel 1 Register High
 TACH1H              equ       $00000029           ;*** TACH1H - TIMA Channel 1 Register High
 
-
 ;*** TACH1L - TIMA Channel 1 Register Low
 TACH1L              equ       $0000002A           ;*** TACH1L - TIMA Channel 1 Register Low
-
 
 ;*** TBSC - TIMB Status/Control Register
 TBSC                equ       $0000002B           ;*** TBSC - TIMB Status/Control Register
@@ -837,30 +789,23 @@ mTBSC_TSTOP         equ       %00100000
 mTBSC_TOIE          equ       %01000000
 mTBSC_TOF           equ       %10000000
 
-
 ;*** TBCNT - TIMB Counter Register
 TBCNT               equ       $0000002C           ;*** TBCNT - TIMB Counter Register
-
 
 ;*** TBCNTH - TIMB Counter Register High
 TBCNTH              equ       $0000002C           ;*** TBCNTH - TIMB Counter Register High
 
-
 ;*** TBCNTL - TIMB Counter Register Low
 TBCNTL              equ       $0000002D           ;*** TBCNTL - TIMB Counter Register Low
-
 
 ;*** TBMOD - TIMB Counter Modulo Register
 TBMOD               equ       $0000002E           ;*** TBMOD - TIMB Counter Modulo Register
 
-
 ;*** TBMODH - TIMB Counter Modulo Register High
 TBMODH              equ       $0000002E           ;*** TBMODH - TIMB Counter Modulo Register High
 
-
 ;*** TBMODL - TIMB Counter Modulo Register
 TBMODL              equ       $0000002F           ;*** TBMODL - TIMB Counter Modulo Register
-
 
 ;*** TBSC0 - TIMB Channel 0 Status/Control Register
 TBSC0               equ       $00000030           ;*** TBSC0 - TIMB Channel 0 Status/Control Register
@@ -883,18 +828,14 @@ mTBSC0_MS0B         equ       %00100000
 mTBSC0_CH0IE        equ       %01000000
 mTBSC0_CH0F         equ       %10000000
 
-
 ;*** TBCH0 - TIMB Channel 0 Register
 TBCH0               equ       $00000031           ;*** TBCH0 - TIMB Channel 0 Register
-
 
 ;*** TBCH0H - TIMB Channel 0 Register High
 TBCH0H              equ       $00000031           ;*** TBCH0H - TIMB Channel 0 Register High
 
-
 ;*** TBCH0L - TIMB Channel 0 Register Low
 TBCH0L              equ       $00000032           ;*** TBCH0L - TIMB Channel 0 Register Low
-
 
 ;*** TBSC1 - IMB Channel Status and Control Register
 TBSC1               equ       $00000033           ;*** TBSC1 - IMB Channel Status and Control Register
@@ -915,18 +856,14 @@ mTBSC1_MS1A         equ       %00010000
 mTBSC1_CH1IE        equ       %01000000
 mTBSC1_CH1F         equ       %10000000
 
-
 ;*** TBCH1 - TIMB Channel 1 Register
 TBCH1               equ       $00000034           ;*** TBCH1 - TIMB Channel 1 Register
-
 
 ;*** TBCH1H - TIMB Channel 1 Register High
 TBCH1H              equ       $00000034           ;*** TBCH1H - TIMB Channel 1 Register High
 
-
 ;*** TBCH1L - TIMB Channel 1 Register Low
 TBCH1L              equ       $00000035           ;*** TBCH1L - TIMB Channel 1 Register Low
-
 
 ;*** ICGCR - ICG Control Register
 ICGCR               equ       $00000036           ;*** ICGCR - ICG Control Register
@@ -949,7 +886,6 @@ mICGCR_CMON         equ       %00100000
 mICGCR_CMF          equ       %01000000
 mICGCR_CMIE         equ       %10000000
 
-
 ;*** ICGMR - ICG Multiplier Register
 ICGMR               equ       $00000037           ;*** ICGMR - ICG Multiplier Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -968,7 +904,6 @@ mICGMR_N3           equ       %00001000
 mICGMR_N4           equ       %00010000
 mICGMR_N5           equ       %00100000
 mICGMR_N6           equ       %01000000
-
 
 ;*** ICGTR - ICG Trim Register
 ICGTR               equ       $00000038           ;*** ICGTR - ICG Trim Register
@@ -991,7 +926,6 @@ mICGTR_TRIM5        equ       %00100000
 mICGTR_TRIM6        equ       %01000000
 mICGTR_TRIM7        equ       %10000000
 
-
 ;*** ICGDVR - ICG Divider Control Register
 ICGDVR              equ       $00000039           ;*** ICGDVR - ICG Divider Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1004,7 +938,6 @@ mICGDVR_DDIV0       equ       %00000001
 mICGDVR_DDIV1       equ       %00000010
 mICGDVR_DDIV2       equ       %00000100
 mICGDVR_DDIV3       equ       %00001000
-
 
 ;*** ICGDSR - ICG DCO State Control Register
 ICGDSR              equ       $0000003A           ;*** ICGDSR - ICG DCO State Control Register
@@ -1027,7 +960,6 @@ mICGDSR_DSTG5       equ       %00100000
 mICGDSR_DSTG6       equ       %01000000
 mICGDSR_DSTG7       equ       %10000000
 
-
 ;*** ADSCR - ADC10 Status and Control Register
 ADSCR               equ       $0000003C           ;*** ADSCR - ADC10 Status and Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1049,10 +981,8 @@ mADSCR_ADCO         equ       %00100000
 mADSCR_AIEN         equ       %01000000
 mADSCR_COCO         equ       %10000000
 
-
 ;*** ADR - ADC10 Data Register Right Justified
 ADR                 equ       $0000003D           ;*** ADR - ADC10 Data Register Right Justified
-
 
 ;*** ADRH - ADC10 Data Register High ~ Right Justified Mode
 ADRH                equ       $0000003D           ;*** ADRH - ADC10 Data Register High ~ Right Justified Mode
@@ -1062,7 +992,6 @@ ADRH_AD9            equ       1                   ; ADC10 Data Bit 9
 ; bit position masks
 mADRH_AD8           equ       %00000001
 mADRH_AD9           equ       %00000010
-
 
 ;*** ADRL - ADC10 Data Register Low ~ Right Justified Mode
 ADRL                equ       $0000003E           ;*** ADRL - ADC10 Data Register Low ~ Right Justified Mode
@@ -1085,7 +1014,6 @@ mADRL_AD5           equ       %00100000
 mADRL_AD6           equ       %01000000
 mADRL_AD7           equ       %10000000
 
-
 ;*** ADCLK - ADC10 Clock Register
 ADCLK               equ       $0000003F           ;*** ADCLK - ADC10 Clock Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1107,14 +1035,12 @@ mADCLK_ADIV0        equ       %00100000
 mADCLK_ADIV1        equ       %01000000
 mADCLK_ADLPC        equ       %10000000
 
-
 ;*** SBSR - SIM Break Status Register
 SBSR                equ       $0000FE00           ;*** SBSR - SIM Break Status Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 SBSR_SBSW           equ       1                   ; SIM Break STOP/WAIT
 ; bit position masks
 mSBSR_SBSW          equ       %00000010
-
 
 ;*** SRSR - SIM Reset Status Register
 SRSR                equ       $0000FE01           ;*** SRSR - SIM Reset Status Register
@@ -1135,14 +1061,12 @@ mSRSR_COP           equ       %00100000
 mSRSR_PIN           equ       %01000000
 mSRSR_POR           equ       %10000000
 
-
 ;*** SBFCR - SIM Break Flag Control Register
 SBFCR               equ       $0000FE03           ;*** SBFCR - SIM Break Flag Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 SBFCR_BCFE          equ       7                   ; Break Clear Flag Enable Bit
 ; bit position masks
 mSBFCR_BCFE         equ       %10000000
-
 
 ;*** INT1 - Interrupt Status Register 1
 INT1                equ       $0000FE04           ;*** INT1 - Interrupt Status Register 1
@@ -1160,7 +1084,6 @@ mINT1_IF3           equ       %00010000
 mINT1_IF4           equ       %00100000
 mINT1_IF5           equ       %01000000
 mINT1_IF6           equ       %10000000
-
 
 ;*** INT2 - Interrupt Status Register 2
 INT2                equ       $0000FE05           ;*** INT2 - Interrupt Status Register 2
@@ -1183,7 +1106,6 @@ mINT2_IF12          equ       %00100000
 mINT2_IF13          equ       %01000000
 mINT2_IF14          equ       %10000000
 
-
 ;*** INT3 - Interrupt Status Register 3
 INT3                equ       $0000FE06           ;*** INT3 - Interrupt Status Register 3
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1192,7 +1114,6 @@ INT3_IF16           equ       1                   ; Interrupt Flag 16
 ; bit position masks
 mINT3_IF15          equ       %00000001
 mINT3_IF16          equ       %00000010
-
 
 ;*** FLCR - FLASH Control Register
 FLCR                equ       $0000FE08           ;*** FLCR - FLASH Control Register
@@ -1207,10 +1128,8 @@ mFLCR_ERASE         equ       %00000010
 mFLCR_MASS          equ       %00000100
 mFLCR_HVEN          equ       %00001000
 
-
 ;*** BRK - Break Address Register
 BRK                 equ       $0000FE09           ;*** BRK - Break Address Register
-
 
 ;*** BRKH - Break Address Register High
 BRKH                equ       $0000FE09           ;*** BRKH - Break Address Register High
@@ -1233,7 +1152,6 @@ mBRKH_BIT13         equ       %00100000
 mBRKH_BIT14         equ       %01000000
 mBRKH_BIT15         equ       %10000000
 
-
 ;*** BRKL - Break Address Register
 BRKL                equ       $0000FE0A           ;*** BRKL - Break Address Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1255,7 +1173,6 @@ mBRKL_BIT5          equ       %00100000
 mBRKL_BIT6          equ       %01000000
 mBRKL_BIT7          equ       %10000000
 
-
 ;*** BSCR - Break Status and Control Register
 BSCR                equ       $0000FE0B           ;*** BSCR - Break Status and Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1265,14 +1182,12 @@ BSCR_BRKE           equ       7                   ; Break Enable Bit
 mBSCR_BRKA          equ       %01000000
 mBSCR_BRKE          equ       %10000000
 
-
 ;*** LVISR - LVI Status and Control Register
 LVISR               equ       $0000FE0C           ;*** LVISR - LVI Status and Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
 LVISR_LVIOUT        equ       7                   ; LVI Output Bit
 ; bit position masks
 mLVISR_LVIOUT       equ       %10000000
-
 
 ;*** FLBPR - FLASH Block Protect Register
 FLBPR               equ       $0000FF7E           ;*** FLBPR - FLASH Block Protect Register
@@ -1295,7 +1210,6 @@ mFLBPR_BPR5         equ       %00100000
 mFLBPR_BPR6         equ       %01000000
 mFLBPR_BPR7         equ       %10000000
 
-
 ;*** ICGT5V - 5V Internal Oscillator Trim Value
 ICGT5V              equ       $0000FF80           ;*** ICGT5V - 5V Internal Oscillator Trim Value
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1316,7 +1230,6 @@ mICGT5V_BIT4        equ       %00010000
 mICGT5V_BIT5        equ       %00100000
 mICGT5V_BIT6        equ       %01000000
 mICGT5V_BIT7        equ       %10000000
-
 
 ;*** ICGT3V - 3V Internal Oscillator Trim Value
 ICGT3V              equ       $0000FF81           ;*** ICGT3V - 3V Internal Oscillator Trim Value
@@ -1339,7 +1252,6 @@ mICGT3V_BIT5        equ       %00100000
 mICGT3V_BIT6        equ       %01000000
 mICGT3V_BIT7        equ       %10000000
 
-
 ;*** COPCTL - COP Control Register
 COPCTL              equ       $0000FFFF           ;*** COPCTL - COP Control Register
 ; bit numbers for usage in BCLR, BSET, BRCLR and BRSET
@@ -1360,8 +1272,6 @@ mCOPCTL_BIT4        equ       %00010000
 mCOPCTL_BIT5        equ       %00100000
 mCOPCTL_BIT6        equ       %01000000
 mCOPCTL_BIT7        equ       %10000000
-
-
 
 ;***********************************************
 ;**   D E P R E C I A T E D   S Y M B O L S   **
