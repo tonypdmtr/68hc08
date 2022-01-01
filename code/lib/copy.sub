@@ -31,6 +31,7 @@
 ;*           : 20.12.09 v2.00 Made HC08 compatible and forbade X-indexed @Copy parameters
 ;*           : 21.07.09       Minor optimization in CopyTo [-1 byte]
 ;*           : 21.07.14 v2.10 CopyTo[Z] now fills zeros at the end, not before
+;*           : 21.12.17       Minor optimization in CopyTo [-2 bytes]
 ;*******************************************************************************
 
 #ifmain ;-----------------------------------------------------------------------
@@ -98,8 +99,8 @@ Copy                macro     From To [[#]Count]
 ;        :          tsx                           ;HX -> parms
 ;        :          call      Copy                ;make the call
 ;        :          ais       #6                  ;de-allocate parameter bytes
-; Size   : 41 bytes [9S08], 77 bytes [HC08]
-; Cycles : 74       [9S08], 116      [HC08]
+; Size   : 55 bytes [9S08], 96 bytes [HC08]
+; Cycles : 99       [9S08], 152      [HC08]
 
                     #spauto   :ab                 ;account for RTS/RTC
                               #Cycles
@@ -205,6 +206,8 @@ CopyToZ             macro     ASCIZ_variable
 ;        : CCR[C] = 0: ASCIZ target (guarantees last byte is always zero)
 ;        : CCR[C] = 1: Normal target
 ; Output : None
+; Size   : 69 bytes [9S08], 141 bytes [HC08]
+; Cycles : 83       [9S08], 143       [HC08]
 ; Note(s): The initial PUSH is done in unconventional order to facilitate
 ;        : zero offset SPX optimization as len@@ is used much more than .src@@
 ;        : Do NOT change to PUSH.  Keep final PULL also in corresponding order.
@@ -234,8 +237,7 @@ Go@@                @MinA     len@@,spx           ;not more than destination siz
           ;-------------------------------------- ;clear remaining destination (if any)
                     lda       dstlen@@,spx
                     sub       len@@,spx
-                    beq       Done@@
-                    bcs       Done@@
+                    bls       Done@@
           ;-------------------------------------- ;AAX
                     psha
                     lda       .dst@@+1,spx
