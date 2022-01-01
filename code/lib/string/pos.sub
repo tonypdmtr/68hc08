@@ -51,12 +51,8 @@ StringPos           proc
                     clra                          ;Initialize position counter
                     psha      counter@@
 
-Loop@@              inc       counter@@,sp        ;count this character
-
-                    lda       ,x                  ;is buffer char ...
-                    cmpa      target@@,sp         ;... same as target?
-                    aix       #1                  ;(point to next buffer character)
-                    beq       Found@@             ;if so, go count the match
+Loop@@              lda       ,x                  ;is buffer char ...
+                    cbeq      target@@,sp,Found@@ ;is same as target, go count the match
 
                     sec                           ;assume 'not found'
                     cbeqa     #0,Done@@           ;if at end of string, we didn't find target
@@ -66,11 +62,12 @@ Loop@@              inc       counter@@,sp        ;count this character
                     cbeqa     #LF,Done@@          ;A LF means end of string
           ; comment out previous two lines for ASCIZ strings only
 
+                    inc       counter@@,sp        ;count this character
+                    aix       #1                  ;point to next buffer character
                     bra       Loop@@              ;and try again
 
 Found@@             tsx
-                    lda       counter@@,spx
-                    deca                          ;make counter zero-based (for AAX)
+                    lda       counter@@,spx       ;zero-based counter (for AAX)
                     sta       target@@,spx        ;save result for user
 
                     clc                           ;indicates 'found'
