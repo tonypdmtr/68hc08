@@ -164,7 +164,8 @@
 ;*           : 21.11.26 v2.37 Prepend `sema` if missing in fLock[Attempt]/fUnlock
 ;*           : 21.12.01 v2.38 Simplified yet improved LCDFCS macro definition
 ;*           : 21.12.08 v2.39 BugFix: Off-by-one error in LCDFCS simplification
-;*           : 21.12.22 v2.40 ReVector now uses quicker LDHX/JMP method for HCS MCUs
+;*           : 21.12.22 v2.40 ReVector now uses shorter and quicker LDHX/JMP method
+;*           :                for HCS MCUs [-5 bytes and -10 cycles per vector]
 ;*******************************************************************************
 
                     #Exit     _MACROS_
