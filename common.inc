@@ -1855,22 +1855,30 @@ mova.s              macro     [#]Source Destination
 ;*******************************************************************************
 ; MOVX emulation of a hypothetical instruction that will use the same X-index to
 ;      move a single byte from source X-offset to dest X-offset and advance the
-;      HX index afterwards. It will behave as an atomic instruction.
+;      HX index afterwards based on the optional third parameter.
+;      The 8bit_signed_step is immediate mode only can range from #-128 to #127
+;      If the 8bit_signed_step is positive, stepping will be post increment.
+;      If the 8bit_signed_step is #0, stepping will be skipped completely.
+;      If the 8bit_signed_step is negative, it will become a post decrement.
+;      MOVX behaves as an atomic instruction.
 ; Example:          clrhx
 ;                   lda       #10                 ;number of bytes to copy
 ; Loop@@            @movx     EEPROM,RAM
 ;                   dbnza     Loop@@
 
-movx                macro     source_offset,destination_offset
+movx                macro     source_offset,destination_offset[,#8bit_signed_step]
                     @@_not_x_ ~1~ ~2~
                     @@_not_sp_ ~1~ ~2~
+                    mdef      3,#1
                     psha
                     tpa
                     psha
                     sei
                     lda       ~#1~,x
                     sta       ~#2~,x
-                    aix       #1
+          #ifnz ~#3~
+                    aix       #~#3~
+          #endif
                     pula
                     tap
                     pula
