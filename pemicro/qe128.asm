@@ -22,7 +22,7 @@ MODULE_LENGTH       equ       7<16+:PAGE_END+1-TRUE_ROM
 #s19write ;version 1.05, 12/10/2009, Copyright P&E Microcomputer Systems, www.pemicro.com [9s08qe128]
 #s19write ;Modified by Tony G. Papadimitriou <tonyp@acm.org> on 2021-02-22 [-50 bytes]
 #s19write ;Assembled with ASM8 v{:version(2)} on {:year}-{:month(z)}-{:date(z)}
-#s19write ;Device Motorola/Freescale/NPX, 9S08QE128, All
+#s19write ;Device Motorola/Freescale/NXP, 9S08QE128, All
 #s19write ;begin_cs
 #s19write REQUIRES_PROG_VERSION={PROG_VERSION(2)}/
 #s19write WRITE_BYTE=02/{SOPT(L)}/       ;Clear COP Watchdog

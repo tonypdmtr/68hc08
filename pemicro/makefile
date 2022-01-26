@@ -1,5 +1,5 @@
 ################################################################################
-# Borland compatible makefile for P&E Micro algorithms     	     <tonyp@acm.org>
+# Borland compatible makefile for P&E Micro algorithms           <tonyp@acm.org>
 ################################################################################
 
 HELP:

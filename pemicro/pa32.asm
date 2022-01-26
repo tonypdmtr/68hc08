@@ -1,5 +1,5 @@
 ;*******************************************************************************
-; Original verified disassembly of PA32/PT32 v1.03 algorithm dated
+; Based on the original verified disassembly of PA32/PT32 v1.03 algorithm dated
 ; 01/24/2014 [2014-01-24] by P&E Microcomputer Systems
 ;*******************************************************************************
                     #NoMMU
@@ -20,8 +20,9 @@ MODULE_LENGTH       equ       $CF00
 
 ;*******************************************************************************
 #s19write ;version 1.03, 01/24/2014, Copyright P&E Microcomputer Systems, www.pemicro.com [9s08pt32]
+#s19write ;Modified by Tony G. Papadimitriou <tonyp@acm.org> on 2022-01-26 [-? bytes]
 #s19write ;Assembled with ASM8 v{:version(2)} on {:year}-{:month(z)}-{:date(z)}
-#s19write ;Device Motorola/Freescale/NPX, 9S08PA32, All
+#s19write ;Device Motorola/Freescale/NXP, 9S08PA32, All
 #s19write ;begin_cs
 #s19write REQUIRES_PROG_VERSION={PROG_VERSION(2)}/
 #s19write DEVICE_IS_PT
