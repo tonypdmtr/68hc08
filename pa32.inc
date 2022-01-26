@@ -1020,6 +1020,7 @@ NVICSTRM            equ       $FF6F,1             ;NV ICS Trim
 
 NVBACKKEY           equ       $FF70,8             ;NV_BACKKEY - Back Door Key Register
 
+NV_RESERVED         equ       $FF78,4             ;Reserved registers
 NV_FPROT            equ       $FF7C,1             ;Flash Protection Register
 NV_EEPROT           equ       $FF7D,1             ;EEPROM Protection Register
 NV_FOPT             equ       $FF7E,1             ;Flash Option Register

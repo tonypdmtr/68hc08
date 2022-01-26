@@ -16,7 +16,7 @@
 DivHXby10           proc
                     pshhx     ans@@
                     @div.s    ans@@,sp #10
-                    tha                           ;fractional bits of result
+                    tha                           ;A = remainder of division
                     pulhx
                     rtc
 
