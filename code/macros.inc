@@ -1832,7 +1832,9 @@ Pin                 macro     [[PinName,]PORT[,BitNumber]]
                     #Warning  BitNumber ({:temp}) > 7
           #endif
           #if :index = 1
+            #ifz ]~label~
                     #Hint     Deprecated. Use built-in PIN pseudo-op instead
+            #endif
           #endif
                     endm
 
