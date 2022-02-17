@@ -28,6 +28,7 @@
   #Hint * QD4..............: Target is 9S08QD4
   #Hint * AC32.............: Target is 9S08AC32
   #Hint * AC96.............: Target is 9S08AC96
+  #Hint * AC128............: Target is 9S08AC128
   #Hint *---------------------------------------------------
   #Hint *                   O P T I O N S
   #Hint *---------------------------------------------------
@@ -62,13 +63,13 @@ FLASH_DATA_SIZE     def       ~2~
           #endif
                     endm
 
-                    @?        QE128||AC96,1024
+                    @?        QE128||AC128||AC96,1024
                     @?        DZ32||DZ60,0        ; config storage in EEPROM, not Flash
                     @?        GB60,1920
 
 FLASH_DATA_SIZE     def       512                 ; all others have 512 default
 ;-------------------------------------------------------------------------------
-          #ifdef QE128||AC96
+          #ifdef QE128||AC128||AC96
 BOOTROM             def       $F800               ;These MMU versions are a bit larger
           #else ifdef DZ32||DZ60
 BOOTROM             def       $FA00               ;DZ has different Flash protection
@@ -136,14 +137,16 @@ BDIV                equ       1                   ;(actually, no BDIV in GB60)
                     #ListOn
           #endif
 ;-------------------------------------------------------------------------------
-          #ifdef AC32||AC96
+          #ifdef AC32||AC96||AC128
 HZ                  def       32768*512           ;MCU & Cyclone's default
 BDIV                def       1
                     #ListOff
             #ifdef AC32
                     #Uses     ac32.inc
-            #else
+            #else ifdef AC96
                     #Uses     ac96.inc
+            #else
+                    #Uses     ac128.inc
             #endif
                     #ListOn
           #endif
@@ -995,7 +998,7 @@ Done@@              lda       #FPVIOL_|FACCERR_
                     #Include  checkout.inc        ;(Fossil, Git, ...) checkout hash (optional)
                     fcc       ']'
           #endif
-                    @?mcu     QE128,QE8,QE32,GB60,AC32,AC96,QD2,QD4,DZ32,DZ60,SH8,QG8,FL16
+                    @?mcu     QE128,QE8,QE32,GB60,AC32,AC96,AC128,QD2,QD4,DZ32,DZ60,SH8,QG8,FL16
                     fcc       ' {HZ/1000(3)} MHz'
           #ifmmu
                     fcc       ' MMU'
@@ -1411,7 +1414,7 @@ Fail@@              equ       ?No
                     @?        Vlvd                ;low voltage detect vector
                     @?        Virq                ;IRQ pin vector
                     @?        Vswi                ;SWI vector
-          #else ifdef AC96
+          #else ifdef AC96||AC128
                     @?        Vspi2               ;SPI2 vector
                     @?        Vtpm3ovf            ;TPM3 overflow vector
                     @?        Vtpm3ch1            ;TPM3 channel 1 vector
